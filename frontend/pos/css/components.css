@@ -1,0 +1,442 @@
+/* ══ MODULES ══ */
+    .mod {
+      display: none;
+      flex: 1;
+      overflow: hidden
+    }
+
+    .mod.act {
+      display: flex
+    }
+
+    
+/* ══ HISTORY MODULE ══ */
+    .hist-body {
+      display: flex;
+      flex: 1;
+      overflow: hidden
+    }
+
+    .hist-list {
+      width: 380px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--brd);
+      background: var(--sf);
+      overflow: hidden
+    }
+
+    .hist-tb {
+      padding: 12px;
+      border-bottom: 1px solid var(--brd);
+      flex-shrink: 0
+    }
+
+    .hist-tb-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 9px
+    }
+
+    .hist-ttl {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--txt);
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .hist-sum {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--or);
+      font-family: var(--mo)
+    }
+
+    .flts {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-bottom: 9px
+    }
+
+    .fbt {
+      padding: 4px 10px;
+      border-radius: 18px;
+      border: 1px solid var(--brd);
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--sf2);
+      color: var(--txt2);
+      font-family: var(--fn);
+      transition: all .1s
+    }
+
+    .fbt:hover {
+      border-color: var(--brd2);
+      color: var(--txt)
+    }
+
+    .fbt.act {
+      background: var(--orL);
+      border-color: rgba(228, 84, 12, .3);
+      color: var(--or)
+    }
+
+    .hsrch {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--sf2);
+      border: 1px solid var(--brd);
+      border-radius: 9px;
+      padding: 6px 11px;
+      transition: border .15s
+    }
+
+    .hsrch:focus-within {
+      border-color: var(--or)
+    }
+
+    .hsrch input {
+      border: none;
+      background: transparent;
+      font-size: 12.5px;
+      color: var(--txt);
+      outline: none;
+      font-family: var(--fn);
+      width: 100%
+    }
+
+    .hsrch input::placeholder {
+      color: var(--txt3)
+    }
+
+    .hist-items {
+      flex: 1;
+      overflow-y: auto;
+      padding: 7px
+    }
+
+    .hcard {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--brd);
+      margin-bottom: 5px;
+      cursor: pointer;
+      transition: all .12s;
+      background: var(--sf)
+    }
+
+    .hcard:hover {
+      border-color: var(--brd2);
+      box-shadow: var(--sh)
+    }
+
+    .hcard.active {
+      border-color: var(--or);
+      background: var(--orM)
+    }
+
+    .hcard.voided {
+      background: var(--rdL);
+      border-color: rgba(239, 68, 68, .18)
+    }
+
+    .hc-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 5px
+    }
+
+    .hc-no {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--txt);
+      font-family: var(--mo)
+    }
+
+    .hc-st {
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 8px;
+      letter-spacing: .05em
+    }
+
+    .hc-st.done {
+      background: var(--gnL);
+      color: var(--gn)
+    }
+
+    .hc-st.voided {
+      background: var(--rdL);
+      color: var(--rd)
+    }
+
+    .hc-st.open {
+      background: var(--blL);
+      color: var(--bl)
+    }
+
+    .hc-meta {
+      font-size: 11px;
+      color: var(--txt3);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px
+    }
+
+    .hc-total {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--or);
+      margin-top: 4px
+    }
+
+    .hist-detail {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg)
+    }
+
+    .hd-bar {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--brd);
+      background: var(--sf);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0
+    }
+
+    .hd-no {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--txt);
+      font-family: var(--mo)
+    }
+
+    .hd-meta {
+      font-size: 11px;
+      color: var(--txt3);
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 2px
+    }
+
+    .hd-acts {
+      display: flex;
+      gap: 7px
+    }
+
+    .btn-print {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--brd);
+      background: var(--sf2);
+      color: var(--txt2);
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .12s
+    }
+
+    .btn-print:hover {
+      border-color: var(--bl);
+      color: var(--bl);
+      background: var(--blL)
+    }
+
+    .btn-void-o {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(239, 68, 68, .3);
+      background: var(--rdL);
+      color: var(--rd);
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .12s
+    }
+
+    .btn-void-o:hover {
+      background: var(--rd);
+      color: #fff
+    }
+
+    .btn-void-o.off {
+      opacity: .4;
+      cursor: not-allowed;
+      pointer-events: none
+    }
+
+    .hd-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px
+    }
+
+    .hd-sec {
+      background: var(--sf);
+      border: 1px solid var(--brd);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      box-shadow: var(--sh)
+    }
+
+    .hd-sec-h {
+      padding: 10px 14px;
+      background: var(--sf2);
+      border-bottom: 1px solid var(--brd);
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--txt);
+      display: flex;
+      align-items: center;
+      gap: 7px
+    }
+
+    .hd-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--brd);
+      font-size: 13px
+    }
+
+    .hd-row:last-child {
+      border-bottom: none
+    }
+
+    .hd-rl {
+      color: var(--txt2);
+      font-weight: 500
+    }
+
+    .hd-rv {
+      color: var(--txt);
+      font-weight: 700
+    }
+
+    .hd-rv.or {
+      color: var(--or)
+    }
+
+    .hd-rv.gn {
+      color: var(--gn)
+    }
+
+    .hd-rv.rd {
+      color: var(--rd)
+    }
+
+    .hd-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--brd)
+    }
+
+    .hd-item:last-child {
+      border-bottom: none
+    }
+
+    .hd-iname {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--txt)
+    }
+
+    .hd-imod {
+      font-size: 11px;
+      color: var(--or);
+      margin-top: 2px
+    }
+
+    .hd-iqty {
+      font-size: 11px;
+      color: var(--txt3);
+      margin-top: 1px
+    }
+
+    .hd-iprice {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--or);
+      flex-shrink: 0
+    }
+
+    .rp-paper {
+      background: #fff;
+      border: 1px solid var(--brd);
+      border-radius: 10px;
+      overflow: hidden;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #111;
+      box-shadow: var(--sh)
+    }
+
+    .perf {
+      height: 8px;
+      background: #f5f5f5;
+      background-image: radial-gradient(circle at 7px 4px, #ddd 3px, transparent 3px);
+      background-size: 14px 8px
+    }
+
+    .rp-b {
+      padding: 13px 11px
+    }
+
+    .rc {
+      text-align: center
+    }
+
+    .rb {
+      font-weight: bold
+    }
+
+    .rdiv {
+      color: #ccc;
+      font-size: 9px;
+      margin: 3px 0;
+      overflow: hidden
+    }
+
+    .rrow {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px
+    }
+
+    .rsm {
+      font-size: 10.5px
+    }
+
+    .rtag {
+      text-align: center;
+      font-weight: bold;
+      font-size: 12px;
+      margin-top: 4px;
+      letter-spacing: .02em
+    }
+
+    

@@ -1,0 +1,30 @@
+:root {
+      --bg: #1A1A1A;
+      --sf: #222;
+      --sf2: #2C2C2C;
+      --sf3: #363636;
+      --sf4: #424242;
+      --brd: rgba(255, 255, 255, .07);
+      --brd2: rgba(255, 255, 255, .13);
+      --txt: #F0EDE8;
+      --txt2: #A8A49E;
+      --txt3: #6B6662;
+      --or: #E4540C;
+      --orD: #C4420A;
+      --orL: rgba(228, 84, 12, .13);
+      --orM: rgba(228, 84, 12, .07);
+      --gn: #22C55E;
+      --gnL: rgba(34, 197, 94, .12);
+      --rd: #EF4444;
+      --rdL: rgba(239, 68, 68, .11);
+      --bl: #3B82F6;
+      --blL: rgba(59, 130, 246, .11);
+      --ye: #F59E0B;
+      --yeL: rgba(245, 158, 11, .11);
+      --pu: #A855F7;
+      --puL: rgba(168, 85, 247, .11);
+      --fn: 'Inter', -apple-system, sans-serif;
+      --mo: 'JetBrains Mono', 'SF Mono', monospace;
+      --sh: 0 1px 3px rgba(0, 0, 0, .35);
+      --sh2: 0 8px 32px rgba(0, 0, 0, .6), 0 2px 8px rgba(0, 0, 0, .3);
+    }
