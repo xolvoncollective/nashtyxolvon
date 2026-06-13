@@ -1,6 +1,7 @@
-# NASHTY OS — System README
+# 🍗 NASHTY OS - Restaurant Management System
 
-**Project:** NASHTY OS — Sistem Operasional Restoran Terintegrasi  
+**Version:** 2.0 - Cloud Ready  
+**Project:** NASHTY OS - Complete Restaurant Operations System  
 **Client:** Nashty Hot Chicken × CafeMargin (PT Xolvon Kehidupan Cerdas Abadi)  
 **Version:** 1.0 — Juni 2026  
 **Status:** Development Active
