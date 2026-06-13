@@ -1,8 +1,55 @@
 import { Router } from 'express';
 import { query, get, run, transaction } from '../db/database';
 import { nanoid } from 'nanoid';
+import { z } from 'zod';
 
 const router = Router();
+
+// Zod validation schemas for order creation
+const OrderItemModifierSchema = z.object({
+  groupId: z.string().min(1, 'Modifier group ID is required'),
+  groupName: z.string().min(1, 'Modifier group name is required'),
+  optionId: z.string().min(1, 'Modifier option ID is required'),
+  optionName: z.string().min(1, 'Modifier option name is required'),
+  priceAdjustment: z.number().optional().default(0)
+});
+
+const OrderItemSchema = z.object({
+  productId: z.string().min(1, 'Product ID is required'),
+  productName: z.string().min(1, 'Product name is required'),
+  quantity: z.number().int().positive('Quantity must be positive'),
+  unitPrice: z.number().nonnegative('Unit price cannot be negative'),
+  subtotal: z.number().nonnegative('Subtotal cannot be negative'),
+  notes: z.string().optional(),
+  modifiers: z.array(OrderItemModifierSchema).optional().default([])
+});
+
+const PaymentSchema = z.object({
+  method: z.string().min(1, 'Payment method is required'),
+  amount: z.number().positive('Payment amount must be positive'),
+  change: z.number().nonnegative('Change amount cannot be negative').optional().default(0),
+  platformRef: z.string().optional()
+});
+
+const CreateOrderSchema = z.object({
+  tenantId: z.string().min(1, 'Tenant ID is required'),
+  outletId: z.string().min(1, 'Outlet ID is required'),
+  userId: z.string().min(1, 'User ID is required'),
+  shiftId: z.string().optional().nullable(),
+  orderType: z.enum(['dine-in', 'takeaway', 'gofood', 'grabfood', 'shopeefood', 'dine_in', 'take_away', 'shopee', 'dine', 'take'], {
+    errorMap: () => ({ message: 'Invalid order type' })
+  }),
+  tableNumber: z.string().optional().nullable(),
+  items: z.array(OrderItemSchema).min(1, 'At least one item is required'),
+  subtotal: z.number().nonnegative('Subtotal cannot be negative'),
+  discount: z.number().nonnegative('Discount cannot be negative').optional().default(0),
+  tax: z.number().nonnegative('Tax cannot be negative').optional().default(0),
+  serviceCharge: z.number().nonnegative('Service charge cannot be negative').optional().default(0),
+  total: z.number().positive('Total must be positive'),
+  paymentMethod: z.string().optional().nullable(),
+  payments: z.array(PaymentSchema).min(1, 'At least one payment is required'),
+  notes: z.string().optional().nullable()
+});
 
 // Generate order number
 function generateOrderNumber(): string {
@@ -12,19 +59,33 @@ function generateOrderNumber(): string {
   return `${dateStr}${random}`;
 }
 
-// POST /api/orders — Create new order
+// POST /api/orders — Create new order with validation
 router.post('/', (req, res) => {
   try {
+    // Validate request body against Zod schema
+    const validationResult = CreateOrderSchema.safeParse(req.body);
+    
+    if (!validationResult.success) {
+      // Return structured validation errors
+      const errors = validationResult.error.errors.map(err => ({
+        field: err.path.join('.'),
+        message: err.message
+      }));
+      
+      return res.status(400).json({ 
+        success: false,
+        error: 'Validation failed',
+        errors 
+      });
+    }
+
+    // Extract validated data
     const {
       tenantId, outletId, shiftId = null, userId,
       orderType, tableNumber = null, items,
       subtotal, discount = 0, tax = 0, serviceCharge = 0, total,
       paymentMethod = null, payments, notes = null
-    } = req.body;
-
-    if (!tenantId || !outletId || !userId || !items || items.length === 0) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
+    } = validationResult.data;
 
     const orderId = nanoid();
     const orderNumber = generateOrderNumber();

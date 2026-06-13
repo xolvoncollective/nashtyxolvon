@@ -55,7 +55,7 @@ The implementation follows an incremental approach, building and testing each pr
 
 ### Priority 2: JWT Session Token System
 
-- [ ] 5. Implement JWT authentication infrastructure
+- [x] 5. Implement JWT authentication infrastructure
   - [x] 5.1 Create JWT token generation function in auth middleware
     - Install jsonwebtoken dependency if not present
     - Create generateToken(userId, role, outletId) function
@@ -72,34 +72,34 @@ The implementation follows an incremental approach, building and testing each pr
     - Return 403 Forbidden if token is expired
     - _Requirements: Not in requirements doc - new functionality_
   
-  - [ ] 5.3 Update /api/auth/login endpoint to return JWT token
+  - [x] 5.3 Update /api/auth/login endpoint to return JWT token
     - Modify existing login route to generate JWT token after PIN validation
     - Include token in response body
     - Store user session in database (sessions table)
     - _Requirements: Not in requirements doc - new functionality_
 
-- [ ] 6. Create main launcher page with JWT session sharing
-  - [~] 6.1 Create index.html launcher page at project root
+- [x] 6. Create main launcher page with JWT session sharing
+  - [x] 6.1 Create index.html launcher page at project root
     - Design simple launcher UI with three buttons: Open POS, Open KDS, Open Backoffice
     - Add login form with PIN input
     - Style with minimal CSS for clean appearance
     - _Requirements: Not in requirements doc - new functionality_
   
-  - [~] 6.2 Implement launcher authentication logic
+  - [x] 6.2 Implement launcher authentication logic
     - Send POST /api/auth/login with PIN on form submit
     - Store JWT token in localStorage on successful login
     - Open POS, KDS, and Backoffice windows using window.open() with token in URL hash
     - Pass token to child windows via postMessage API
     - _Requirements: Not in requirements doc - new functionality_
   
-  - [~] 6.3 Update POS, KDS, and Backoffice to read JWT from parent window
+  - [x] 6.3 Update POS, KDS, and Backoffice to read JWT from parent window
     - Modify each frontend module to listen for postMessage with JWT token
     - Store token in localStorage for API requests
     - Include token in Authorization header for all API calls
     - Redirect to launcher if token is missing or expired
     - _Requirements: Not in requirements doc - new functionality_
 
-- [~] 7. Checkpoint - Test JWT authentication flow
+- [x] 7. Checkpoint - Test JWT authentication flow
   - Login via launcher page
   - Open all three windows (POS, KDS, Backoffice)
   - Verify all windows share the same session
@@ -108,14 +108,14 @@ The implementation follows an incremental approach, building and testing each pr
 
 ### Priority 3: POS → KDS Integration
 
-- [ ] 8. Implement order creation API with transaction support
-  - [~] 8.1 Create POST /api/orders endpoint with validation
+- [x] 8. Implement order creation API with transaction support
+  - [x] 8.1 Create POST /api/orders endpoint with validation
     - Define Zod schema for order creation: items, payments, outlet_id, user_id, etc.
     - Validate incoming request body against schema
     - Return 400 Bad Request with validation errors if invalid
     - _Requirements: 2.1, 9.1, 9.2, 9.7_
   
-  - [~] 8.2 Implement atomic order creation transaction
+  - [x] 8.2 Implement atomic order creation transaction
     - Start database transaction
     - Insert into orders table
     - Insert into order_items table for each item
@@ -127,14 +127,14 @@ The implementation follows an incremental approach, building and testing each pr
     - Rollback transaction if any operation fails
     - _Requirements: 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 8.1, 8.2, 8.3, 8.4, 8.5, 13.1, 13.2, 13.3, 13.4, 13.5_
   
-  - [~] 8.3 Return order response with generated IDs
+  - [x] 8.3 Return order response with generated IDs
     - Return 201 Created with complete order object
     - Include order_id, order_number, items, modifiers, payments
     - Return 500 Internal Server Error with error type if transaction fails
     - Log order creation with INFO level
     - _Requirements: 2.11, 2.12, 9.4, 9.5, 14.4_
 
-- [~] 9. Implement KDS polling endpoint for order queue
+- [x] 9. Implement KDS polling endpoint for order queue
   - Create GET /api/orders/kitchen/queue route
   - Accept query parameters: outletId, kitchenStatus (default: 'pending,preparing')
   - Filter orders by outlet_id and kitchen_status in query
@@ -145,15 +145,15 @@ The implementation follows an incremental approach, building and testing each pr
   - Ensure response time is under 200ms
   - _Requirements: 3.3, 3.4, 3.5, 12.1, 12.3, 16.1_
 
-- [ ] 10. Implement KDS polling service in frontend
-  - [~] 10.1 Create KDSPollingService class in KDS frontend
+- [x] 10. Implement KDS polling service in frontend
+  - [x] 10.1 Create KDSPollingService class in KDS frontend
     - Initialize with outletId and pollInterval (default 5000ms)
     - Implement start(callback) method to begin polling
     - Implement stop() method to stop polling
     - Implement forceRefresh() method for manual refresh
     - _Requirements: 3.1, 3.2_
   
-  - [~] 10.2 Implement polling logic with error handling
+  - [x] 10.2 Implement polling logic with error handling
     - Send GET /api/orders/kitchen/queue?outletId=X every 5 seconds
     - Detect new orders by comparing order_id with current displayed orders
     - Call onOrderReceived callback for each new order
@@ -163,7 +163,7 @@ The implementation follows an incremental approach, building and testing each pr
     - Resume normal interval when connection restored
     - _Requirements: 3.6, 3.7, 3.8, 3.9, 3.10_
 
-- [~] 11. Implement order status update endpoint
+- [x] 11. Implement order status update endpoint
   - Create PATCH /api/orders/:id/status route
   - Accept body parameter: kitchenStatus ('preparing', 'ready', 'served')
   - Validate orderId parameter exists in database
@@ -174,7 +174,7 @@ The implementation follows an incremental approach, building and testing each pr
   - Return 400 Bad Request if kitchenStatus is invalid
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 9.2, 9.3_
 
-- [~] 12. Update KDS frontend to handle status updates
+- [x] 12. Update KDS frontend to handle status updates
   - Implement swipe gesture handlers on order cards
   - Send PATCH /api/orders/:id/status on swipe complete
   - Update order card visual state on success response

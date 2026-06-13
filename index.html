@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NASHTY OS - Sistem Restaurant Management</title>
+    <title>NASHTY OS - Launcher</title>
     <style>
         * {
             margin: 0;
@@ -12,680 +12,614 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d1b69 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #fff;
+            padding: 20px;
         }
 
         .container {
             width: 100%;
-            max-width: 1200px;
-            padding: 40px 20px;
+            max-width: 450px;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 60px;
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 20px;
+            text-align: center;
+            margin-bottom: 32px;
         }
 
-        .logo-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #E4540C 0%, #ff8c42 100%);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            font-weight: 900;
-            color: white;
-            box-shadow: 0 10px 30px rgba(228, 84, 12, 0.4);
-        }
-
-        .logo-text {
-            font-size: 38px;
-            font-weight: 900;
-            letter-spacing: -0.03em;
-        }
-
-        .tagline {
-            font-size: 16px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-top: 10px;
-        }
-
-        /* App Cards Grid */
-        .apps-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-bottom: 50px;
-        }
-
-        .app-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 35px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .app-card:hover {
-            transform: translateY(-10px);
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(228, 84, 12, 0.3);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .app-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #E4540C, #ff8c42);
-        }
-
-        .app-icon {
-            width: 70px;
-            height: 70px;
-            border-radius: 15px;
-            background: linear-gradient(135deg, rgba(228, 84, 12, 0.2), rgba(228, 84, 12, 0.05));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 25px;
-            color: #E4540C;
-        }
-
-        .app-title {
-            font-size: 24px;
+        .logo h1 {
+            font-size: 32px;
             font-weight: 700;
-            margin-bottom: 15px;
-            color: #fff;
-        }
-
-        .app-description {
-            font-size: 15px;
-            color: rgba(255, 255, 255, 0.7);
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-
-        .app-features {
-            list-style: none;
-            margin-bottom: 25px;
-        }
-
-        .app-features li {
-            padding: 8px 0;
-            color: rgba(255, 255, 255, 0.8);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-        }
-
-        .app-features li::before {
-            content: '✓';
-            color: #E4540C;
-            font-weight: bold;
-        }
-
-        .btn-select {
-            background: linear-gradient(135deg, #E4540C 0%, #ff8c42 100%);
-            border: none;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.2s;
-        }
-
-        .btn-select:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(228, 84, 12, 0.4);
-        }
-
-        /* Login Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(8px);
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal-content {
-            background: #1a1a1a;
-            border-radius: 20px;
-            padding: 40px;
-            width: 90%;
-            max-width: 450px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
-            position: relative;
-            animation: slideUp 0.4s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(30px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .modal-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .modal-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #fff;
-        }
-
-        .modal-subtitle {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 25px;
-        }
-
-        .close-modal {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 24px;
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .close-modal:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.9);
+            color: #1a202c;
             margin-bottom: 8px;
         }
 
-        .form-input {
+        .logo p {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .login-form {
+            display: block;
+        }
+
+        .launcher-buttons {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        input[type="password"],
+        select {
             width: 100%;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            color: white;
+            padding: 12px 16px;
             font-size: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
             transition: all 0.2s;
+            font-family: inherit;
         }
 
-        .form-input:focus {
+        input[type="password"]:focus,
+        select:focus {
             outline: none;
-            border-color: #E4540C;
-            background: rgba(255, 255, 255, 0.1);
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .btn-login {
-            background: linear-gradient(135deg, #E4540C 0%, #ff8c42 100%);
-            border: none;
-            color: white;
-            padding: 16px;
-            border-radius: 12px;
+        .btn {
+            width: 100%;
+            padding: 14px;
             font-size: 16px;
             font-weight: 600;
+            border: none;
+            border-radius: 8px;
             cursor: pointer;
-            width: 100%;
             transition: all 0.2s;
-            margin-top: 10px;
+            font-family: inherit;
         }
 
-        .btn-login:hover {
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(228, 84, 12, 0.4);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
         }
 
-        .btn-login:disabled {
-            opacity: 0.6;
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            background: #cbd5e0;
             cursor: not-allowed;
             transform: none;
         }
 
-        .error-message {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #EF4444;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            display: none;
-            font-size: 14px;
+        .module-buttons {
+            display: grid;
+            gap: 12px;
         }
 
-        .server-status {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .status-indicator {
-            display: inline-flex;
+        .btn-module {
+            padding: 20px;
+            text-align: left;
+            display: flex;
             align-items: center;
-            gap: 8px;
-            margin-left: 10px;
+            gap: 16px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            color: #2d3748;
         }
 
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #EF4444;
-            animation: pulse 2s infinite;
+        .btn-module:hover {
+            border-color: currentColor;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
         }
 
-        .status-dot.online {
-            background: #22C55E;
+        .btn-module .icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        .btn-module .content {
+            flex: 1;
         }
 
-        /* Footer */
-        .footer {
-            text-align: center;
-            margin-top: 50px;
-            color: rgba(255, 255, 255, 0.5);
+        .btn-module .title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .btn-module .description {
+            font-size: 13px;
+            color: #718096;
+        }
+
+        .btn-pos {
+            color: #3b82f6;
+        }
+
+        .btn-pos .icon {
+            background: #dbeafe;
+            color: #3b82f6;
+        }
+
+        .btn-kds {
+            color: #10b981;
+        }
+
+        .btn-kds .icon {
+            background: #d1fae5;
+            color: #10b981;
+        }
+
+        .btn-backoffice {
+            color: #f59e0b;
+        }
+
+        .btn-backoffice .icon {
+            background: #fef3c7;
+            color: #f59e0b;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
             font-size: 14px;
+            display: none;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px;
+        .success-message {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .user-info {
+            text-align: center;
+            padding: 16px;
+            background: #f7fafc;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .user-info .name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .user-info .role {
+            font-size: 14px;
+            color: #718096;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background: #f7fafc;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+        }
+
+        .logout-btn:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.6s linear infinite;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 24px;
             }
-            
-            .apps-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-            
-            .app-card {
-                padding: 25px;
-            }
-            
-            .logo-text {
+
+            .logo h1 {
                 font-size: 28px;
+            }
+
+            .btn-module {
+                padding: 16px;
+            }
+
+            .btn-module .icon {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
+        <div class="card">
             <div class="logo">
-                <div class="logo-icon">N</div>
-                <div class="logo-text">NASHTY OS</div>
-            </div>
-            <div class="tagline">Complete Restaurant Management System</div>
-        </div>
-
-        <div class="apps-grid">
-            <!-- POS Card -->
-            <div class="app-card" onclick="selectApp('pos')">
-                <div class="app-icon">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20 9V7c0-1.1-.9-2-2-2h-3c0-1.66-1.34-3-3-3S9 3.34 9 5H6c-1.1 0-2 .9-2 2v2c-1.66 0-3 1.34-3 3v5c0 1.66 1.34 3 3 3h1v2h12v-2h1c1.66 0 3-1.34 3-3v-5c0-1.66-1.34-3-3-3zM6 7h12v2H6V7zm12 10H6v-5h12v5zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
-                    </svg>
-                </div>
-                <div class="app-title">Point of Sale</div>
-                <div class="app-description">
-                    POS terminal untuk kasir dengan interface touch-friendly. 
-                    Lengkap dengan menu management, order processing, dan payment handling.
-                </div>
-                <ul class="app-features">
-                    <li>Touch-friendly interface</li>
-                    <li>Real-time order processing</li>
-                    <li>Payment integration</li>
-                    <li>Printer support</li>
-                </ul>
-                <button class="btn-select" data-app="pos">Buka POS Terminal</button>
+                <h1>🍔 NASHTY OS</h1>
+                <p>Restaurant Management System</p>
             </div>
 
-            <!-- KDS Card -->
-            <div class="app-card" onclick="selectApp('kds')">
-                <div class="app-icon">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM8 15c0-1.66 1.34-3 3-3.5 0-1.66-1.34-3-3-3s-3 1.34-3 3 1.34 3 3 3 3-1.34 3-3zm6-8h4v2h-4V7zm0 4h4v2h-4v-2z"/>
-                    </svg>
-                </div>
-                <div class="app-title">Kitchen Display</div>
-                <div class="app-description">
-                    KDS untuk dapur dengan tampilan order real-time. 
-                    Update status order, urgent notifications, dan kitchen workflow.
-                </div>
-                <ul class="app-features">
-                    <li>Real-time order display</li>
-                    <li>Status updates (Preparing → Ready)</li>
-                    <li>Urgent order notifications</li>
-                    <li>Multi-station support</li>
-                </ul>
-                <button class="btn-select" data-app="kds">Buka Kitchen Display</button>
-            </div>
-
-            <!-- Backoffice Card -->
-            <div class="app-card" onclick="selectApp('backoffice')">
-                <div class="app-icon">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4-2h2v12h-2z"/>
-                    </svg>
-                </div>
-                <div class="app-title">Backoffice Dashboard</div>
-                <div class="app-description">
-                    Dashboard management untuk owner dan manager. 
-                    Analytics, reporting, menu management, dan staff control.
-                </div>
-                <ul class="app-features">
-                    <li>Sales analytics & reports</li>
-                    <li>Menu management</li>
-                    <li>Staff management</li>
-                    <li>Inventory tracking</li>
-                </ul>
-                <button class="btn-select" data-app="backoffice">Buka Backoffice</button>
-            </div>
-        </div>
-
-        <div class="footer">
-            &copy; 2026 NASHTY OS Restaurant System • Version 2.0 • Supabase Cloud Ready
-        </div>
-    </div>
-
-    <!-- Login Modal -->
-    <div class="modal" id="loginModal">
-        <div class="modal-content">
-            <button class="close-modal" onclick="closeModal()">&times;</button>
-            
-            <div class="modal-header">
-                <div class="app-icon" id="modalIcon"></div>
-                <div class="modal-title" id="modalTitle">Login</div>
-            </div>
-            
-            <div class="modal-subtitle" id="modalSubtitle">
-                Masukkan kredensial admin untuk mengakses sistem
-            </div>
-            
-            <form id="loginForm" onsubmit="submitLogin(event)">
-                <div class="form-group">
-                    <label class="form-label" for="username">Username</label>
-                    <input type="text" id="username" class="form-input" placeholder="admin" required>
-                </div>
+            <!-- Login Form -->
+            <div class="login-form" id="loginForm">
+                <div class="error-message" id="errorMessage"></div>
                 
-                <div class="form-group">
-                    <label class="form-label" for="password">Password</label>
-                    <input type="password" id="password" class="form-input" placeholder="••••••••" required>
-                </div>
+                <form id="pinForm">
+                    <div class="form-group">
+                        <label for="outletSelect">Select Outlet</label>
+                        <select id="outletSelect" required>
+                            <option value="">Loading outlets...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pinInput">Enter PIN</label>
+                        <input 
+                            type="password" 
+                            id="pinInput" 
+                            placeholder="Enter your 4-6 digit PIN"
+                            maxlength="6"
+                            pattern="[0-9]{4,6}"
+                            required
+                            autocomplete="off"
+                        >
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="loginBtn">
+                        Login
+                    </button>
+                </form>
+            </div>
+
+            <!-- Launcher Buttons (shown after login) -->
+            <div class="launcher-buttons" id="launcherButtons">
+                <div class="success-message" id="successMessage"></div>
                 
-                <div class="error-message" id="errorMessage">
-                    Login gagal. Username atau password salah.
+                <div class="user-info" id="userInfo">
+                    <div class="name" id="userName">User Name</div>
+                    <div class="role" id="userRole">Role</div>
                 </div>
-                
-                <button type="submit" class="btn-login" id="loginButton">
-                    <span id="loginButtonText">Login</span>
+
+                <div class="module-buttons">
+                    <button class="btn btn-module btn-pos" id="openPosBtn">
+                        <div class="icon">🧾</div>
+                        <div class="content">
+                            <div class="title">Open POS</div>
+                            <div class="description">Point of Sale Terminal</div>
+                        </div>
+                    </button>
+
+                    <button class="btn btn-module btn-kds" id="openKdsBtn">
+                        <div class="icon">👨‍🍳</div>
+                        <div class="content">
+                            <div class="title">Open KDS</div>
+                            <div class="description">Kitchen Display System</div>
+                        </div>
+                    </button>
+
+                    <button class="btn btn-module btn-backoffice" id="openBackofficeBtn">
+                        <div class="icon">⚙️</div>
+                        <div class="content">
+                            <div class="title">Open Backoffice</div>
+                            <div class="description">Management & Reports</div>
+                        </div>
+                    </button>
+                </div>
+
+                <button class="btn logout-btn" id="logoutBtn">
+                    Logout
                 </button>
-            </form>
-            
-            <div class="server-status">
-                Server Status: <span class="status-indicator">
-                    <span class="status-dot" id="statusDot"></span>
-                    <span id="statusText">Checking...</span>
-                </span>
             </div>
         </div>
     </div>
 
     <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:3099/api';
+        
         // State
-        let selectedApp = null;
-        let sessionTimeout = null;
-        
+        let authToken = null;
+        let currentUser = null;
+        let currentOutlet = null;
+
         // DOM Elements
-        const loginModal = document.getElementById('loginModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalSubtitle = document.getElementById('modalSubtitle');
-        const modalIcon = document.getElementById('modalIcon');
         const loginForm = document.getElementById('loginForm');
+        const launcherButtons = document.getElementById('launcherButtons');
+        const pinForm = document.getElementById('pinForm');
+        const outletSelect = document.getElementById('outletSelect');
+        const pinInput = document.getElementById('pinInput');
+        const loginBtn = document.getElementById('loginBtn');
         const errorMessage = document.getElementById('errorMessage');
-        const statusDot = document.getElementById('statusDot');
-        const statusText = document.getElementById('statusText');
-        const loginButton = document.getElementById('loginButton');
-        const loginButtonText = document.getElementById('loginButtonText');
-        
-        // App configurations
-        const apps = {
-            pos: {
-                title: 'POS Terminal',
-                description: 'Point of Sale untuk kasir',
-                icon: `<svg width="32" height="32" viewBox="0 0 24 24" fill="#E4540C"><path d="M20 9V7c0-1.1-.9-2-2-2h-3c0-1.66-1.34-3-3-3S9 3.34 9 5H6c-1.1 0-2 .9-2 2v2c-1.66 0-3 1.34-3 3v5c0 1.66 1.34 3 3 3h1v2h12v-2h1c1.66 0 3-1.34 3-3v-5c0-1.66-1.34-3-3-3zM6 7h12v2H6V7zm12 10H6v-5h12v5zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>`,
-                path: '/pos/frontend/index.html'
-            },
-            kds: {
-                title: 'Kitchen Display',
-                description: 'KDS untuk dapur',
-                icon: `<svg width="32" height="32" viewBox="0 0 24 24" fill="#E4540C"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM8 15c0-1.66 1.34-3 3-3.5 0-1.66-1.34-3-3-3s-3 1.34-3 3 1.34 3 3 3 3-1.34 3-3zm6-8h4v2h-4V7zm0 4h4v2h-4v-2z"/></svg>`,
-                path: '/kds/frontend/index.html'
-            },
-            backoffice: {
-                title: 'Backoffice Dashboard',
-                description: 'Management dashboard',
-                icon: `<svg width="32" height="32" viewBox="0 0 24 24" fill="#E4540C"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4-2h2v12h-2z"/></svg>`,
-                path: '/backoffice/frontend/index.html'
-            }
-        };
-        
+        const successMessage = document.getElementById('successMessage');
+        const userInfo = document.getElementById('userInfo');
+        const userName = document.getElementById('userName');
+        const userRole = document.getElementById('userRole');
+        const openPosBtn = document.getElementById('openPosBtn');
+        const openKdsBtn = document.getElementById('openKdsBtn');
+        const openBackofficeBtn = document.getElementById('openBackofficeBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+
         // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            checkServerStatus();
+        document.addEventListener('DOMContentLoaded', () => {
+            loadOutlets();
             checkExistingSession();
         });
-        
-        function selectApp(appType) {
-            selectedApp = appType;
-            const app = apps[appType];
-            
-            // Bypass login modal locally
-            const sessionData = {
-                username: 'admin',
-                app: selectedApp,
-                timestamp: new Date().toISOString(),
-                token: 'local-dev-token',
-                user: { id: 'admin', username: 'admin', role: 'admin', tenantId: 'demo-tenant', outletId: 'demo-outlet' },
-                session: 'local'
-            };
-            localStorage.setItem('nashty_main_session', JSON.stringify(sessionData));
-            window.location.href = app.path + '?session=' + encodeURIComponent(JSON.stringify(sessionData));
-        }
-        
-        // Close modal
-        function closeModal() {
-            loginModal.style.display = 'none';
-            selectedApp = null;
-        }
-        
-        // Check server status
-        async function checkServerStatus() {
+
+        // Load outlets from API
+        async function loadOutlets() {
             try {
-                const response = await fetch('/health');
-                const data = await response.json();
+                const response = await fetch(`${API_BASE_URL}/auth/outlets`);
+                if (!response.ok) throw new Error('Failed to load outlets');
                 
-                if (response.ok) {
-                    statusDot.classList.add('online');
-                    statusText.textContent = 'Online v' + (data.version || '1.0');
-                } else {
-                    throw new Error('Server error');
-                }
+                const data = await response.json();
+                const outlets = data.outlets || [];
+                
+                outletSelect.innerHTML = '<option value="">Select an outlet</option>';
+                outlets.forEach(outlet => {
+                    const option = document.createElement('option');
+                    option.value = outlet.id;
+                    option.textContent = outlet.name;
+                    outletSelect.appendChild(option);
+                });
             } catch (error) {
-                statusText.textContent = 'Offline';
+                console.error('Failed to load outlets:', error);
+                outletSelect.innerHTML = '<option value="">Failed to load outlets</option>';
             }
         }
-        
-        // Check existing session
+
+        // Check for existing session
         function checkExistingSession() {
-            const session = localStorage.getItem('nashty_main_session');
-            if (session) {
-                try {
-                    const sessionData = JSON.parse(session);
-                    const now = new Date();
-                    const sessionTime = new Date(sessionData.timestamp);
-                    const hoursDiff = Math.abs(now - sessionTime) / 36e5;
-                    
-                    // Session valid for 24 hours
-                    if (hoursDiff < 24) {
-                        const app = apps[sessionData.app];
-                        if (app) {
-                            // Auto-redirect if session is valid
-                            console.log('Auto-redirecting with valid session');
-                            window.location.href = app.path + '?session=' + encodeURIComponent(session);
-                        }
-                    } else {
-                        // Session expired
-                        localStorage.removeItem('nashty_main_session');
-                    }
-                } catch (e) {
-                    localStorage.removeItem('nashty_main_session');
-                }
+            const token = localStorage.getItem('nashty_token');
+            const user = localStorage.getItem('nashty_user');
+            const outlet = localStorage.getItem('nashty_outlet');
+            
+            if (token && user && outlet) {
+                authToken = token;
+                currentUser = JSON.parse(user);
+                currentOutlet = JSON.parse(outlet);
+                showLauncher();
             }
         }
-        
-        // Submit login
-        async function submitLogin(event) {
-            event.preventDefault();
+
+        // Handle login form submission
+        pinForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
             
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+            const pin = pinInput.value.trim();
+            const outletId = outletSelect.value;
             
-            // Disable button
-            loginButton.disabled = true;
-            loginButtonText.textContent = 'Checking...';
-            errorMessage.style.display = 'none';
+            if (!outletId) {
+                showError('Please select an outlet');
+                return;
+            }
             
+            if (!pin || pin.length < 4) {
+                showError('Please enter a valid PIN (4-6 digits)');
+                return;
+            }
+            
+            await login(pin, outletId);
+        });
+
+        // Login function
+        async function login(pin, outletId) {
             try {
-                // Call main auth API
-                const response = await fetch('/api/main/auth/login', {
+                setLoading(true);
+                hideError();
+                
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ username, password })
+                    body: JSON.stringify({ pin, outletId })
                 });
                 
                 const data = await response.json();
                 
-                if (data.success && data.token) {
-                    // Store session
-                    const sessionData = {
-                        username: data.user.username,
-                        app: selectedApp,
-                        timestamp: new Date().toISOString(),
-                        token: data.token,
-                        user: data.user,
-                        session: data.session
-                    };
-                    
-                    localStorage.setItem('nashty_main_session', JSON.stringify(sessionData));
-                    
-                    // Success message
-                    loginButtonText.textContent = '✓ Login Successful!';
-                    
-                    // Redirect after delay
-                    setTimeout(() => {
-                        const app = apps[selectedApp];
-                        window.location.href = app.path + '?session=' + encodeURIComponent(JSON.stringify(sessionData));
-                    }, 1000);
-                    
-                } else {
-                    throw new Error(data.error || 'Login gagal');
+                if (!response.ok) {
+                    throw new Error(data.message || 'Login failed');
                 }
                 
-            } catch (error) {
-                errorMessage.textContent = error.message;
-                errorMessage.style.display = 'block';
-                loginButtonText.textContent = 'Login';
-                loginButton.disabled = false;
+                // Store session data
+                authToken = data.token;
+                currentUser = data.user;
+                currentOutlet = { id: outletId, name: outletSelect.options[outletSelect.selectedIndex].text };
                 
-                // Clear password
-                document.getElementById('password').value = '';
+                localStorage.setItem('nashty_token', authToken);
+                localStorage.setItem('nashty_user', JSON.stringify(currentUser));
+                localStorage.setItem('nashty_outlet', JSON.stringify(currentOutlet));
+                
+                // Show launcher
+                showLauncher();
+                showSuccess('Login successful! Select a module to open.');
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                showError(error.message || 'Login failed. Please check your PIN and try again.');
+            } finally {
+                setLoading(false);
             }
         }
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeModal();
+
+        // Show launcher buttons
+        function showLauncher() {
+            loginForm.style.display = 'none';
+            launcherButtons.style.display = 'block';
+            
+            if (currentUser) {
+                userName.textContent = currentUser.name || currentUser.username || 'User';
+                userRole.textContent = `${currentUser.role || 'Staff'} • ${currentOutlet.name}`;
+            }
+        }
+
+        // Show login form
+        function showLogin() {
+            launcherButtons.style.display = 'none';
+            loginForm.style.display = 'block';
+            pinInput.value = '';
+            hideError();
+            hideSuccess();
+        }
+
+        // Module launchers
+        openPosBtn.addEventListener('click', () => {
+            openModule('/pos', 'POS Terminal');
+        });
+
+        openKdsBtn.addEventListener('click', () => {
+            openModule('/kds', 'Kitchen Display');
+        });
+
+        openBackofficeBtn.addEventListener('click', () => {
+            openModule('/backoffice', 'Backoffice');
+        });
+
+        // Open module in new window
+        function openModule(path, title) {
+            const url = `http://localhost:3099${path}`;
+            const windowFeatures = 'width=1280,height=800,menubar=no,toolbar=no,location=no,status=no';
+            const newWindow = window.open(url, title, windowFeatures);
+            
+            if (newWindow) {
+                // Send auth token to child window via postMessage
+                // This will be implemented in Task 6.2
+                setTimeout(() => {
+                    try {
+                        newWindow.postMessage({
+                            type: 'NASHTY_AUTH',
+                            token: authToken,
+                            user: currentUser,
+                            outlet: currentOutlet
+                        }, 'http://localhost:3099');
+                    } catch (error) {
+                        console.error('Failed to send auth to child window:', error);
+                    }
+                }, 1000);
+            } else {
+                showError('Failed to open window. Please allow pop-ups for this site.');
+            }
+        }
+
+        // Logout
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) {
+                logout();
             }
         });
-        
-        // Check session every minute (for auto-logout)
-        setInterval(checkExistingSession, 60000);
+
+        function logout() {
+            // Clear session data
+            authToken = null;
+            currentUser = null;
+            currentOutlet = null;
+            
+            localStorage.removeItem('nashty_token');
+            localStorage.removeItem('nashty_user');
+            localStorage.removeItem('nashty_outlet');
+            
+            showLogin();
+        }
+
+        // UI Helper functions
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        function hideError() {
+            errorMessage.style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.style.display = 'block';
+            setTimeout(() => hideSuccess(), 3000);
+        }
+
+        function hideSuccess() {
+            successMessage.style.display = 'none';
+        }
+
+        function setLoading(loading) {
+            loginBtn.disabled = loading;
+            if (loading) {
+                loginBtn.innerHTML = 'Logging in<span class="loading"></span>';
+            } else {
+                loginBtn.textContent = 'Login';
+            }
+        }
+
+        // Auto-focus PIN input
+        pinInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
     </script>
 </body>
 </html>
