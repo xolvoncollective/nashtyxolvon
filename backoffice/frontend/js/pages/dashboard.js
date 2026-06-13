@@ -1,4 +1,5 @@
 // DASHBOARD 
+const frS = n => n >= 1e6 ? 'Rp ' + (n / 1e6).toFixed(1) + 'jt' : n >= 1e3 ? 'Rp ' + (n / 1e3).toFixed(0) + 'rb' : 'Rp ' + n;
 PAGES.dashboard = async () => {
   let kpi = { today: { total_sales:0, order_count:0, avg_order_value:0 }, yesterday: { total_sales:0 }, growth: 0, topProducts: [], salesByType: [] };
   let chartData = [];

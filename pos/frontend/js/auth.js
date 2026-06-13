@@ -2,22 +2,11 @@
        LOGIN
     ════════════════════════ */
     async function initLogin() {
-      const g = document.getElementById('staff-grid');
-      g.innerHTML = '<div style="color:var(--txt3); font-size:12px; grid-column:span 2; text-align:center;">Memuat data kasir...</div>';
-      try {
-        const res = await API.auth.getStaff('demo-outlet');
-        const staffList = res.staff || [];
-        g.innerHTML = '';
-        staffList.forEach(s => {
-          const b = document.createElement('button');
-          b.className = 'staff-btn'; b.id = 'sbtn-' + s.id;
-          b.innerHTML = `<div class="staff-av">${s.name[0]}</div><div class="staff-name">${s.name}</div><div class="staff-role">${s.role}</div>`;
-          b.onclick = () => selectStaff(s);
-          g.appendChild(b);
-        });
-      } catch (err) {
-        g.innerHTML = '<div style="color:var(--rd); font-size:12px; grid-column:span 2; text-align:center;">Gagal memuat kasir. Pastikan backend menyala.</div>';
-      }
+      // DEV OVERRIDE: Skip login entirely
+      // Use setTimeout to allow history.js to be parsed before calling loadHist()
+      setTimeout(() => {
+        doLogin({ id: 'admin', name: 'Admin Demo', role: 'admin', tenantId: 'demo-tenant', outletId: 'demo-outlet' });
+      }, 50);
     }
     function selectStaff(s) {
       loginSel = s; loginPinArr = [];
@@ -77,34 +66,58 @@
 
       try {
         await API.shifts.start(500000); // 500k starting cash
-        const catRes = await API.categories.getAll();
-        const prodRes = await API.products.getAll();
+      } catch (shiftErr) {
+        console.warn('Shift start info:', shiftErr.message);
+      }
+      
+      try {
+        const res = await API.menu.getOutletMenu(API.session.outletId);
         
-        if (catRes.success && catRes.data) {
-          CATS = catRes.data.map(c => ({
+        if (res.categories && res.items) {
+          CATS = res.categories.map(c => ({
             id: c.id,
             label: c.name,
-            svg: c.name.toLowerCase().includes('makan') ? ICO.rice : (c.name.toLowerCase().includes('minum') ? ICO.juice : ICO.nugget)
+            svg: c.icon || (c.name.toLowerCase().includes('makan') ? ICO.rice : (c.name.toLowerCase().includes('minum') ? ICO.juice : ICO.nugget))
           }));
           CATS.unshift({ id: 'fav', label: 'Favorit', svg: ICO.cake, isFav: true });
-        }
-        
-        if (prodRes.success && prodRes.data) {
-          MENU = prodRes.data.map(p => ({
-            id: p.id,
-            cat: p.category_id,
-            n: p.name,
-            p: p.price,
-            d: p.description || '',
-            ico: p.name.toLowerCase().includes('ayam') ? 'chicken' : (p.name.toLowerCase().includes('es') ? 'juice' : 'rice'),
-            sold: p.stock_qty <= 0
-          }));
+          
+          MENU = res.items.map(p => {
+            const opts = [];
+            const addons = [];
+            
+            if (p.modifier_groups) {
+              p.modifier_groups.forEach(g => {
+                if (g.type === 'addon' || g.name.toLowerCase().includes('addon') || g.name.toLowerCase().includes('tambahan')) {
+                  (g.options || []).forEach(o => addons.push({ n: o.name, p: o.price_adjustment }));
+                } else {
+                  opts.push({
+                    name: g.name,
+                    req: g.required === 1,
+                    multi: g.max_select > 1,
+                    items: (g.options || []).map(o => ({ n: o.name, p: o.price_adjustment }))
+                  });
+                }
+              });
+            }
+
+            return {
+              id: p.id,
+              cat: p.category_id,
+              n: p.name,
+              p: p.price,
+              d: p.description || '',
+              ico: p.category_name && p.category_name.toLowerCase().includes('ayam') ? 'chicken' : (p.category_name && p.category_name.toLowerCase().includes('es') ? 'juice' : 'rice'),
+              sold: p.status === 'soldout' || p.is_active === 0 || p.status === 'inactive',
+              opts: opts,
+              addons: addons
+            };
+          });
         }
       } catch (err) {
         console.error('Failed to load menu data:', err);
       }
 
-      initCats(); renderMenu(); renderHist();
+      initCats(); renderMenu(); loadHist();
     }
     function doLogout() {
       currentUser = null; loginSel = null; loginPinArr = []; cart = []; discount = 0; curMember = null;

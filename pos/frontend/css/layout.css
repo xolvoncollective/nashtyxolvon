@@ -13,7 +13,7 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  background: var(--sf);
+  background: var(--sf); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--brd);
   z-index: 200;
   box-shadow: var(--sh);
@@ -363,18 +363,14 @@
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.13s;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   box-shadow: var(--sh);
   display: flex;
   flex-direction: column;
   position: relative;
 }
 
-.mcard:hover {
-  border-color: var(--or);
-  box-shadow: 0 3px 14px rgba(228, 84, 12, 0.17);
-  transform: translateY(-2px);
-}
+.mcard:hover { border-color: var(--or); box-shadow: 0 12px 30px rgba(255, 90, 31, 0.25); transform: translateY(-4px) scale(1.02); }
 
 .mcard:active {
   transform: scale(0.97);
@@ -585,7 +581,7 @@
   flex: 0 0 35%;
   display: flex;
   flex-direction: column;
-  background: var(--sf);
+  background: var(--sf); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-left: 1px solid var(--brd);
   overflow: hidden;
   min-width: clamp(280px, 30vw, 400px);
 }

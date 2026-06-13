@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Nashty Member</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- LOADING OVERLAY -->
+  <div id="loading" class="loading-overlay">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container"></div>
+
+  <!-- APP WRAPPER -->
+  <div class="app-wrapper">
+
+    <!-- LOGIN VIEW -->
+    <div id="view-login" class="view act">
+      <div class="login-box glass">
+        <div class="brand">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--or)"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <h1>NashtyMember</h1>
+        </div>
+        <p class="subtitle">Kumpulkan poin & nikmati reward spesial untuk Nashty People!</p>
+        
+        <form id="login-form">
+          <div class="form-group">
+            <label>Nomor WhatsApp</label>
+            <input type="tel" id="inp-phone" placeholder="0812..." required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>Nama Lengkap (Khusus member baru)</label>
+            <input type="text" id="inp-name" placeholder="Nama Anda..." autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>PIN (Default: 1234)</label>
+            <input type="password" id="inp-pin" placeholder="••••" required autocomplete="off" value="1234">
+          </div>
+          <button type="submit" class="btn-primary">Masuk / Daftar</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div id="view-dashboard" class="view">
+      <!-- Header -->
+      <header class="dash-header glass-top">
+        <div class="header-left">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--or)"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span style="font-weight:700;letter-spacing:1px;font-size:16px;">NashtyMember</span>
+        </div>
+        <button class="btn-icon" onclick="logout()" title="Keluar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </header>
+
+      <!-- Main Content -->
+      <div class="dash-content">
+        
+        <!-- Virtual Card -->
+        <div class="v-card">
+          <div class="v-card-bg"></div>
+          <div class="v-card-content">
+            <div class="vc-top">
+              <div class="vc-tier" id="vc-tier">Member Baru</div>
+              <div class="vc-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            </div>
+            <div class="vc-mid">
+              <div class="vc-pts-lbl">Poin Tersedia</div>
+              <div class="vc-pts-val" id="vc-pts">0</div>
+            </div>
+            <div class="vc-bot">
+              <div class="vc-name" id="vc-name">Nama Member</div>
+              <div class="vc-phone" id="vc-phone">0812xxx</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stats-grid">
+          <div class="stat-box glass">
+            <div class="sb-lbl">Total Kunjungan</div>
+            <div class="sb-val" id="sb-visits">0</div>
+          </div>
+          <div class="stat-box glass">
+            <div class="sb-lbl">Total Belanja</div>
+            <div class="sb-val" id="sb-spent">Rp 0</div>
+          </div>
+        </div>
+
+        <!-- History -->
+        <div class="history-section">
+          <div class="hs-head">
+            <h3>Riwayat Transaksi</h3>
+          </div>
+          <div id="history-list" class="history-list">
+            <!-- Items will be injected here -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

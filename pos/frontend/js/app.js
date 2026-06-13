@@ -146,12 +146,12 @@
         API.session.outletId = 'demo-outlet';
       }
       try {
-        const catRes = await API.categories.getAll();
-        if (catRes.success) {
-          const freshCats = catRes.data.map(c => ({
+        const res = await API.menu.getOutletMenu(API.session.outletId);
+        if (res.categories && res.items) {
+          const freshCats = res.categories.map(c => ({
             id: c.id,
             label: c.name,
-            svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>',
+            svg: c.icon || '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>',
             isFav: false
           }));
           const favCat = CATS.find(c => c.id === 'fav');
@@ -161,21 +161,38 @@
             CATS = freshCats;
           }
           initCats();
-        }
 
-        const prodRes = await API.products.getAll();
-        if (prodRes.success) {
-          MENU = prodRes.data.map(p => ({
-            id: p.id,
-            cat: p.category_id,
-            n: p.name,
-            p: p.price,
-            ico: p.category_name && p.category_name.toLowerCase().includes('minum') ? 'tea' : 'rice',
-            d: p.description || '',
-            sold: p.status === 'soldout' || p.is_active === 0 || p.status === 'inactive',
-            opts: [],
-            addons: []
-          }));
+          MENU = res.items.map(p => {
+            const opts = [];
+            const addons = [];
+            
+            if (p.modifier_groups) {
+              p.modifier_groups.forEach(g => {
+                if (g.type === 'addon' || g.name.toLowerCase().includes('addon') || g.name.toLowerCase().includes('tambahan')) {
+                  (g.options || []).forEach(o => addons.push({ n: o.name, p: o.price_adjustment }));
+                } else {
+                  opts.push({
+                    name: g.name,
+                    req: g.required === 1,
+                    multi: g.max_select > 1,
+                    items: (g.options || []).map(o => ({ n: o.name, p: o.price_adjustment }))
+                  });
+                }
+              });
+            }
+
+            return {
+              id: p.id,
+              cat: p.category_id,
+              n: p.name,
+              p: p.price,
+              ico: p.category_name && p.category_name.toLowerCase().includes('minum') ? 'tea' : 'rice',
+              d: p.description || '',
+              sold: p.status === 'soldout' || p.is_active === 0 || p.status === 'inactive',
+              opts: opts,
+              addons: addons
+            };
+          });
           renderMenu(document.getElementById('msearch')?.value || '');
         }
       } catch (err) {

@@ -11,16 +11,17 @@
       (m.opts || []).forEach((g, gi) => {
         optsHtml += '<div style="margin-bottom:14px">'
           + '<div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">'
-          + '<span>' + g.label + '</span>'
-          + '<span style="font-size:9px;padding:2px 8px;border-radius:8px;background:var(--blL);color:var(--bl)">' + (g.type === 'single' ? 'Pilih 1' : 'Multi-pilih') + '</span>'
+          + '<span>' + g.name + '</span>'
+          + '<span style="font-size:9px;padding:2px 8px;border-radius:8px;background:var(--blL);color:var(--bl)">' + (!g.multi ? 'Pilih 1' : 'Multi-pilih') + '</span>'
           + '</div>';
-        g.choices.forEach(ch => {
-          const sel = curOpts[g.label] && (Array.isArray(curOpts[g.label]) ? curOpts[g.label].includes(ch) : curOpts[g.label] === ch);
-          const t = g.type === 'single' ? 'radio' : 'checkbox';
+        (g.items || []).forEach(ch => {
+          const chName = ch.n;
+          const sel = curOpts[g.name] && (Array.isArray(curOpts[g.name]) ? curOpts[g.name].includes(chName) : curOpts[g.name] === chName);
+          const t = !g.multi ? 'radio' : 'checkbox';
           optsHtml += '<label class="opts-choice' + (sel ? ' sel' : '') + '" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--sf2);border:1px solid ' + (sel ? 'rgba(228,84,12,.4)' : 'var(--brd)') + ';border-radius:9px;cursor:pointer;margin-bottom:5px;transition:all .1s">'
-            + '<input type="' + t + '" name="og-' + menuId + '-' + gi + '" value="' + ch + '" ' + (sel ? 'checked' : '')
+            + '<input type="' + t + '" name="og-' + menuId + '-' + gi + '" value="' + chName + '" ' + (sel ? 'checked' : '')
             + ' style="width:16px;height:16px;accent-color:var(--or);cursor:pointer">'
-            + '<span style="font-size:13px;font-weight:600;color:var(--txt)">' + ch + '</span>'
+            + '<span style="font-size:13px;font-weight:600;color:var(--txt)">' + chName + (ch.p ? ' (+'+fr(ch.p)+')' : '') + '</span>'
             + '</label>';
         });
         optsHtml += '</div>';

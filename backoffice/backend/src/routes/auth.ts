@@ -2,16 +2,21 @@ import { Router } from 'express';
 import db from '../db/database';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { generateToken } from '../middleware/auth';
 
 const router = Router();
 
 // Login with PIN
+// Returns JWT token for authentication across POS, KDS, and Backoffice modules
 router.post('/login', async (req, res) => {
   try {
     const { pin, outletId } = req.body;
 
     if (!pin) {
-      return res.status(400).json({ error: 'PIN required' });
+      return res.status(400).json({ 
+        success: false,
+        error: 'PIN required' 
+      });
     }
 
     // Get users for outlet (default to first outlet if not specified)
@@ -35,11 +40,12 @@ router.post('/login', async (req, res) => {
     for (const user of users as any[]) {
       const pinMatch = await bcrypt.compare(pin, user.pin);
       if (pinMatch) {
-        const token = jwt.sign(
-          { id: user.id, role: user.role, tenantId: user.tenant_id, outletId: user.outlet_id },
-          process.env.JWT_SECRET || 'nashty-super-secret-key-2026',
-          { expiresIn: '24h' }
-        );
+        // Generate JWT token using the generateToken function from middleware
+        // Token expiration: 12 hours for POS roles (cashier, chef), 30 minutes for Backoffice roles
+        const token = generateToken(user.id, user.role, user.outlet_id);
+
+        // Log successful login
+        console.log(`[INFO] User login successful - ID: ${user.id}, Role: ${user.role}, Outlet: ${user.outlet_id || 'none'}`);
 
         return res.json({
           success: true,
@@ -58,10 +64,19 @@ router.post('/login', async (req, res) => {
       }
     }
 
-    return res.status(401).json({ error: 'Invalid PIN' });
+    // Log failed login attempt
+    console.log(`[WARN] Failed login attempt - Invalid PIN for outlet: ${outletId || 'none'}`);
+    
+    return res.status(401).json({ 
+      success: false,
+      error: 'Invalid PIN' 
+    });
   } catch (error: any) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: error.message });
+    console.error('[ERROR] Login error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
   }
 });
 
@@ -104,7 +119,7 @@ router.post('/verify-manager-pin', async (req, res) => {
 
     // Find managers and owners in this outlet
     let query = `
-      SELECT u.id, u.name, u.role, u.pin, u.tenant_id
+      SELECT u.id, u.name, u.role, u.pin, u.tenant_id, u.outlet_id
       FROM users u
       WHERE u.status = 'active' AND u.role IN ('manager', 'owner')
     `;
@@ -123,11 +138,8 @@ router.post('/verify-manager-pin', async (req, res) => {
     for (const manager of managers as any[]) {
       const pinMatch = await bcrypt.compare(pin, manager.pin);
       if (pinMatch) {
-        const token = jwt.sign(
-          { id: manager.id, role: manager.role, tenantId: manager.tenant_id, outletId: manager.outlet_id, isManagerOverride: true },
-          process.env.JWT_SECRET || 'nashty-super-secret-key-2026',
-          { expiresIn: '15m' }
-        );
+        // Generate JWT token using the generateToken function from middleware
+        const token = generateToken(manager.id, manager.role, manager.outlet_id);
 
         return res.json({
           success: true,

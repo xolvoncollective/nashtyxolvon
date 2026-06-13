@@ -2,37 +2,35 @@
    TOKENS — Nashty OS Visual Identity
 ═══════════════════════════════════════════ */
 :root {
-  --bg:    #0D0D0D;
-  --sf:    #141414;
-  --sf2:   #1A1A1A;
-  --sf3:   #222;
-  --sf4:   #2A2A2A;
-  --brd:   rgba(255,255,255,.07);
-  --brd2:  rgba(255,255,255,.12);
-  --txt:   #F2EFE8;
-  --txt2:  #9A9690;
-  --txt3:  #555;
-  --or:    #E4540C;
-  --orD:   #C23D08;
-  --orL:   rgba(228,84,12,.18);
-  --orL2:  rgba(228,84,12,.08);
-  --gn:    #22C55E;
-  --gnL:   rgba(34,197,94,.15);
-  --ye:    #F59E0B;
-  --yeL:   rgba(245,158,11,.15);
-  --rd:    #EF4444;
-  --rdL:   rgba(239,68,68,.15);
-  --bl:    #3B82F6;
-  --fn:    'DM Sans', sans-serif;
-  --mo:    'DM Mono', monospace;
-
-  /* KDS-specific — configurable via Backoffice */
-  --timer-size:   24px;
-  --order-size:   22px;
-  --qty-size:     15px;
-  --strip-w:      5px;
-  --swipe-color:  var(--gn);
-}
+      --bg: #0B0F19;
+      --sf: rgba(21, 29, 45, 0.75);
+      --sf2: rgba(30, 41, 59, 0.85); 
+      --sf3: rgba(51, 65, 85, 0.85);
+      --sf4: rgba(71, 85, 105, 0.85);
+      --brd: rgba(255, 255, 255, 0.08);
+      --brd2: rgba(255, 255, 255, 0.15);
+      --txt: #F8FAFC;
+      --txt2: #CBD5E1;
+      --txt3: #94A3B8;
+      --or: #FF5A1F;
+      --orD: #E04812;
+      --orL: rgba(255, 90, 31, 0.15);
+      --orM: rgba(255, 90, 31, 0.08);
+      --gn: #10B981;
+      --gnL: rgba(16, 185, 129, 0.15);
+      --rd: #F43F5E;
+      --rdL: rgba(244, 63, 94, 0.15);
+      --bl: #3B82F6;
+      --blL: rgba(59, 130, 246, 0.15);
+      --ye: #F59E0B;
+      --yeL: rgba(245, 158, 11, 0.15);
+      --pu: #8B5CF6;
+      --puL: rgba(139, 92, 246, 0.15);
+      --fn: 'Outfit', 'Inter', sans-serif;
+      --mo: 'JetBrains Mono', monospace;
+      --sh: 0 8px 32px rgba(0, 0, 0, 0.4);
+      --sh2: 0 12px 48px rgba(0, 0, 0, 0.6), 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
 
 /* Day mode */
 body.day {
@@ -64,7 +62,7 @@ html,body { height:100%; background:var(--bg); color:var(--txt); font-family:var
 /* ── TOPBAR ── */
 .topbar {
   height:52px; flex-shrink:0; display:flex; align-items:center;
-  background:var(--sf); border-bottom:1px solid var(--brd);
+  background: var(--sf); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(255,255,255,0.05); border-bottom:1px solid var(--brd);
   padding:0 18px; gap:14px; position:relative; z-index:10;
 }
 .tb-logo {

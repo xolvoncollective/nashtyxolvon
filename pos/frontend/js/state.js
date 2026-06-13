@@ -120,7 +120,12 @@
     ];
 
     /* ── STATE ── */
-    let cart = [], curCat = 'main', discount = 0, curMember = null, orderType = 'dine', favorites = new Set();
+    let cart = [], curCat = 'main', discount = 0, curMember = null, orderType = 'dine';
+    let favorites = new Set();
+    try {
+      const savedFavs = localStorage.getItem('nashty_favorites');
+      if (savedFavs) favorites = new Set(JSON.parse(savedFavs));
+    } catch (e) {}
     let selTxn = null, histFilter = 'all', histQ = '', voidArr = [], pmSel = 'cash', cashIn = '';
     var REFUNDS = [];
     let memInput = '', memMode = 'npd';

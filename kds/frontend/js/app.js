@@ -21,6 +21,20 @@ async function fetchOrders() {
       console.error('KDS Silent login failed', e);
     }
   }
+
+  // Fetch config once
+  if (!window._kdsConfigFetched && API.session.outletId) {
+    try {
+      const cfgData = await API.orders.getConfig(API.session.outletId);
+      if (cfgData && cfgData.config) {
+        CFG.warnMin = cfgData.config.kdsWarnThreshold || 10;
+        CFG.urgentMin = cfgData.config.kdsUrgentThreshold || 20;
+        window._kdsConfigFetched = true;
+      }
+    } catch(e) {
+      console.error('KDS failed to fetch config', e);
+    }
+  }
   
   try {
     const data = await API.orders.getAll({ status: 'confirmed', kitchenStatus: 'pending' });

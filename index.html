@@ -548,18 +548,21 @@
             checkExistingSession();
         });
         
-        // Select app handler
         function selectApp(appType) {
             selectedApp = appType;
             const app = apps[appType];
             
-            modalTitle.textContent = app.title;
-            modalSubtitle.textContent = app.description;
-            modalIcon.innerHTML = app.icon;
-            
-            loginModal.style.display = 'flex';
-            errorMessage.style.display = 'none';
-            loginForm.reset();
+            // Bypass login modal locally
+            const sessionData = {
+                username: 'admin',
+                app: selectedApp,
+                timestamp: new Date().toISOString(),
+                token: 'local-dev-token',
+                user: { id: 'admin', username: 'admin', role: 'admin', tenantId: 'demo-tenant', outletId: 'demo-outlet' },
+                session: 'local'
+            };
+            localStorage.setItem('nashty_main_session', JSON.stringify(sessionData));
+            window.location.href = app.path + '?session=' + encodeURIComponent(JSON.stringify(sessionData));
         }
         
         // Close modal

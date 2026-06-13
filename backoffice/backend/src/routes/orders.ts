@@ -361,6 +361,8 @@ router.get('/config/:outletId', (req, res) => {
         serviceChargeEnabled: settingsMap.service_charge_enabled || false,
         receiptHeader: settingsMap.receipt_header || outlet.name,
         receiptFooter: settingsMap.receipt_footer || 'Terima kasih!',
+        kdsWarnThreshold: settingsMap.kds_warn_threshold || 10,
+        kdsUrgentThreshold: settingsMap.kds_urgent_threshold || 20,
         paymentMethods
       }
     });

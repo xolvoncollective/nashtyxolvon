@@ -4,6 +4,7 @@
     function toggleFav(id) {
       if (favorites.has(id)) favorites.delete(id);
       else favorites.add(id);
+      localStorage.setItem('nashty_favorites', JSON.stringify([...favorites]));
       renderMenu(document.getElementById('msearch').value);
       // update fav cat count
       const favBtn = document.querySelector('.cbt[data-cat="fav"] .cat-ct');

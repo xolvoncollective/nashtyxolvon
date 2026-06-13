@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
-import { initDatabase } from './db/database';
+import { initDatabase, get as dbGet } from './db/database';
 import { testConnection as testSupabaseConnection } from './supabase/supabase-client';
 
 // Routes
@@ -20,13 +20,15 @@ import reportsRoutes from './routes/reports';
 import outletsRoutes from './routes/outlets';
 import settingsRoutes from './routes/settings';
 import activityLogsRoutes from './routes/activity-logs';
+import membersRoutes from './routes/members';
 import { requireAuth } from './middleware/auth';
 import xss from 'xss';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3099;
+const SERVER_START_TIME = Date.now();
 
 // Middleware
 app.use(cors({
@@ -70,13 +72,58 @@ const initializeSupabase = async () => {
 
 initializeSupabase();
 
-// Health check
+// Health check (legacy endpoint for backward compatibility)
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
     version: '2.0',
     features: ['sqlite', 'supabase-ready', 'jwt-auth']
+  });
+});
+
+// API Health check with database connectivity check (Requirement 11)
+app.get('/api/health', async (req, res) => {
+  const startTime = Date.now();
+  let databaseStatus = 'disconnected';
+  let error: string | undefined;
+  
+  try {
+    // Check database connectivity by executing a simple query
+    const result = dbGet('SELECT 1 as test');
+    if (result && result.test === 1) {
+      databaseStatus = 'connected';
+    }
+  } catch (dbError: any) {
+    error = dbError.message || 'Database query failed';
+    console.error('Health check database error:', dbError);
+  }
+  
+  const responseTime = Date.now() - startTime;
+  const uptime = Math.floor((Date.now() - SERVER_START_TIME) / 1000);
+  
+  // Return 503 if database is not accessible (Requirement 11.4)
+  if (databaseStatus === 'disconnected') {
+    return res.status(503).json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      version: '2.0.0',
+      uptime,
+      database: databaseStatus,
+      error,
+      responseTime: `${responseTime}ms`
+    });
+  }
+  
+  // Return 200 if all systems operational (Requirement 11.3)
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    version: '2.0.0',
+    uptime,
+    database: databaseStatus,
+    features: ['sqlite', 'supabase-ready', 'jwt-auth', 'wal-mode'],
+    responseTime: `${responseTime}ms`
   });
 });
 
@@ -100,6 +147,9 @@ app.use('/api/shifts', requireAuth, shiftsRoutes);
 // API Routes — Dashboard & Reports
 app.use('/api/dashboard', requireAuth, dashboardRoutes);
 app.use('/api/reports', requireAuth, reportsRoutes);
+
+// API Routes — CRM / Members
+app.use('/api/members', membersRoutes);
 
 // API Routes — Outlets, Settings & Logs
 app.use('/api/outlets', requireAuth, outletsRoutes);

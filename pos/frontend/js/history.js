@@ -232,7 +232,7 @@
         return;
       }
       
-      const voidBy = API.session.user ? API.session.user.name : 'Unknown';
+      const voidBy = API.session.user ? API.session.user.id : null;
       var doRefund = document.getElementById('void-refund-chk')?.checked || false;
 
       try {

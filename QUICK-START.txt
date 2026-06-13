@@ -1,0 +1,65 @@
+========================================
+NASHTY OS - Quick Start Guide
+========================================
+
+🚀 START THE SERVER
+-------------------
+powershell -ExecutionPolicy Bypass -File .\start-local.ps1
+
+
+📋 WHAT IT DOES
+---------------
+✅ Checks Node.js v18+
+✅ Kills process on port 3099 if needed
+✅ Navigates to backend directory
+✅ Installs dependencies (if needed)
+✅ Builds TypeScript
+✅ Seeds database (if needed)
+✅ Starts server on port 3099
+✅ Waits for health check
+✅ Opens browser automatically
+
+
+🌐 ACCESS POINTS
+----------------
+Main:       http://localhost:3099/
+POS:        http://localhost:3099/pos/frontend/
+KDS:        http://localhost:3099/kds/frontend/
+Backoffice: http://localhost:3099/backoffice/
+
+
+🔧 MANAGING THE SERVER
+----------------------
+View logs:   Receive-Job -Id X -Keep
+Stop server: Stop-Job -Id X; Remove-Job -Id X
+(Replace X with Job ID shown in output)
+
+
+❌ COMMON ERRORS
+----------------
+1. Node.js not found
+   → Install from https://nodejs.org/ (v18+)
+
+2. Port 3099 in use
+   → Script will auto-kill the process
+   → If fails: Stop-Process -Id <PID> -Force
+
+3. Backend directory not found
+   → Run from project root directory
+
+4. Build errors
+   → Fix TypeScript errors shown
+   → Re-run script
+
+5. Health check timeout
+   → Wait 30 seconds
+   → Try: http://localhost:3099/health
+   → Check logs: Receive-Job -Id X
+
+
+📖 FULL DOCUMENTATION
+---------------------
+See: START-LOCAL-README.md
+
+
+========================================

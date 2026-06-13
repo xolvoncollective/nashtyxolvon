@@ -46,6 +46,24 @@ CREATE TABLE IF NOT EXISTS users (
   FOREIGN KEY (outlet_id) REFERENCES outlets(id) ON DELETE SET NULL
 );
 
+-- Members (Customers)
+CREATE TABLE IF NOT EXISTS members (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  pin_hash TEXT,
+  points INTEGER DEFAULT 0,
+  total_spent REAL DEFAULT 0,
+  visit_count INTEGER DEFAULT 0,
+  segment TEXT DEFAULT 'new' CHECK(segment IN ('new', 'regular', 'loyal', 'vip')),
+  status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+  UNIQUE(tenant_id, phone)
+);
+
 -- Categories
 CREATE TABLE IF NOT EXISTS categories (
   id TEXT PRIMARY KEY,

@@ -37,8 +37,17 @@ export async function initDatabase() {
       console.log('✓ Created new database');
     }
     
-    // Enable foreign keys
+    // Enable foreign keys (Requirement 8.7)
     db.run('PRAGMA foreign_keys = ON');
+    
+    // Enable WAL mode for better concurrency (Requirement 8.8, 17.6)
+    // Note: sql.js (in-memory) doesn't support WAL, but we document it for future SQLite native migration
+    try {
+      db.run('PRAGMA journal_mode = WAL');
+      console.log('✓ WAL mode enabled');
+    } catch (walError) {
+      console.log('⚠️  WAL mode not supported in sql.js (will be enabled in native SQLite)');
+    }
     
     // Load schema
     const schemaPath = path.join(__dirname, 'schema.sql');
@@ -62,6 +71,9 @@ export async function initDatabase() {
       }
     }
     
+    // Create performance indexes (Requirement 3: Database Performance)
+    createPerformanceIndexes();
+    
     // Save database to file
     saveDatabase();
     
@@ -69,6 +81,35 @@ export async function initDatabase() {
   } catch (error) {
     console.error('Database initialization error:', error);
     throw error;
+  }
+}
+
+// Create indexes for frequently queried columns (Requirement 3)
+function createPerformanceIndexes() {
+  try {
+    // Index for KDS order queries (kitchen_status, outlet_id, created_at)
+    db.run(`
+      CREATE INDEX IF NOT EXISTS idx_orders_kitchen_status 
+      ON orders(kitchen_status, outlet_id, created_at)
+    `);
+    
+    // Index for outlet filtering
+    db.run(`
+      CREATE INDEX IF NOT EXISTS idx_orders_outlet_created 
+      ON orders(outlet_id, created_at DESC)
+    `);
+    
+    // Index for order status queries
+    db.run(`
+      CREATE INDEX IF NOT EXISTS idx_orders_status 
+      ON orders(order_status, outlet_id)
+    `);
+    
+    console.log('✓ Performance indexes created');
+  } catch (error: any) {
+    if (!error.message.includes('already exists')) {
+      console.error('Error creating indexes:', error);
+    }
   }
 }
 

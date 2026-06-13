@@ -78,7 +78,7 @@ echo ==========================================================
 echo.
 
 REM Open browser after 3 seconds
-start "" cmd /c "timeout /t 3 /nobreak >nul & start http://localhost:3099/pos/frontend/index.html"
+start "" cmd /c "timeout /t 3 /nobreak >nul & start http://localhost:3099/"
 
 REM Start server in dev mode with environment variable
 set PORT=3099

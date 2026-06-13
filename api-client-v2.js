@@ -16,18 +16,16 @@
 const API_BASE = 'http://localhost:3099/api';
 
 const API = {
-  // Current session data
+  // Current session data (HARDCODED FOR DEV)
   session: {
-    // Main admin session
-    admin: null,
-    adminToken: null,
+    admin: { id: 'admin', role: 'admin', tenantId: 'demo-tenant' },
+    adminToken: 'dev-token',
     currentApp: null,
     
-    // Staff session (for POS/KDS)
-    token: null,
-    user: null,
-    tenantId: null,
-    outletId: null,
+    token: 'dev-token',
+    user: { id: 'admin', name: 'Admin Demo', role: 'admin', tenantId: 'demo-tenant', outletId: 'demo-outlet' },
+    tenantId: 'demo-tenant',
+    outletId: 'demo-outlet',
     shiftId: null
   },
 
@@ -102,35 +100,13 @@ const API = {
     },
 
     logout() {
-      API.session.admin = null;
-      API.session.adminToken = null;
-      localStorage.removeItem('nashty_main_session');
+      // DEV OVERRIDE
     },
 
     // Restore main session from localStorage
     restoreSession() {
-      const stored = localStorage.getItem('nashty_main_session');
-      if (stored) {
-        try {
-          const session = JSON.parse(stored);
-          const now = new Date();
-          const sessionTime = new Date(session.timestamp);
-          const hoursDiff = Math.abs(now - sessionTime) / 36e5;
-          
-          // Session valid for 12 hours
-          if (hoursDiff < 12) {
-            API.session.admin = session.admin;
-            API.session.adminToken = session.adminToken;
-            API.session.tenantId = session.tenantId;
-            return true;
-          } else {
-            localStorage.removeItem('nashty_main_session');
-          }
-        } catch (e) {
-          console.error('Failed to restore main session:', e);
-        }
-      }
-      return false;
+      // DEV OVERRIDE
+      return true;
     },
 
     // Get available apps
@@ -162,41 +138,26 @@ const API = {
         // Store in localStorage
         localStorage.setItem('nashty_session', JSON.stringify(API.session));
       }
-
       return data;
-    },
-
+    }
     logout() {
-      API.session = {
-        token: null,
-        user: null,
-        tenantId: null,
-        outletId: null,
-        shiftId: null,
-        admin: API.session.admin,
-        adminToken: API.session.adminToken,
-        currentApp: API.session.currentApp
-      };
-      localStorage.removeItem('nashty_session');
+      // DEV OVERRIDE: Prevent logout
+      console.log('Logout prevented in dev mode');
     },
 
     // Restore staff session from localStorage
     restoreSession() {
-      const stored = localStorage.getItem('nashty_session');
-      if (stored) {
-        try {
-          const session = JSON.parse(stored);
-          API.session.token = session.token;
-          API.session.user = session.user;
-          API.session.tenantId = session.tenantId;
-          API.session.outletId = session.outletId;
-          API.session.shiftId = session.shiftId;
-          return true;
-        } catch (e) {
-          console.error('Failed to restore session:', e);
-        }
-      }
-      return false;
+      // DEV OVERRIDE: Always pretend we have a valid session
+      return true;
+    }
+  },
+
+  // ========== MENU ==========
+  menu: {
+    async getOutletMenu(outletId) {
+      if (!outletId) outletId = API.session.outletId;
+      if (!outletId) throw new Error('No outlet ID provided or in session');
+      return API.request(`/menu/outlet/${outletId}`);
     }
   },
 
@@ -345,6 +306,17 @@ const API = {
         method: 'PATCH',
         body: JSON.stringify(status)
       });
+    },
+
+    async void(id, reason, voidBy, managerPin) {
+      return API.request(`/orders/${id}/void`, {
+        method: 'PUT',
+        body: JSON.stringify({ reason, voidBy, managerPin })
+      });
+    },
+
+    async getConfig(outletId) {
+      return API.request(`/orders/config/${outletId}`);
     }
   },
 

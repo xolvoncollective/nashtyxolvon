@@ -142,29 +142,26 @@
       document.querySelectorAll('.pmb').forEach(function (b) { b.classList.remove('act'); });
       if (btn_el) btn_el.classList.add('act');
 
-      var ca = document.getElementById('cash-area');
-      var btn = document.getElementById('btn-cfm');
+      var isDelivery = (id === 'gofood' || id === 'grabfood' || id === 'shopee');
+      var isCash = (id === 'cash');
+
       var dnw = document.getElementById('delivery-note-wrap');
       var npd = document.getElementById('pay-npd');
       var npdLock = document.getElementById('npd-lock');
-
-
-      var isDelivery = (id === 'gofood' || id === 'grabfood' || id === 'shopee');
-
+      var ca = document.getElementById('cash-area');
+      var btn = document.getElementById('btn-cfm');
 
       // Delivery note field
       if (dnw) dnw.style.display = isDelivery ? 'block' : 'none';
 
-      // Numpad lock for delivery methods
+      // Numpad lock for non-cash methods
       if (npdLock) {
-        npdLock.style.display = isDelivery ? 'flex' : 'none';
+        npdLock.style.display = !isCash ? 'flex' : 'none';
       }
       if (npd) {
-        npd.style.opacity = isDelivery ? '0.15' : '1';
-        npd.style.pointerEvents = isDelivery ? 'none' : 'auto';
+        npd.style.opacity = !isCash ? '0.15' : '1';
+        npd.style.pointerEvents = !isCash ? 'none' : 'auto';
       }
-
-
 
       // Confirm button state
       if (id === 'cash') {
@@ -225,15 +222,47 @@
            change: chg
         }],
         items: cart.map(function(i) {
-           var mods = i.selectedOpts ? Object.values(i.selectedOpts).flat() : [];
-           if (i.addonNames) mods = mods.concat(i.addonNames.split(', ').map(a => '+' + a));
+           var mods = [];
+           var apiModifiers = [];
+           
+           if (i.selectedOpts) {
+             Object.entries(i.selectedOpts).forEach(function([groupName, opts]) {
+               var optArr = Array.isArray(opts) ? opts : [opts];
+               optArr.forEach(function(optName) {
+                 mods.push(optName);
+                 apiModifiers.push({
+                   groupId: 'opt-' + groupName,
+                   groupName: groupName,
+                   optionId: 'opt-' + optName,
+                   optionName: optName,
+                   priceAdjustment: 0
+                 });
+               });
+             });
+           }
+           
+           if (i.addonNames) {
+             var addonList = i.addonNames.split(', ');
+             mods = mods.concat(addonList.map(function(a) { return '+' + a; }));
+             addonList.forEach(function(addonName) {
+               apiModifiers.push({
+                 groupId: 'addon',
+                 groupName: 'Add-on',
+                 optionId: 'addon-' + addonName,
+                 optionName: addonName,
+                 priceAdjustment: 0 // The price is already merged in i.p
+               });
+             });
+           }
+           
            return {
               productId: i.id,
               productName: i.n,
               quantity: i.qty,
               unitPrice: i.p,
               subtotal: i.qty * i.p,
-              notes: mods.join(', ')
+              notes: mods.join(', '),
+              modifiers: apiModifiers
            };
         })
       };
