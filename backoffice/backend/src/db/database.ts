@@ -1,4 +1,6 @@
-import initSqlJs, { Database as SqlJsDatabase } from 'sql.js';
+// Use require for sql.js to avoid TypeScript issues
+const sqlJs = require('sql.js');
+const initSqlJs = sqlJs.default || sqlJs;
 import path from 'path';
 import fs from 'fs';
 
@@ -10,7 +12,7 @@ if (!fs.existsSync(DB_DIR)) {
   fs.mkdirSync(DB_DIR, { recursive: true });
 }
 
-let db: SqlJsDatabase;
+let db: any;
 let SQL: any;
 let inTransaction = false;
 

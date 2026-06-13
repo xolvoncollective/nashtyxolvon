@@ -3,9 +3,11 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { initDatabase } from './db/database';
+import { testConnection as testSupabaseConnection } from './supabase/supabase-client';
 
 // Routes
 import authRoutes from './routes/auth';
+import mainAuthRoutes from './routes/main-auth';
 import categoriesRoutes from './routes/categories';
 import productsRoutes from './routes/products';
 import ordersRoutes from './routes/orders';
@@ -51,13 +53,35 @@ app.use((req, res, next) => {
   next();
 });
 
-// Initialize database
+// Initialize databases
 initDatabase();
+
+// Test Supabase connection on startup
+const initializeSupabase = async () => {
+  console.log('🔌 Testing Supabase connection...');
+  const supabaseConnected = await testSupabaseConnection();
+  
+  if (supabaseConnected) {
+    console.log('✅ Supabase connected successfully');
+  } else {
+    console.log('⚠️  Supabase connection failed, falling back to local SQLite');
+  }
+};
+
+initializeSupabase();
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    version: '2.0',
+    features: ['sqlite', 'supabase-ready', 'jwt-auth']
+  });
 });
+
+// Main auth API (no auth required)
+app.use('/api/main/auth', mainAuthRoutes);
 
 // API Routes — Auth & Users
 app.use('/api/auth', authRoutes);
@@ -93,27 +117,35 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 app.listen(PORT, () => {
   console.log(`
-╔═══════════════════════════════════════════╗
-║   NASHTY OS Backend Server Started        ║
-╠═══════════════════════════════════════════╣
-║  Port: ${PORT.toString().padEnd(34)} ║
-║  Env:  ${(process.env.NODE_ENV || 'development').padEnd(34)} ║
-║  DB:   SQLite (data/nashtypos.db)         ║
-╠═══════════════════════════════════════════╣
-║  Routes:                                  ║
-║  • /api/auth     — Auth & PIN             ║
-║  • /api/users    — User Management        ║
-║  • /api/categories — Categories CRUD      ║
-║  • /api/products — Products CRUD          ║
-║  • /api/menu     — Full Menu Tree         ║
-║  • /api/modifiers — Modifier Groups       ║
-║  • /api/orders   — Orders + KDS           ║
-║  • /api/shifts   — Shift Management       ║
-║  • /api/dashboard — Dashboard KPIs        ║
-║  • /api/reports  — Reports & Analytics    ║
-║  • /api/outlets  — Outlet Management      ║
-║  • /api/settings — Settings per Outlet    ║
-║  • /api/activity-logs — Activity Logs     ║
-╚═══════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════╗
+║   NASHTY OS Backend Server Started (v2.0)                ║
+╠══════════════════════════════════════════════════════════╣
+║  Port: ${PORT.toString().padEnd(42)} ║
+║  Env:  ${(process.env.NODE_ENV || 'development').padEnd(42)} ║
+║  DB:   SQLite + Supabase Ready                          ║
+╠══════════════════════════════════════════════════════════╣
+║  Main Features:                                          ║
+║  • Main Login Page (/)                                  ║
+║  • Admin Authentication (admin/admin)                   ║
+║  • 12-hour Session Management                           ║
+║  • Supabase Cloud Integration                           ║
+║  • Cloudflare Hosting Ready                             ║
+╠══════════════════════════════════════════════════════════╣
+║  Routes:                                                ║
+║  • /api/main/auth   — Main Admin Auth                  ║
+║  • /api/auth        — Staff PIN Auth                   ║
+║  • /api/users       — User Management                  ║
+║  • /api/categories  — Categories CRUD                  ║
+║  • /api/products    — Products CRUD                    ║
+║  • /api/menu        — Full Menu Tree                   ║
+║  • /api/modifiers   — Modifier Groups                  ║
+║  • /api/orders      — Orders + KDS                     ║
+║  • /api/shifts      — Shift Management                 ║
+║  • /api/dashboard   — Dashboard KPIs                   ║
+║  • /api/reports     — Reports & Analytics              ║
+║  • /api/outlets     — Outlet Management                ║
+║  • /api/settings    — Settings per Outlet              ║
+║  • /api/activity-logs — Activity Logs                  ║
+╚══════════════════════════════════════════════════════════╝
   `);
 });

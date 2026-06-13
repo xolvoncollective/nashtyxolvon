@@ -1,0 +1,446 @@
+/**
+ * NASHTY OS API Client v2.0
+ * With Main Admin Authentication and Supabase Support
+ * 
+ * USAGE:
+ * <script src="api-client-v2.js"></script>
+ * 
+ * Features:
+ * - Main admin authentication (admin/admin)
+ * - 12-hour session persistence
+ * - Supabase cloud ready
+ * - Auto-session restore
+ * - Fallback to SQLite if Supabase unavailable
+ */
+
+const API_BASE = 'http://localhost:3099/api';
+
+const API = {
+  // Current session data
+  session: {
+    // Main admin session
+    admin: null,
+    adminToken: null,
+    currentApp: null,
+    
+    // Staff session (for POS/KDS)
+    token: null,
+    user: null,
+    tenantId: null,
+    outletId: null,
+    shiftId: null
+  },
+
+  // Helper: Make HTTP request
+  async request(endpoint, options = {}) {
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers
+      };
+
+      // Add Authorization header if token exists
+      if (API.session.token) {
+        headers['Authorization'] = `Bearer ${API.session.token}`;
+      }
+      
+      // Add Admin token if exists
+      if (API.session.adminToken && endpoint.startsWith('/main/')) {
+        headers['Authorization'] = `Bearer ${API.session.adminToken}`;
+      }
+
+      const response = await fetch(`${API_BASE}${endpoint}`, {
+        headers,
+        ...options
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Request failed');
+      }
+
+      return data;
+    } catch (error) {
+      console.error(`API Error [${endpoint}]:`, error);
+      throw error;
+    }
+  },
+
+  // ========== MAIN AUTH ==========
+  mainAuth: {
+    async login(username, password) {
+      const data = await API.request('/main/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password })
+      });
+
+      if (data.success && data.token) {
+        // Store main admin session
+        API.session.admin = data.user;
+        API.session.adminToken = data.token;
+        API.session.tenantId = data.user.tenantId;
+        
+        // Store in localStorage
+        const mainSession = {
+          admin: data.user,
+          adminToken: data.token,
+          tenantId: data.user.tenantId,
+          timestamp: new Date().toISOString()
+        };
+        localStorage.setItem('nashty_main_session', JSON.stringify(mainSession));
+      }
+
+      return data;
+    },
+
+    async validate(token) {
+      return API.request('/main/auth/validate', {
+        method: 'POST',
+        body: JSON.stringify({ token })
+      });
+    },
+
+    logout() {
+      API.session.admin = null;
+      API.session.adminToken = null;
+      localStorage.removeItem('nashty_main_session');
+    },
+
+    // Restore main session from localStorage
+    restoreSession() {
+      const stored = localStorage.getItem('nashty_main_session');
+      if (stored) {
+        try {
+          const session = JSON.parse(stored);
+          const now = new Date();
+          const sessionTime = new Date(session.timestamp);
+          const hoursDiff = Math.abs(now - sessionTime) / 36e5;
+          
+          // Session valid for 12 hours
+          if (hoursDiff < 12) {
+            API.session.admin = session.admin;
+            API.session.adminToken = session.adminToken;
+            API.session.tenantId = session.tenantId;
+            return true;
+          } else {
+            localStorage.removeItem('nashty_main_session');
+          }
+        } catch (e) {
+          console.error('Failed to restore main session:', e);
+        }
+      }
+      return false;
+    },
+
+    // Get available apps
+    async getAvailableApps() {
+      return API.request('/main/auth/apps');
+    }
+  },
+
+  // ========== STAFF AUTH ==========
+  auth: {
+    async getStaff(outletId = null) {
+      const query = outletId ? `?outletId=${outletId}` : '';
+      return API.request(`/auth/staff${query}`);
+    },
+
+    async login(pin, outletId = null) {
+      const data = await API.request('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ pin, outletId })
+      });
+
+      if (data.success && data.user && data.token) {
+        // Store session
+        API.session.token = data.token;
+        API.session.user = data.user;
+        API.session.tenantId = data.user.tenantId;
+        API.session.outletId = data.user.outletId;
+        
+        // Store in localStorage
+        localStorage.setItem('nashty_session', JSON.stringify(API.session));
+      }
+
+      return data;
+    },
+
+    logout() {
+      API.session = {
+        token: null,
+        user: null,
+        tenantId: null,
+        outletId: null,
+        shiftId: null,
+        admin: API.session.admin,
+        adminToken: API.session.adminToken,
+        currentApp: API.session.currentApp
+      };
+      localStorage.removeItem('nashty_session');
+    },
+
+    // Restore staff session from localStorage
+    restoreSession() {
+      const stored = localStorage.getItem('nashty_session');
+      if (stored) {
+        try {
+          const session = JSON.parse(stored);
+          API.session.token = session.token;
+          API.session.user = session.user;
+          API.session.tenantId = session.tenantId;
+          API.session.outletId = session.outletId;
+          API.session.shiftId = session.shiftId;
+          return true;
+        } catch (e) {
+          console.error('Failed to restore session:', e);
+        }
+      }
+      return false;
+    }
+  },
+
+  // ========== CATEGORIES ==========
+  categories: {
+    async getAll() {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      const response = await API.request(`/categories?tenantId=${API.session.tenantId}`);
+      // Normalize response format
+      return {
+        success: true,
+        data: response.categories || []
+      };
+    },
+
+    async getById(id) {
+      const response = await API.request(`/categories/${id}`);
+      return {
+        success: true,
+        data: response.category
+      };
+    }
+  },
+
+  // ========== PRODUCTS ==========
+  products: {
+    async getAll(filters = {}) {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      
+      const params = new URLSearchParams({
+        tenantId: API.session.tenantId,
+        ...filters
+      });
+
+      const response = await API.request(`/products?${params}`);
+      // Normalize response format
+      return {
+        success: true,
+        data: response.products || []
+      };
+    },
+
+    async getById(id) {
+      const response = await API.request(`/products/${id}`);
+      return {
+        success: true,
+        data: response.product
+      };
+    },
+
+    async toggleFavorite(id) {
+      return API.request(`/products/${id}/favorite`, {
+        method: 'PATCH'
+      });
+    }
+  },
+
+  // ========== ORDERS ==========
+  orders: {
+    async create(orderData) {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      if (!API.session.outletId) throw new Error('No outlet ID in session');
+      if (!API.session.user) throw new Error('No user in session');
+
+      const payload = {
+        tenantId: API.session.tenantId,
+        outletId: API.session.outletId,
+        userId: API.session.user.id,
+        shiftId: API.session.shiftId,
+        ...orderData
+      };
+
+      return API.request('/orders', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+    },
+
+    async getAll(filters = {}) {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      
+      const params = new URLSearchParams({
+        tenantId: API.session.tenantId,
+        outletId: API.session.outletId,
+        ...filters
+      });
+
+      return API.request(`/orders?${params}`);
+    },
+
+    async getById(id) {
+      return API.request(`/orders/${id}`);
+    },
+
+    async updateStatus(id, status) {
+      return API.request(`/orders/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify(status)
+      });
+    }
+  },
+
+  // ========== SHIFTS ==========
+  shifts: {
+    async start(startCash) {
+      if (!API.session.outletId) throw new Error('No outlet ID in session');
+      if (!API.session.user) throw new Error('No user in session');
+
+      const data = await API.request('/shifts/start', {
+        method: 'POST',
+        body: JSON.stringify({
+          outletId: API.session.outletId,
+          userId: API.session.user.id,
+          startCash
+        })
+      });
+
+      if (data.success && data.shift) {
+        API.session.shiftId = data.shift.id;
+        localStorage.setItem('nashty_session', JSON.stringify(API.session));
+      }
+
+      return data;
+    },
+
+    async end(shiftId, endCash, notes = '') {
+      const data = await API.request(`/shifts/${shiftId}/end`, {
+        method: 'POST',
+        body: JSON.stringify({ endCash, notes })
+      });
+
+      if (data.success) {
+        API.session.shiftId = null;
+        localStorage.setItem('nashty_session', JSON.stringify(API.session));
+      }
+
+      return data;
+    },
+
+    async getActive() {
+      if (!API.session.user) throw new Error('No user in session');
+      
+      const data = await API.request(`/shifts/active?userId=${API.session.user.id}`);
+      
+      if (data.shift) {
+        API.session.shiftId = data.shift.id;
+        localStorage.setItem('nashty_session', JSON.stringify(API.session));
+      }
+
+      return data;
+    },
+
+    async getHistory(filters = {}) {
+      const params = new URLSearchParams({
+        outletId: API.session.outletId,
+        ...filters
+      });
+
+      return API.request(`/shifts?${params}`);
+    }
+  },
+
+  // ========== DASHBOARD ==========
+  dashboard: {
+    async getKPI(filters = {}) {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      
+      const params = new URLSearchParams({
+        tenantId: API.session.tenantId,
+        outletId: API.session.outletId,
+        ...filters
+      });
+
+      return API.request(`/dashboard/kpi?${params}`);
+    },
+
+    async getRecentOrders(limit = 10) {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      
+      const params = new URLSearchParams({
+        tenantId: API.session.tenantId,
+        outletId: API.session.outletId,
+        limit
+      });
+
+      return API.request(`/dashboard/recent-orders?${params}`);
+    }
+  },
+  
+  // ========== UTILITIES ==========
+  utils: {
+    // Check if main admin is logged in
+    isAdminLoggedIn() {
+      return !!API.session.adminToken;
+    },
+    
+    // Check if staff is logged in
+    isStaffLoggedIn() {
+      return !!API.session.token;
+    },
+    
+    // Get current app
+    getCurrentApp() {
+      return API.session.currentApp;
+    },
+    
+    // Set current app
+    setCurrentApp(app) {
+      API.session.currentApp = app;
+    },
+    
+    // Clear all sessions (full logout)
+    clearAllSessions() {
+      localStorage.removeItem('nashty_main_session');
+      localStorage.removeItem('nashty_session');
+      API.session = {
+        admin: null,
+        adminToken: null,
+        currentApp: null,
+        token: null,
+        user: null,
+        tenantId: null,
+        outletId: null,
+        shiftId: null
+      };
+    }
+  }
+};
+
+// Auto-restore sessions on load
+if (typeof window !== 'undefined') {
+  // Try to restore main session first
+  const mainSessionRestored = API.mainAuth.restoreSession();
+  
+  if (!mainSessionRestored) {
+    // If no main session, try to restore staff session
+    API.auth.restoreSession();
+  }
+}
+
+// Export for use
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = API;
+}
+
+// Global namespace
+window.APIv2 = API;

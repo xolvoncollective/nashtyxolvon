@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NASHTY OS - Sistem Restaurant Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d1b69 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #E4540C 0%, #ff8c42 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 900;
+            color: white;
+            box-shadow: 0 10px 30px rgba(228, 84, 12, 0.4);
+        }
+
+        .logo-text {
+            font-size: 38px;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+        }
+
+        .tagline {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 10px;
+        }
+
+        /* App Cards Grid */
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .app-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 35px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(228, 84, 12, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #E4540C, #ff8c42);
+        }
+
+        .app-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, rgba(228, 84, 12, 0.2), rgba(228, 84, 12, 0.05));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 25px;
+            color: #E4540C;
+        }
+
+        .app-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .app-description {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .app-features {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+
+        .app-features li {
+            padding: 8px 0;
+            color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .app-features li::before {
+            content: '✓';
+            color: #E4540C;
+            font-weight: bold;
+        }
+
+        .btn-select {
+            background: linear-gradient(135deg, #E4540C 0%, #ff8c42 100%);
+            border: none;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .btn-select:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(228, 84, 12, 0.4);
+        }
+
+        /* Login Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            border-radius: 20px;
+            padding: 40px;
+            width: 90%;
+            max-width: 450px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .modal-subtitle {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 25px;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 24px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .close-modal:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #E4540C;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #E4540C 0%, #ff8c42 100%);
+            border: none;
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(228, 84, 12, 0.4);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #EF4444;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .server-status {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 10px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #EF4444;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.online {
+            background: #22C55E;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .apps-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .app-card {
+                padding: 25px;
+            }
+            
+            .logo-text {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">N</div>
+                <div class="logo-text">NASHTY OS</div>
+            </div>
+            <div class="tagline">Complete Restaurant Management System</div>
+        </div>
+
+        <div class="apps-grid">
+            <!-- POS Card -->
+            <div class="app-card" onclick="selectApp('pos')">
+                <div class="app-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 9V7c0-1.1-.9-2-2-2h-3c0-1.66-1.34-3-3-3S9 3.34 9 5H6c-1.1 0-2 .9-2 2v2c-1.66 0-3 1.34-3 3v5c0 1.66 1.34 3 3 3h1v2h12v-2h1c1.66 0 3-1.34 3-3v-5c0-1.66-1.34-3-3-3zM6 7h12v2H6V7zm12 10H6v-5h12v5zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
+                    </svg>
+                </div>
+                <div class="app-title">Point of Sale</div>
+                <div class="app-description">
+                    POS terminal untuk kasir dengan interface touch-friendly. 
+                    Lengkap dengan menu management, order processing, dan payment handling.
+                </div>
+                <ul class="app-features">
+                    <li>Touch-friendly interface</li>
+                    <li>Real-time order processing</li>
+                    <li>Payment integration</li>
+                    <li>Printer support</li>
+                </ul>
+                <button class="btn-select" data-app="pos">Buka POS Terminal</button>
+            </div>
+
+            <!-- KDS Card -->
+            <div class="app-card" onclick="selectApp('kds')">
+                <div class="app-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM8 15c0-1.66 1.34-3 3-3.5 0-1.66-1.34-3-3-3s-3 1.34-3 3 1.34 3 3 3 3-1.34 3-3zm6-8h4v2h-4V7zm0 4h4v2h-4v-2z"/>
+                    </svg>
+                </div>
+                <div class="app-title">Kitchen Display</div>
+                <div class="app-description">
+                    KDS untuk dapur dengan tampilan order real-time. 
+                    Update status order, urgent notifications, dan kitchen workflow.
+                </div>
+                <ul class="app-features">
+                    <li>Real-time order display</li>
+                    <li>Status updates (Preparing → Ready)</li>
+                    <li>Urgent order notifications</li>
+                    <li>Multi-station support</li>
+                </ul>
+                <button class="btn-select" data-app="kds">Buka Kitchen Display</button>
+            </div>
+
+            <!-- Backoffice Card -->
+            <div class="app-card" onclick="selectApp('backoffice')">
+                <div class="app-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4-2h2v12h-2z"/>
+                    </svg>
+                </div>
+                <div class="app-title">Backoffice Dashboard</div>
+                <div class="app-description">
+                    Dashboard management untuk owner dan manager. 
+                    Analytics, reporting, menu management, dan staff control.
+                </div>
+                <ul class="app-features">
+                    <li>Sales analytics & reports</li>
+                    <li>Menu management</li>
+                    <li>Staff management</li>
+                    <li>Inventory tracking</li>
+                </ul>
+                <button class="btn-select" data-app="backoffice">Buka Backoffice</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            &copy; 2026 NASHTY OS Restaurant System • Version 2.0 • Supabase Cloud Ready
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+            
+            <div class="modal-header">
+                <div class="app-icon" id="modalIcon"></div>
+                <div class="modal-title" id="modalTitle">Login</div>
+            </div>
+            
+            <div class="modal-subtitle" id="modalSubtitle">
+                Masukkan kredensial admin untuk mengakses sistem
+            </div>
+            
+            <form id="loginForm" onsubmit="submitLogin(event)">
+                <div class="form-group">
+                    <label class="form-label" for="username">Username</label>
+                    <input type="text" id="username" class="form-input" placeholder="admin" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+                </div>
+                
+                <div class="error-message" id="errorMessage">
+                    Login gagal. Username atau password salah.
+                </div>
+                
+                <button type="submit" class="btn-login" id="loginButton">
+                    <span id="loginButtonText">Login</span>
+                </button>
+            </form>
+            
+            <div class="server-status">
+                Server Status: <span class="status-indicator">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="statusText">Checking...</span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let selectedApp = null;
+        let sessionTimeout = null;
+        
+        // DOM Elements
+        const loginModal = document.getElementById('loginModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalSubtitle = document.getElementById('modalSubtitle');
+        const modalIcon = document.getElementById('modalIcon');
+        const loginForm = document.getElementById('loginForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const loginButton = document.getElementById('loginButton');
+        const loginButtonText = document.getElementById('loginButtonText');
+        
+        // App configurations
+        const apps = {
+            pos: {
+                title: 'POS Terminal',
+                description: 'Point of Sale untuk kasir',
+                icon: `<svg width="32" height="32" viewBox="0 0 24 24" fill="#E4540C"><path d="M20 9V7c0-1.1-.9-2-2-2h-3c0-1.66-1.34-3-3-3S9 3.34 9 5H6c-1.1 0-2 .9-2 2v2c-1.66 0-3 1.34-3 3v5c0 1.66 1.34 3 3 3h1v2h12v-2h1c1.66 0 3-1.34 3-3v-5c0-1.66-1.34-3-3-3zM6 7h12v2H6V7zm12 10H6v-5h12v5zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>`,
+                path: '/pos/frontend/index.html'
+            },
+            kds: {
+                title: 'Kitchen Display',
+                description: 'KDS untuk dapur',
+                icon: `<svg width="32" height="32" viewBox="0 0 24 24" fill="#E4540C"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM8 15c0-1.66 1.34-3 3-3.5 0-1.66-1.34-3-3-3s-3 1.34-3 3 1.34 3 3 3 3-1.34 3-3zm6-8h4v2h-4V7zm0 4h4v2h-4v-2z"/></svg>`,
+                path: '/kds/frontend/index.html'
+            },
+            backoffice: {
+                title: 'Backoffice Dashboard',
+                description: 'Management dashboard',
+                icon: `<svg width="32" height="32" viewBox="0 0 24 24" fill="#E4540C"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4-2h2v12h-2z"/></svg>`,
+                path: '/backoffice/frontend/index.html'
+            }
+        };
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            checkServerStatus();
+            checkExistingSession();
+        });
+        
+        // Select app handler
+        function selectApp(appType) {
+            selectedApp = appType;
+            const app = apps[appType];
+            
+            modalTitle.textContent = app.title;
+            modalSubtitle.textContent = app.description;
+            modalIcon.innerHTML = app.icon;
+            
+            loginModal.style.display = 'flex';
+            errorMessage.style.display = 'none';
+            loginForm.reset();
+        }
+        
+        // Close modal
+        function closeModal() {
+            loginModal.style.display = 'none';
+            selectedApp = null;
+        }
+        
+        // Check server status
+        async function checkServerStatus() {
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusDot.classList.add('online');
+                    statusText.textContent = 'Online v' + (data.version || '1.0');
+                } else {
+                    throw new Error('Server error');
+                }
+            } catch (error) {
+                statusText.textContent = 'Offline';
+            }
+        }
+        
+        // Check existing session
+        function checkExistingSession() {
+            const session = localStorage.getItem('nashty_main_session');
+            if (session) {
+                try {
+                    const sessionData = JSON.parse(session);
+                    const now = new Date();
+                    const sessionTime = new Date(sessionData.timestamp);
+                    const hoursDiff = Math.abs(now - sessionTime) / 36e5;
+                    
+                    // Session valid for 24 hours
+                    if (hoursDiff < 24) {
+                        const app = apps[sessionData.app];
+                        if (app) {
+                            // Auto-redirect if session is valid
+                            console.log('Auto-redirecting with valid session');
+                            window.location.href = app.path + '?session=' + encodeURIComponent(session);
+                        }
+                    } else {
+                        // Session expired
+                        localStorage.removeItem('nashty_main_session');
+                    }
+                } catch (e) {
+                    localStorage.removeItem('nashty_main_session');
+                }
+            }
+        }
+        
+        // Submit login
+        async function submitLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // Disable button
+            loginButton.disabled = true;
+            loginButtonText.textContent = 'Checking...';
+            errorMessage.style.display = 'none';
+            
+            try {
+                // Call main auth API
+                const response = await fetch('/api/main/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.token) {
+                    // Store session
+                    const sessionData = {
+                        username: data.user.username,
+                        app: selectedApp,
+                        timestamp: new Date().toISOString(),
+                        token: data.token,
+                        user: data.user,
+                        session: data.session
+                    };
+                    
+                    localStorage.setItem('nashty_main_session', JSON.stringify(sessionData));
+                    
+                    // Success message
+                    loginButtonText.textContent = '✓ Login Successful!';
+                    
+                    // Redirect after delay
+                    setTimeout(() => {
+                        const app = apps[selectedApp];
+                        window.location.href = app.path + '?session=' + encodeURIComponent(JSON.stringify(sessionData));
+                    }, 1000);
+                    
+                } else {
+                    throw new Error(data.error || 'Login gagal');
+                }
+                
+            } catch (error) {
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = 'block';
+                loginButtonText.textContent = 'Login';
+                loginButton.disabled = false;
+                
+                // Clear password
+                document.getElementById('password').value = '';
+            }
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+        
+        // Check session every minute (for auto-logout)
+        setInterval(checkExistingSession, 60000);
+    </script>
+</body>
+</html>
