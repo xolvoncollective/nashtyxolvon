@@ -37,7 +37,17 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Serve static files (HTML mockups)
+// Serve static files for frontend modules
+// POS frontend
+app.use('/pos', express.static(path.join(__dirname, '../../../pos/frontend')));
+
+// KDS frontend
+app.use('/kds', express.static(path.join(__dirname, '../../../kds/frontend')));
+
+// Backoffice frontend
+app.use('/backoffice', express.static(path.join(__dirname, '../../../backoffice/frontend')));
+
+// Serve root static files (includes index.html launcher)
 app.use(express.static(path.join(__dirname, '../../../')));
 
 // Serve uploads directory
