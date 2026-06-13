@@ -4954,10 +4954,11 @@
         const basePrice = originalItem ? originalItem.p : item.p;
 
         return {
-          menuItemId: item.id,
-          name: item.n,
-          price: basePrice,
+          productId: item.id,
+          productName: item.n,
+          unitPrice: basePrice,
           quantity: item.qty,
+          subtotal: basePrice * item.qty,
           notes: item.note || null,
           modifiers: modifiers
         };
@@ -4976,9 +4977,10 @@
       };
 
       const orderPayload = {
-        outletId: currentOutletId,
-        userId: currentUser.id,
-        shiftId: currentShift.id,
+        tenantId: 'demo-tenant', // Added required tenantId
+        outletId: currentOutletId || 'demo-outlet',
+        userId: currentUser ? currentUser.id : 'user1',
+        shiftId: currentShift ? currentShift.id : null,
         orderType: orderTypeMap[orderType] || 'dine_in',
         tableNumber: document.getElementById('tbl-no')?.value || '',
         platformOrderId: (orderType !== 'dine' && orderType !== 'take') ? delivNote : null,
@@ -4990,8 +4992,12 @@
           platformRef: delivNote || null
         }],
         discountType: disc > 0 ? 'cash' : null,
-        discountValue: disc,
-        discountAmount: disc,
+        discount: disc,
+        subtotal: sub,
+        tax: tax,
+        serviceCharge: svc,
+        total: grand,
+        paymentMethod: pmMethodMap[pmSel] || 'tunai',
         notes: null
       };
 
