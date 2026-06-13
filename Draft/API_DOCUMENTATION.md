@@ -1,11 +1,11 @@
-# API Documentation - NASHTY POS
+# API Documentation - NASHTY OS v2.0
 
-Base URL: `http://localhost:3000/api`
+Base URL: `http://localhost:3000/api` (atau port aktif sesuai `$env:PORT`, misal `3099`)
 
 ## Authentication
 
 ### POST /auth/login
-Login dengan PIN
+Login dengan PIN. Mengembalikan JWT token untuk otentikasi antar modul POS, KDS, dan Backoffice.
 
 **Request:**
 ```json
@@ -19,6 +19,7 @@ Login dengan PIN
 ```json
 {
   "success": true,
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
     "id": "user_123",
     "name": "Citra Dewi",
@@ -32,15 +33,8 @@ Login dengan PIN
 }
 ```
 
-**Error Response:**
-```json
-{
-  "error": "Invalid PIN"
-}
-```
-
 ### GET /auth/staff
-Get available staff untuk PIN selection
+Get available staff untuk PIN selection.
 
 **Query Params:**
 - `outletId` (optional): Filter by outlet
@@ -59,53 +53,121 @@ Get available staff untuk PIN selection
 }
 ```
 
+### POST /auth/verify-manager-pin
+Verifikasi PIN Manager (untuk kebutuhan void pesanan atau diskon yang melebihi batas).
+
+**Request:**
+```json
+{
+  "pin": "0000",
+  "outletId": "demo-outlet" // optional
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "verified": true,
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "manager": {
+    "id": "manager_123",
+    "name": "Admin Demo",
+    "role": "owner"
+  }
+}
+```
+
+### GET /auth/outlets
+Daftar semua outlet yang aktif.
+
+**Query Params:**
+- `tenantId` (optional): Filter by tenant
+
+**Response:**
+```json
+{
+  "success": true,
+  "outlets": [
+    {
+      "id": "demo-outlet",
+      "name": "Galaxy Mall",
+      "slug": "galaxy-mall",
+      "address": "Jl. Galaxy Mall No. 123",
+      "phone": "021-12345678",
+      "status": "active"
+    }
+  ]
+}
+```
+
 ---
 
-## Categories
+## Menu
+
+### GET /menu/outlet/:outletId
+*(Canonical Endpoint untuk memuat menu di POS)*
+Memuat seluruh kategori, produk, dan *modifier groups* yang aktif untuk sebuah outlet dalam satu *request*.
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "outlet": {
+      "id": "demo-outlet",
+      "name": "Galaxy Mall",
+      "address": "Jl. Galaxy Mall No. 123",
+      "phone": "021-12345678"
+    },
+    "categories": [
+      {
+        "id": "cat_123",
+        "name": "Makanan",
+        "slug": "makanan",
+        "description": "Menu makanan utama",
+        "icon": "🍽️",
+        "color": "#E4540C",
+        "display_order": 0
+      }
+    ],
+    "items": [
+      {
+        "id": "prod_123",
+        "name": "Ayam Bakar Madu",
+        "slug": "ayam-bakar-madu",
+        "description": "Bumbu kacang & lalapan",
+        "price": 55000,
+        "category_id": "cat_123",
+        "has_modifiers": 1,
+        "modifier_groups": [
+          {
+            "id": "modgroup_123",
+            "name": "Level Pedas",
+            "type": "single",
+            "required": 1,
+            "min_select": 1,
+            "max_select": 1,
+            "options": [
+              {
+                "id": "modopt_123",
+                "name": "Original",
+                "price_adjustment": 0
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+```
 
 ### GET /categories
 Get all categories
 
 **Query Params:**
 - `tenantId` (required): Tenant ID
-
-**Response:**
-```json
-{
-  "categories": [
-    {
-      "id": "cat_123",
-      "tenant_id": "demo-tenant",
-      "name": "Makanan",
-      "slug": "makanan",
-      "description": "Menu makanan utama",
-      "icon": "🍽️",
-      "color": "#E4540C",
-      "display_order": 0,
-      "status": "active",
-      "product_count": 10
-    }
-  ]
-}
-```
-
-### GET /categories/:id
-Get category by ID
-
-**Response:**
-```json
-{
-  "category": {
-    "id": "cat_123",
-    "name": "Makanan",
-    // ... other fields
-  }
-}
-```
-
----
-
-## Products
 
 ### GET /products
 Get all products with filters
@@ -115,84 +177,6 @@ Get all products with filters
 - `categoryId` (optional): Filter by category
 - `search` (optional): Search by name or description
 - `status` (optional): Filter by status (default: 'active')
-
-**Response:**
-```json
-{
-  "products": [
-    {
-      "id": "prod_123",
-      "tenant_id": "demo-tenant",
-      "category_id": "cat_123",
-      "name": "Ayam Bakar Madu",
-      "slug": "ayam-bakar-madu",
-      "description": "Bumbu kacang & lalapan",
-      "price": 55000,
-      "cost": 25000,
-      "sku": null,
-      "image_url": null,
-      "is_favorite": 0,
-      "has_modifiers": 0,
-      "stock_tracking": 0,
-      "stock_qty": 0,
-      "production_time": 15,
-      "status": "active",
-      "category_name": "Makanan",
-      "category_color": "#E4540C"
-    }
-  ]
-}
-```
-
-### GET /products/:id
-Get product detail with modifiers
-
-**Response:**
-```json
-{
-  "product": {
-    "id": "prod_123",
-    "name": "Ayam Bakar Madu",
-    "price": 55000,
-    "has_modifiers": 1,
-    "modifiers": [
-      {
-        "id": "modgroup_123",
-        "name": "Level Pedas",
-        "type": "single",
-        "required": 1,
-        "min_select": 1,
-        "max_select": 1,
-        "options": [
-          {
-            "id": "modopt_123",
-            "group_id": "modgroup_123",
-            "name": "Original",
-            "price_adjustment": 0
-          },
-          {
-            "id": "modopt_124",
-            "group_id": "modgroup_123",
-            "name": "Pedas Extra",
-            "price_adjustment": 0
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-### PATCH /products/:id/favorite
-Toggle favorite status
-
-**Response:**
-```json
-{
-  "success": true,
-  "is_favorite": 1
-}
-```
 
 ---
 
@@ -206,7 +190,7 @@ Create new order
 {
   "tenantId": "demo-tenant",
   "outletId": "demo-outlet",
-  "shiftId": "shift_123", // optional
+  "shiftId": "shift_123", 
   "userId": "user_123",
   "orderType": "dine-in",
   "tableNumber": "T05",
@@ -231,32 +215,17 @@ Create new order
   ],
   "subtotal": 110000,
   "discount": 0,
-  "tax": 0,
-  "serviceCharge": 0,
-  "total": 110000,
-  "paymentMethod": "cash",
+  "tax": 12100,
+  "serviceCharge": 5500,
+  "total": 127600,
+  "payments": [
+    {
+      "method": "cash",
+      "amount": 130000,
+      "change": 2400
+    }
+  ],
   "notes": "Customer notes"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "order": {
-    "id": "order_123",
-    "order_number": "2406110001",
-    "order_type": "dine-in",
-    "table_number": "T05",
-    "total": 110000,
-    "payment_status": "paid",
-    "order_status": "confirmed",
-    "kitchen_status": "pending",
-    "cashier_name": "Citra Dewi",
-    "items": [
-      // ... order items with modifiers
-    ]
-  }
 }
 ```
 
@@ -269,55 +238,10 @@ Get orders with filters
 - `status` (optional): Filter by order_status
 - `kitchenStatus` (optional): Filter by kitchen_status
 - `limit` (optional): Limit results (default: 50)
-
-**Response:**
-```json
-{
-  "orders": [
-    {
-      "id": "order_123",
-      "order_number": "2406110001",
-      "order_type": "dine-in",
-      "table_number": "T05",
-      "subtotal": 110000,
-      "discount": 0,
-      "tax": 0,
-      "service_charge": 0,
-      "total": 110000,
-      "payment_method": "cash",
-      "payment_status": "paid",
-      "order_status": "confirmed",
-      "kitchen_status": "pending",
-      "cashier_name": "Citra Dewi",
-      "created_at": "2024-06-11T10:30:00.000Z",
-      "items": [
-        {
-          "id": "item_123",
-          "product_name": "Ayam Bakar Madu",
-          "quantity": 2,
-          "unit_price": 55000,
-          "subtotal": 110000,
-          "notes": "Tanpa cabe",
-          "kitchen_status": "pending",
-          "modifiers": "..." // JSON array
-        }
-      ]
-    }
-  ]
-}
-```
+- `dateFrom` / `dateTo` (optional): Date range
 
 ### GET /orders/:id
 Get order by ID
-
-**Response:**
-```json
-{
-  "order": {
-    // Same structure as single order in GET /orders
-  }
-}
-```
 
 ### PATCH /orders/:id/status
 Update order status
@@ -330,26 +254,50 @@ Update order status
 }
 ```
 
-**Response:**
+### PUT /orders/:id/void
+Membatalkan (void) order. Memerlukan otorisasi dari akun dengan role `manager` atau `owner`.
+
+**Request:**
 ```json
 {
-  "success": true
+  "reason": "Salah input",
+  "voidBy": "manager_123",
+  "managerPin": "0000"
 }
 ```
 
-**Order Status Values:**
-- `pending` - Order baru dibuat
-- `confirmed` - Order dikonfirmasi
-- `preparing` - Sedang disiapkan
-- `ready` - Siap disajikan
-- `completed` - Order selesai
-- `cancelled` - Order dibatalkan
+### GET /orders/shift/:shiftId
+Daftar order berdasarkan Shift ID (untuk laporan per shift).
 
-**Kitchen Status Values:**
-- `pending` - Belum diproses dapur
-- `preparing` - Sedang dimasak
-- `ready` - Siap disajikan
-- `served` - Sudah disajikan
+### GET /orders/config/:outletId
+Konfigurasi POS per outlet (pajak, service charge, pengaturan KDS, metode bayar yang aktif).
+
+---
+
+## Kitchen Display System (KDS)
+
+### GET /orders/kitchen/queue
+Antrean dapur realtime yang di-polling oleh KDS. Mengembalikan pesanan yang memiliki `kitchen_status` `pending` atau `preparing`.
+
+**Query Params:**
+- `tenantId` (required)
+- `outletId` (optional)
+
+### GET /orders/kitchen/stats
+Statistik performa dapur (rata-rata waktu persiapan, jumlah yang berstatus urgent/warning).
+
+### GET /orders/kitchen/completed
+Daftar pesanan yang sudah selesai (ready/served) pada hari ini.
+
+### PATCH /orders/:id/items/:itemId/status
+Update status level item di dalam dapur (untuk swipe item per item di KDS).
+
+**Request:**
+```json
+{
+  "status": "ready"
+}
+```
 
 ---
 
@@ -367,31 +315,6 @@ Start new shift
 }
 ```
 
-**Response:**
-```json
-{
-  "success": true,
-  "shift": {
-    "id": "shift_123",
-    "outlet_id": "demo-outlet",
-    "user_id": "user_123",
-    "start_cash": 100000,
-    "status": "open",
-    "started_at": "2024-06-11T08:00:00.000Z",
-    "user_name": "Citra Dewi",
-    "outlet_name": "Galaxy Mall"
-  }
-}
-```
-
-**Error Response:**
-```json
-{
-  "error": "User already has an open shift",
-  "shiftId": "shift_123"
-}
-```
-
 ### POST /shifts/:id/end
 End shift
 
@@ -403,145 +326,39 @@ End shift
 }
 ```
 
-**Response:**
-```json
-{
-  "success": true,
-  "shift": {
-    "id": "shift_123",
-    "start_cash": 100000,
-    "end_cash": 500000,
-    "expected_cash": 480000,
-    "variance": 20000,
-    "status": "closed",
-    "started_at": "2024-06-11T08:00:00.000Z",
-    "ended_at": "2024-06-11T16:00:00.000Z"
-  }
-}
-```
-
 ### GET /shifts/active
 Get active shift for user
 
 **Query Params:**
 - `userId` (required): User ID
 
-**Response:**
-```json
-{
-  "shift": {
-    // Same structure as start shift response
-  }
-}
-```
+### GET /shifts/outlet/:outletId/active
+Mendapatkan active shift berdasarkan ID outlet.
 
-Or if no active shift:
-```json
-{
-  "shift": null
-}
-```
-
-### GET /shifts
-Get shift history
-
-**Query Params:**
-- `outletId` (optional): Filter by outlet
-- `userId` (optional): Filter by user
-- `limit` (optional): Limit results (default: 20)
-
-**Response:**
-```json
-{
-  "shifts": [
-    {
-      "id": "shift_123",
-      "start_cash": 100000,
-      "end_cash": 500000,
-      "expected_cash": 480000,
-      "variance": 20000,
-      "status": "closed",
-      "started_at": "2024-06-11T08:00:00.000Z",
-      "ended_at": "2024-06-11T16:00:00.000Z",
-      "user_name": "Citra Dewi",
-      "outlet_name": "Galaxy Mall",
-      "order_count": 45,
-      "total_sales": 3800000
-    }
-  ]
-}
-```
+### GET /shifts/:id/summary
+Rekap lengkap shift (penjualan, metode pembayaran, total discount, produk terlaris).
 
 ---
 
 ## Dashboard
 
 ### GET /dashboard/kpi
-Get KPI metrics
-
-**Query Params:**
-- `tenantId` (required): Tenant ID
-- `outletId` (optional): Filter by outlet
-- `dateFrom` (optional): Start date (YYYY-MM-DD)
-- `dateTo` (optional): End date (YYYY-MM-DD)
-
-**Response:**
-```json
-{
-  "kpi": {
-    "today": {
-      "order_count": 45,
-      "total_sales": 3800000,
-      "avg_order_value": 84444.44
-    },
-    "yesterday": {
-      "total_sales": 3500000
-    },
-    "growth": "8.6",
-    "topProducts": [
-      {
-        "product_name": "Ayam Bakar Madu",
-        "total_qty": 35,
-        "total_sales": 1925000
-      }
-    ],
-    "salesByType": [
-      {
-        "order_type": "dine-in",
-        "order_count": 30,
-        "total_sales": 2500000
-      },
-      {
-        "order_type": "takeaway",
-        "order_count": 10,
-        "total_sales": 800000
-      },
-      {
-        "order_type": "gofood",
-        "order_count": 5,
-        "total_sales": 500000
-      }
-    ]
-  }
-}
-```
+Get KPI metrics (Revenue, Transaksi, AOV, Pertumbuhan).
 
 ### GET /dashboard/recent-orders
-Get recent orders
+10 transaksi terbaru.
 
-**Query Params:**
-- `tenantId` (required): Tenant ID
-- `outletId` (optional): Filter by outlet
-- `limit` (optional): Limit results (default: 10)
+### GET /dashboard/weekly-chart
+Grafik penjualan 7 hari terakhir.
 
-**Response:**
-```json
-{
-  "orders": [
-    // Same structure as GET /orders
-  ]
-}
-```
+### GET /dashboard/payment-distribution
+Persentase metode pembayaran yang digunakan pelanggan.
+
+### GET /dashboard/top-products
+10 produk terlaris berdasarkan periode (today, week, month).
+
+### GET /dashboard/hourly-sales
+Persebaran penjualan per jam (heatmap/grafik batang 24 jam).
 
 ---
 
@@ -552,7 +369,18 @@ All endpoints can return these error responses:
 ### 400 Bad Request
 ```json
 {
-  "error": "Missing required fields"
+  "error": "Missing required fields",
+  "errors": [
+    { "field": "items", "message": "At least one item is required" }
+  ]
+}
+```
+
+### 401 Unauthorized
+```json
+{
+  "success": false,
+  "error": "Invalid PIN"
 }
 ```
 
@@ -566,86 +394,21 @@ All endpoints can return these error responses:
 ### 500 Internal Server Error
 ```json
 {
-  "error": "Internal server error",
-  "stack": "..." // only in development
+  "error": "Internal server error"
 }
 ```
 
 ---
 
-## Rate Limiting
+## Authentication Mechanism
 
-Currently no rate limiting implemented. Will be added in production.
-
-## Authentication
-
-Currently using simple PIN authentication. JWT authentication ready to be implemented:
-
-```typescript
-// Add JWT middleware
-import jwt from 'jsonwebtoken';
-
-function authMiddleware(req, res, next) {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Unauthorized' });
-  
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (error) {
-    res.status(401).json({ error: 'Invalid token' });
-  }
-}
-```
+API v2.0 menggunakan otentikasi JWT:
+- Endpoint POS memerlukan header `Authorization: Bearer <token>`.
+- Token didapatkan melalui `/api/auth/login`.
+- Role berbasis kasir/dapur (*cashier*, *chef*) mendapatkan token berdurasi **12 jam**.
+- Role berbasis manajemen (*manager*, *owner*) mendapatkan token berdurasi **30 menit**.
 
 ---
 
-## Testing with cURL
-
-```bash
-# Login
-curl -X POST http://localhost:3000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"pin":"1234"}'
-
-# Get categories
-curl "http://localhost:3000/api/categories?tenantId=demo-tenant"
-
-# Get products
-curl "http://localhost:3000/api/products?tenantId=demo-tenant&categoryId=cat_123"
-
-# Create order
-curl -X POST http://localhost:3000/api/orders \
-  -H "Content-Type: application/json" \
-  -d '{
-    "tenantId": "demo-tenant",
-    "outletId": "demo-outlet",
-    "userId": "user_123",
-    "orderType": "dine-in",
-    "tableNumber": "T05",
-    "items": [{
-      "productId": "prod_123",
-      "productName": "Test Product",
-      "quantity": 1,
-      "unitPrice": 50000,
-      "subtotal": 50000
-    }],
-    "subtotal": 50000,
-    "total": 50000,
-    "paymentMethod": "cash"
-  }'
-
-# Get orders
-curl "http://localhost:3000/api/orders?tenantId=demo-tenant&kitchenStatus=pending"
-
-# Update order status
-curl -X PATCH http://localhost:3000/api/orders/order_123/status \
-  -H "Content-Type: application/json" \
-  -d '{"kitchenStatus":"ready"}'
-```
-
----
-
-**API Version:** 1.0  
-**Last Updated:** June 11, 2024
+**API Version:** 2.0  
+**Last Updated:** Juni 2026

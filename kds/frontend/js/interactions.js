@@ -74,7 +74,7 @@ async function markDone(orderId){
   
   try {
     if (window.API) {
-      await window.API.orders.updateStatus(orderId, { kitchenStatus: 'ready' });
+      await window.API.orders.updateKitchenStatus(orderId, 'ready');
     }
     o.status = 'done';
     pendingDoneId = orderId;

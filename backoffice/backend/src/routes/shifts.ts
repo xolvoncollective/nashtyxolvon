@@ -67,14 +67,14 @@ router.post('/:id/end', (req, res) => {
       SELECT COALESCE(SUM(p.amount), 0) as total_sales
       FROM payments p
       JOIN orders o ON p.order_id = o.id
-      WHERE o.shift_id = ? AND p.method = 'cash' AND o.order_status != 'cancelled'
+      WHERE o.shift_id = ? AND p.method = 'tunai' AND o.order_status != 'cancelled'
     `, [id]) as any;
 
     // Fallback to orders table if no payments table records
     if (!result || result.total_sales === 0) {
       result = get(`
         SELECT COALESCE(SUM(total), 0) as total_sales
-        FROM orders WHERE shift_id = ? AND payment_method = 'cash' AND payment_status = 'paid' AND order_status != 'cancelled'
+        FROM orders WHERE shift_id = ? AND payment_method = 'tunai' AND payment_status = 'paid' AND order_status != 'cancelled'
       `, [id]) as any;
     }
 

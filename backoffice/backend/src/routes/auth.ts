@@ -6,6 +6,11 @@ import { generateToken } from '../middleware/auth';
 
 const router = Router();
 
+// Store failed login attempts in memory
+const failedAttempts = new Map<string, { count: number, timestamp: number }>();
+const LOCKOUT_MINUTES = 5;
+const MAX_ATTEMPTS = 3;
+
 // Login with PIN
 // Returns JWT token for authentication across POS, KDS, and Backoffice modules
 router.post('/login', async (req, res) => {
@@ -17,6 +22,23 @@ router.post('/login', async (req, res) => {
         success: false,
         error: 'PIN required' 
       });
+    }
+
+    const clientIp = req.ip || req.connection?.remoteAddress || 'unknown';
+    const now = Date.now();
+    const lockout = failedAttempts.get(clientIp);
+
+    // Check if client is currently locked out
+    if (lockout && lockout.count >= MAX_ATTEMPTS) {
+      if (now - lockout.timestamp < LOCKOUT_MINUTES * 60 * 1000) {
+        return res.status(429).json({ 
+          success: false, 
+          error: 'Terlalu banyak percobaan gagal. Coba lagi dalam 5 menit.' 
+        });
+      } else {
+        // Lockout expired, reset
+        failedAttempts.delete(clientIp);
+      }
     }
 
     // Get users for outlet (default to first outlet if not specified)
@@ -64,8 +86,11 @@ router.post('/login', async (req, res) => {
       }
     }
 
-    // Log failed login attempt
-    console.log(`[WARN] Failed login attempt - Invalid PIN for outlet: ${outletId || 'none'}`);
+    // Log failed login attempt and increment counter
+    const current = failedAttempts.get(clientIp) || { count: 0, timestamp: now };
+    failedAttempts.set(clientIp, { count: current.count + 1, timestamp: now });
+    
+    console.log(`[WARN] Failed login attempt - Invalid PIN for outlet: ${outletId || 'none'}, IP: ${clientIp}, Attempt: ${current.count + 1}`);
     
     return res.status(401).json({ 
       success: false,

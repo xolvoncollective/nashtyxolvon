@@ -256,7 +256,7 @@
            }
            
            return {
-              productId: i.id,
+              productId: String(i.id),
               productName: i.n,
               quantity: i.qty,
               unitPrice: i.p,

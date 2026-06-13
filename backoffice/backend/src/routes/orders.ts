@@ -51,13 +51,7 @@ const CreateOrderSchema = z.object({
   notes: z.string().optional().nullable()
 });
 
-// Generate order number
-function generateOrderNumber(): string {
-  const date = new Date();
-  const dateStr = date.toISOString().slice(2, 10).replace(/-/g, '');
-  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-  return `${dateStr}${random}`;
-}
+// Helper removed, using inline sequence generator in route
 
 // POST /api/orders — Create new order with validation
 router.post('/', (req, res) => {
@@ -87,8 +81,45 @@ router.post('/', (req, res) => {
       paymentMethod = null, payments, notes = null
     } = validationResult.data;
 
+    // Generate sequential order number
+    const seqResult = get(`
+      SELECT COUNT(*) as count FROM orders 
+      WHERE outlet_id = ? AND DATE(created_at, 'localtime') = DATE('now', 'localtime')
+    `, [outletId]) as any;
+    const seq = ((seqResult?.count || 0) + 1).toString().padStart(4, '0');
+    const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+    const orderNumber = `SNY-${dateStr}-${seq}`;
     const orderId = nanoid();
-    const orderNumber = generateOrderNumber();
+
+    // SERVER-SIDE RECALCULATION TO PREVENT PRICE MANIPULATION
+    let calculatedSubtotal = 0;
+    for (const item of items) {
+      const product = get('SELECT price, stock_tracking, stock_qty FROM products WHERE id = ?', [item.productId]) as any;
+      if (product) {
+        let itemPrice = product.price;
+        if (item.modifiers) {
+          for (const mod of item.modifiers) {
+            itemPrice += mod.priceAdjustment || 0;
+          }
+        }
+        item.unitPrice = itemPrice;
+        item.subtotal = itemPrice * item.quantity;
+        
+        // Negative stock validation
+        if (product.stock_tracking === 1 && product.stock_qty < item.quantity) {
+          return res.status(400).json({ 
+            success: false, 
+            error: `Stok tidak mencukupi untuk ${item.productName}. Sisa stok: ${product.stock_qty}` 
+          });
+        }
+      }
+      calculatedSubtotal += item.subtotal;
+    }
+    const calculatedTotal = calculatedSubtotal - discount + tax + serviceCharge;
+
+    // Validate payment amounts
+    const totalPaid = payments ? payments.reduce((sum, p) => sum + p.amount - (p.change || 0), 0) : 0;
+    const paymentStatus = totalPaid >= calculatedTotal ? 'paid' : 'pending';
 
     // Map order type
     const orderTypeMap: Record<string, string> = {
@@ -110,8 +141,8 @@ router.post('/', (req, res) => {
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [
         orderId, tenantId, outletId, shiftId, userId, orderNumber,
-        mappedOrderType, tableNumber, subtotal, discount, tax, serviceCharge,
-        total, paymentMethod, 'paid', 'confirmed', 'pending', notes
+        mappedOrderType, tableNumber, calculatedSubtotal, discount, tax, serviceCharge,
+        calculatedTotal, paymentMethod, paymentStatus, 'confirmed', 'pending', notes
       ]);
 
       // Insert order items
@@ -136,16 +167,8 @@ router.post('/', (req, res) => {
         }
 
         // Decrement stock if tracking is enabled
-        const product = get('SELECT stock_tracking, stock_qty FROM products WHERE id = ?', [item.productId]) as any;
+        const product = get('SELECT stock_tracking FROM products WHERE id = ?', [item.productId]) as any;
         if (product && product.stock_tracking === 1) {
-           run(`
-             UPDATE products SET stock_qty = stock_qty - ?, updated_at = ?
-             WHERE id = ? AND stock_qty >= ?
-           `, [item.quantity, new Date().toISOString(), item.productId, item.quantity]);
-           
-           // If update affected 0 rows (meaning stock_qty < quantity), we should theoretically rollback, 
-           // but since we allow negative stock in some POS or just warn, we'll enforce a simple decrement for now 
-           // by just updating without the >= condition to allow negative if needed, OR we throw error. Let's allow negative for now but log it.
            run(`
              UPDATE products SET stock_qty = stock_qty - ?, updated_at = ?
              WHERE id = ?
@@ -645,6 +668,17 @@ router.post('/:id/refund', (req, res) => {
         updated_at = ?
       WHERE id = ?
     `, [`REFUND: Rp ${amount.toLocaleString()} — ${reason} (by: ${refundBy || 'Manager'})`, new Date().toISOString(), id]);
+
+    // Insert negative payment to correctly reduce shift omzet
+    run(`
+      INSERT INTO payments (id, order_id, method, amount, change_amount, platform_ref)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `, [nanoid(), id, order.payment_method || 'tunai', -Math.abs(amount), 0, 'REFUND']);
+
+    // If full refund, void the order
+    if (amount >= order.total) {
+      run(`UPDATE orders SET order_status = 'cancelled', payment_status = 'cancelled' WHERE id = ?`, [id]);
+    }
 
     // Log activity
     run(`

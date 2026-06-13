@@ -30,7 +30,7 @@ router.get('/outlet/:outletId', (req, res) => {
              p.category_id, p.is_favorite, p.has_modifiers, p.stock_tracking,
              p.stock_qty, p.production_time, p.status
       FROM products p
-      WHERE p.tenant_id = ? AND p.status = 'active'
+      WHERE p.tenant_id = ? AND p.status IN ('active', 'soldout')
       ORDER BY p.is_favorite DESC, p.name
     `, [tenantId]);
 

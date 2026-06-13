@@ -61,7 +61,7 @@ async function fetchOrders() {
             } catch(e) {}
             
             return {
-              n: it.product_name,
+              n: it.name || it.product_name,
               qty: it.quantity,
               mods: mods,
               addons: addons,
