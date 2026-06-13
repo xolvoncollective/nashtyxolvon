@@ -81,16 +81,16 @@
         const prodRes = await API.products.getAll();
         
         if (catRes.success && catRes.data) {
-          window.CATS = catRes.data.map(c => ({
+          CATS = catRes.data.map(c => ({
             id: c.id,
             label: c.name,
             svg: c.name.toLowerCase().includes('makan') ? ICO.rice : (c.name.toLowerCase().includes('minum') ? ICO.juice : ICO.nugget)
           }));
-          window.CATS.unshift({ id: 'fav', label: 'Favorit', svg: ICO.cake, isFav: true });
+          CATS.unshift({ id: 'fav', label: 'Favorit', svg: ICO.cake, isFav: true });
         }
         
         if (prodRes.success && prodRes.data) {
-          window.MENU = prodRes.data.map(p => ({
+          MENU = prodRes.data.map(p => ({
             id: p.id,
             cat: p.category_id,
             n: p.name,

@@ -42,10 +42,10 @@ function openCatModal(){
  document.body.insertAdjacentHTML('beforeend',`
  <div class="modal-overlay" id="mod-cat" onclick="if(event.target===this)this.remove()">
  <div class="modal" onclick="event.stopPropagation()">
- <div class="modal-h"><div class="modal-t">Tambah Kategori</div><div class="modal-x" onclick="document.getElementById('mod-cat').remove()"></div></div>
+ <div class="modal-h"><div class="modal-t">Tambah Kategori Baru</div><div class="modal-x" onclick="document.getElementById('mod-cat').remove()"></div></div>
  <div class="modal-b">
- <div class="fld"><label>Nama Kategori *</label><input placeholder="contoh: Makanan Utama"></div>
- <div class="fld"><label>Deskripsi</label><textarea placeholder="Opsional"></textarea></div>
+ <div class="fld"><label>Nama Kategori *</label><input id="cat-name-inp" placeholder="contoh: Main Course"></div>
+ <div class="form-grid form-2"><label>Deskripsi</label><textarea placeholder="Opsional"></textarea></div>
  <div class="form-grid form-2">
  <div class="fld"><label>Urutan</label><input type="number" value="${CATEGORIES.length+1}"></div>
  <div class="fld"><label>Status</label><select><option>Aktif</option><option>Nonaktif</option></select></div>
@@ -53,11 +53,32 @@ function openCatModal(){
  </div>
  <div class="modal-foot">
  <button class="btn" onclick="document.getElementById('mod-cat').remove()">Batal</button>
- <button class="btn btn-primary" onclick="document.getElementById('mod-cat').remove();toast('Kategori berhasil ditambahkan')">Simpan Kategori</button>
+ <button class="btn btn-primary" onclick="saveCategory()">Simpan Kategori</button>
  </div>
  </div>
  </div>`);
 }
+
+window.saveCategory = async function() {
+  const name = document.getElementById('cat-name-inp').value;
+  if (!name) {
+    toast('Nama kategori wajib diisi', 'err');
+    return;
+  }
+  try {
+    const res = await API.categories.create({ name: name, emoji: '🔥' });
+    if (res.success) {
+      toast('Kategori berhasil ditambahkan', 'success');
+      document.getElementById('mod-cat').remove();
+      initBackoffice();
+    } else {
+      toast('Gagal menambah kategori: ' + res.error, 'err');
+    }
+  } catch (err) {
+    console.error(err);
+    toast('Error menyimpan kategori', 'err');
+  }
+};
 
 // PRODUCTS 
 PAGES.products=()=>{
@@ -93,7 +114,13 @@ PAGES.products=()=>{
  </td>
  <td><span class="badge badge-gray">${p.cat}</span></td>
  <td class="mono">${fr(p.price)}</td>
- <td><span class="badge ${p.active?'badge-green':'badge-red'}">${p.active?'Aktif':'Nonaktif'}</span></td>
+ <td>
+   <select onchange="changeProductStatus('${p.id}', this.value)" style="padding:4px; border-radius:4px; font-family:var(--fn); font-size:12px; background:var(--sf); color:var(--txt); border:1px solid var(--brd)">
+     <option value="active" ${p.status === 'active' ? 'selected' : ''}>Aktif</option>
+     <option value="inactive" ${p.status === 'inactive' ? 'selected' : ''}>Nonaktif</option>
+     <option value="soldout" ${p.status === 'soldout' ? 'selected' : ''}>Habis (Sold)</option>
+   </select>
+ </td>
  <td><span class="badge badge-blue">Global</span></td>
  <td>
  <div style="display:flex;gap:5px">
@@ -114,6 +141,22 @@ PAGES.products=()=>{
 </div>`;
 };
 
+window.changeProductStatus = async function(id, status) {
+  try {
+    const res = await API.products.updateStatus(id, status);
+    if (res.success) {
+      toast('Status produk berhasil diubah');
+      const prod = window.PRODUCTS.find(p => p.id === id);
+      if (prod) prod.status = status;
+    } else {
+      toast('Gagal mengubah status: ' + res.error, 'err');
+    }
+  } catch (err) {
+    console.error(err);
+    toast('Error saat mengubah status', 'err');
+  }
+};
+
 function openProdModal(name=''){
  document.body.insertAdjacentHTML('beforeend',`
  <div class="modal-overlay" id="mod-prod" onclick="if(event.target===this)this.remove()">
@@ -121,14 +164,14 @@ function openProdModal(name=''){
  <div class="modal-h"><div class="modal-t">${name?'Edit Produk: '+name:'Tambah Produk Baru'}</div><div class="modal-x" onclick="document.getElementById('mod-prod').remove()"></div></div>
  <div class="modal-b">
  <div class="form-grid form-2">
- <div class="fld"><label>Nama Produk *</label><input value="${name}" placeholder="Nama menu"></div>
- <div class="fld"><label>Kategori *</label><select>${CATEGORIES.map(c=>`<option>${c.name}</option>`).join('')}</select></div>
+ <div class="fld"><label>Nama Produk *</label><input id="prod-name-inp" value="${name}" placeholder="Nama menu"></div>
+ <div class="fld"><label>Kategori *</label><select id="prod-cat-inp">${CATEGORIES.map(c=>`<option>${c.name}</option>`).join('')}</select></div>
  </div>
  <div class="form-grid form-2">
- <div class="fld"><label>Harga *</label><input type="number" placeholder="55000"></div>
+ <div class="fld"><label>Harga *</label><input id="prod-price-inp" type="number" placeholder="55000"></div>
  <div class="fld"><label>Status</label><select><option>Aktif</option><option>Nonaktif</option></select></div>
  </div>
- <div class="fld"><label>Deskripsi</label><textarea placeholder="Deskripsi singkat produk..."></textarea></div>
+ <div class="fld"><label>Deskripsi</label><textarea id="prod-desc-inp" placeholder="Deskripsi singkat produk..."></textarea></div>
  <div class="fld"><label>Foto Produk</label>
  <div class="upload-zone" onclick="toast('Upload foto')">
  <div class="upload-zone-ico"></div>
@@ -159,11 +202,47 @@ function openProdModal(name=''){
  </div>
  <div class="modal-foot">
  <button class="btn" onclick="document.getElementById('mod-prod').remove()">Batal</button>
- <button class="btn btn-primary" onclick="document.getElementById('mod-prod').remove();toast('Produk berhasil disimpan')">Simpan Produk</button>
+ <button class="btn btn-primary" onclick="saveProduct()">Simpan Produk</button>
  </div>
  </div>
  </div>`);
 }
+
+window.saveProduct = async function() {
+  const name = document.getElementById('prod-name-inp').value;
+  const price = document.getElementById('prod-price-inp').value;
+  const catName = document.getElementById('prod-cat-inp').value;
+  const desc = document.getElementById('prod-desc-inp').value;
+  
+  if (!name || !price) {
+    toast('Nama dan Harga wajib diisi', 'err');
+    return;
+  }
+  
+  const cat = CATEGORIES.find(c => c.name === catName);
+  
+  try {
+    const res = await API.products.create({
+      name: name,
+      price: parseInt(price),
+      categoryId: cat ? cat.id : null,
+      description: desc,
+      hasModifiers: false
+    });
+    
+    if (res.success) {
+      toast('Produk berhasil disimpan', 'success');
+      document.getElementById('mod-prod').remove();
+      // Refresh produk data
+      initBackoffice(); 
+    } else {
+      toast('Gagal menyimpan produk: ' + res.error, 'err');
+    }
+  } catch (err) {
+    console.error(err);
+    toast('Error menyimpan produk', 'err');
+  }
+};
 
 // MODIFIERS 
 PAGES.modifiers=()=>`

@@ -238,7 +238,7 @@
 
     <!-- TOAST CONTAINER -->
     <div id="toast-container"></div>
-    <script src="../../api-client.js"></script>
+    <script src="../../api-client-v2.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/nav.js"></script>
     <script src="js/data.js"></script>
@@ -274,24 +274,25 @@
         try {
           const catRes = await API.categories.getAll();
           if (catRes.success) {
-            window.CATEGORIES = catRes.categories.map((c, i) => ({
+            window.CATEGORIES = catRes.data.map((c, i) => ({
               id: c.id,
               name: c.name,
               desc: c.description || '',
               order: c.sort_order || i + 1,
-              active: c.is_active === 1,
+              active: c.is_active === 1 || c.status === 'active',
               products: 0 // to be computed
             }));
           }
           const prodRes = await API.products.getAll();
           if (prodRes.success) {
-            window.PRODUCTS = prodRes.products.map(p => ({
+            window.PRODUCTS = prodRes.data.map(p => ({
               id: p.id,
               name: p.name,
               cat: p.category_name,
               price: p.price,
               desc: p.description || '',
-              active: p.is_active === 1,
+              active: p.is_active === 1 || p.status === 'active',
+              status: p.status || 'active',
               img: p.image_url || ''
             }));
           }

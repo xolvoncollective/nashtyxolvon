@@ -12,6 +12,15 @@ async function fetchOrders() {
     API.session.tenantId = 'demo-tenant';
     API.session.outletId = 'demo-outlet';
   }
+
+  // Silent login if no token so KDS can bypass requireAuth
+  if (!API.session.token) {
+    try {
+      await API.auth.login('1234', 'demo-outlet');
+    } catch(e) {
+      console.error('KDS Silent login failed', e);
+    }
+  }
   
   try {
     const data = await API.orders.getAll({ status: 'confirmed', kitchenStatus: 'pending' });

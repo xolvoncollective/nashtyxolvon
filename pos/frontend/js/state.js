@@ -41,7 +41,7 @@
     let loginSel = null, loginPinArr = [], currentUser = null;
 
     /* ── MENU DATA — 10 items per tab ── */
-    const CATS = [
+    var CATS = [
       { id: 'fav', label: 'Favorit', svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>', isFav: true },
       { id: 'main', label: 'Makanan', svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>' },
       { id: 'bar', label: 'Minuman', svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 3z"/><line x1="3" y1="8" x2="21" y2="8"/></svg>' },
@@ -49,7 +49,7 @@
       { id: 'dessert', label: 'Dessert', svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5c0 1.6.8 3 2 3.9V22l3-3 3 3V10.9c1.2-1 2-2.3 2-3.9a5 5 0 0 0-5-5z"/></svg>' },
       { id: 'addon', label: 'Add On', svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>' },
     ];
-    const MENU = [
+    var MENU = [
       // MAKANAN (10)
       { id: 1, cat: 'main', n: 'Nasi Goreng Spesial', p: 35000, ico: 'rice', d: 'Telur mata sapi & kerupuk', opts: [{ label: 'Kepedasan', type: 'single', choices: ['Tidak Pedas', 'Pedas Sedang', 'Pedas Extra'] }], addons: [{ n: 'Extra Telur', p: 5000 }, { n: 'Extra Nasi', p: 6000 }, { n: 'Kerupuk', p: 3000 }] },
       { id: 2, cat: 'main', n: 'Ayam Bakar Madu', p: 55000, ico: 'chicken', d: 'Bumbu kacang & lalapan', opts: [{ label: 'Level Pedas', type: 'single', choices: ['Original', 'Pedas Sedang', 'Pedas Extra'] }], addons: [{ n: 'Extra Sambal', p: 3000 }, { n: 'Lalapan', p: 4000 }, { n: 'Nasi Putih', p: 6000 }] },

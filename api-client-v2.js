@@ -218,6 +218,27 @@ const API = {
         success: true,
         data: response.category
       };
+    },
+
+    async create(data) {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      return API.request('/categories', {
+        method: 'POST',
+        body: JSON.stringify({ ...data, tenantId: API.session.tenantId })
+      });
+    },
+
+    async update(id, data) {
+      return API.request(`/categories/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+    },
+
+    async delete(id) {
+      return API.request(`/categories/${id}`, {
+        method: 'DELETE'
+      });
     }
   },
 
@@ -250,6 +271,34 @@ const API = {
     async toggleFavorite(id) {
       return API.request(`/products/${id}/favorite`, {
         method: 'PATCH'
+      });
+    },
+
+    async create(data) {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      return API.request('/products', {
+        method: 'POST',
+        body: JSON.stringify({ ...data, tenantId: API.session.tenantId })
+      });
+    },
+
+    async update(id, data) {
+      return API.request(`/products/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+    },
+
+    async updateStatus(id, status) {
+      return API.request(`/products/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status })
+      });
+    },
+
+    async delete(id) {
+      return API.request(`/products/${id}`, {
+        method: 'DELETE'
       });
     }
   },
