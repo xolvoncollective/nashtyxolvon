@@ -198,52 +198,85 @@
         }
       }
     }
-    function doPay(tot) {
+    async function doPay(tot) {
       var btn = document.getElementById('btn-cfm');
       if (btn) { btn.innerHTML = 'Memproses...'; btn.disabled = true; }
-      setTimeout(function () {
-        var paid = pmSel === 'cash' ? parseInt(cashIn || '0') : tot;
-        var chg = Math.max(0, paid - tot);
-        var delivNote = '';
-        var dni = document.getElementById('delivery-note-inp');
-        if (dni) delivNote = dni.value || '';
-        var tips = 0;
+      
+      var paid = pmSel === 'cash' ? parseInt(cashIn || '0') : tot;
+      var chg = Math.max(0, paid - tot);
+      var delivNote = '';
+      var dni = document.getElementById('delivery-note-inp');
+      if (dni) delivNote = dni.value || '';
 
-        // ── Push to HISTORY so it shows in Riwayat ──
-        var { sub, disc, tax, svc, grand } = calcT();
-        var newId = HISTORY.length ? HISTORY[0].id + 1 : 1;
-        var now = new Date();
-        var hh = String(now.getHours()).padStart(2, '0');
-        var mm = String(now.getMinutes()).padStart(2, '0');
-        var PM_LABELS = { cash: 'Tunai', qris: 'QRIS', bca: 'BCA', debit: 'Debit', gofood: 'GoFood', grabfood: 'GrabFood', shopee: 'ShopeeFood', transfer: 'Transfer' };
-        var txn = {
-          id: newId,
-          no: 'SNY-' + String(newId + 186).padStart(4, '0'),
-          table: document.getElementById('tbl-no')?.value || (orderType === 'dine' ? 'T01' : 'TAKE'),
-          type: orderType,
-          cashier: currentUser ? currentUser.name : 'Kasir',
-          time: hh + ':' + mm,
-          method: PM_LABELS[pmSel] || pmSel,
-          status: 'done',
-          sub: sub,
-          disc: disc,
-          tax: tax,
-          svc: svc,
-          tips: tips,
-          total: grand,
-          member: curMember,
-          delivNote: delivNote,
-          items: cart.map(function (i) {
-            var mods = i.selectedOpts ? Object.values(i.selectedOpts).flat() : [];
-            if (i.addonNames) mods = mods.concat(i.addonNames.split(', ').map(function (a) { return '+' + a; }));
-            return { id: i.id, n: i.n, qty: i.qty, p: i.p, mods: mods };
-          })
-        };
-        HISTORY.unshift(txn);
+      var { sub, disc, tax, svc, grand } = calcT();
 
-        document.getElementById('pay-ov')?.remove();
-        showSuccess(grand, chg, delivNote);
-      }, 900);
+      const orderData = {
+        orderType: orderType,
+        tableNumber: document.getElementById('tbl-no')?.value || (orderType === 'dine' ? 'T01' : 'TAKE'),
+        paymentMethod: pmSel,
+        subtotal: sub,
+        discount: disc,
+        tax: tax,
+        serviceCharge: svc,
+        total: grand,
+        payments: [{
+           method: pmSel,
+           amount: paid,
+           change: chg
+        }],
+        items: cart.map(function(i) {
+           var mods = i.selectedOpts ? Object.values(i.selectedOpts).flat() : [];
+           if (i.addonNames) mods = mods.concat(i.addonNames.split(', ').map(a => '+' + a));
+           return {
+              productId: i.id,
+              productName: i.n,
+              quantity: i.qty,
+              unitPrice: i.p,
+              subtotal: i.qty * i.p,
+              notes: mods.join(', ')
+           };
+        })
+      };
+
+      try {
+        const res = await API.orders.create(orderData);
+        if (res.success) {
+          // Push to local mockup HISTORY so UI doesn't break instantly
+          // This is a hybrid approach to keep the UI snappy
+          var newId = HISTORY.length ? HISTORY[0].id + 1 : 1;
+          var now = new Date();
+          var hh = String(now.getHours()).padStart(2, '0');
+          var mm = String(now.getMinutes()).padStart(2, '0');
+          var PM_LABELS = { cash: 'Tunai', qris: 'QRIS', bca: 'BCA', debit: 'Debit', gofood: 'GoFood', grabfood: 'GrabFood', shopee: 'ShopeeFood', transfer: 'Transfer' };
+          HISTORY.unshift({
+            id: newId,
+            no: res.order ? res.order.order_number : ('SNY-' + String(newId + 186).padStart(4, '0')),
+            table: orderData.table_number,
+            type: orderType,
+            cashier: currentUser ? currentUser.name : 'Kasir',
+            time: hh + ':' + mm,
+            method: PM_LABELS[pmSel] || pmSel,
+            status: 'done',
+            sub: sub, disc: disc, tax: tax, svc: svc, tips: 0, total: grand,
+            member: curMember, delivNote: delivNote,
+            items: cart.map(function(i) {
+               var mods = i.selectedOpts ? Object.values(i.selectedOpts).flat() : [];
+               if (i.addonNames) mods = mods.concat(i.addonNames.split(', ').map(a => '+' + a));
+               return { id: i.id, n: i.n, qty: i.qty, p: i.p, mods: mods };
+            })
+          });
+
+          document.getElementById('pay-ov')?.remove();
+          showSuccess(grand, chg, delivNote);
+        } else {
+          toast('Gagal: ' + res.error, 'err');
+          if (btn) { btn.innerHTML = 'Konfirmasi'; btn.disabled = false; }
+        }
+      } catch (err) {
+        console.error(err);
+        toast('Gagal memproses pesanan: ' + err.message, 'err');
+        if (btn) { btn.innerHTML = 'Konfirmasi'; btn.disabled = false; }
+      }
     }
 
 

@@ -6,7 +6,7 @@
       document.querySelectorAll('.ttab').forEach(t => t.classList.remove('act'));
       document.getElementById('mod-' + name).classList.add('act');
       el.classList.add('act');
-      if (name === 'hist') renderHist();
+      if (name === 'hist') loadHist();
       if (name === 'laporan') renderLaporan();
     }
 
@@ -82,3 +82,31 @@
     /* ── INIT ── */
     initLogin();
   
+    /* ── GLOBAL TOAST NOTIFICATION ── */
+    window.toast = function(msg, type = 'info') {
+      let tc = document.getElementById('toast-container');
+      if (!tc) {
+        tc = document.createElement('div');
+        tc.id = 'toast-container';
+        tc.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none;';
+        document.body.appendChild(tc);
+      }
+      const t = document.createElement('div');
+      const bg = type === 'err' ? '#EF4444' : type === 'success' ? '#22C55E' : '#1F2937';
+      t.style.cssText = `background:${bg};color:#fff;padding:12px 24px;border-radius:8px;font-family:var(--fn);font-size:14px;font-weight:600;box-shadow:0 10px 25px rgba(0,0,0,0.2);opacity:0;transform:translateY(20px);transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);`;
+      t.textContent = msg;
+      tc.appendChild(t);
+      
+      // Animate in
+      requestAnimationFrame(() => {
+        t.style.opacity = '1';
+        t.style.transform = 'translateY(0)';
+      });
+      
+      // Animate out
+      setTimeout(() => {
+        t.style.opacity = '0';
+        t.style.transform = 'translateY(-20px)';
+        setTimeout(() => t.remove(), 300);
+      }, 3000);
+    };

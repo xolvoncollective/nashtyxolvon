@@ -251,6 +251,31 @@ CREATE TABLE IF NOT EXISTS settings (
   UNIQUE(tenant_id, outlet_id, key)
 );
 
+-- Payments (split payment support — 1 order can have multiple payments)
+CREATE TABLE IF NOT EXISTS payments (
+  id TEXT PRIMARY KEY,
+  order_id TEXT NOT NULL,
+  method TEXT NOT NULL,
+  amount REAL NOT NULL,
+  change_amount REAL DEFAULT 0,
+  platform_ref TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+);
+
+-- Kitchen Stations (KDS station routing)
+CREATE TABLE IF NOT EXISTS stations (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  outlet_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  display_order INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+  FOREIGN KEY (outlet_id) REFERENCES outlets(id) ON DELETE CASCADE
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_outlets_tenant ON outlets(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_users_tenant ON users(tenant_id);
@@ -265,6 +290,9 @@ CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(order_status);
 CREATE INDEX IF NOT EXISTS idx_orders_kitchen_status ON orders(kitchen_status);
 CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at);
 CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_kitchen ON order_items(kitchen_status);
 CREATE INDEX IF NOT EXISTS idx_shifts_outlet ON shifts(outlet_id);
 CREATE INDEX IF NOT EXISTS idx_shifts_user ON shifts(user_id);
 CREATE INDEX IF NOT EXISTS idx_activity_logs_tenant ON activity_logs(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_payments_order ON payments(order_id);
+CREATE INDEX IF NOT EXISTS idx_stations_outlet ON stations(outlet_id);

@@ -238,6 +238,7 @@
 
     <!-- TOAST CONTAINER -->
     <div id="toast-container"></div>
+    <script src="../../api-client.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/nav.js"></script>
     <script src="js/data.js"></script>
@@ -250,8 +251,58 @@
     <script src="js/pages/engineering.js"></script>
     <script src="js/pages/system.js"></script>
     <script>
-      // INIT
-      nav('dashboard', document.querySelector('.sb-item.act'));
+      // INIT DYNAMIC DATA
+      async function initBackoffice() {
+        if (!API.session.tenantId) {
+          API.session.tenantId = 'demo-tenant';
+          API.session.outletId = 'demo-outlet';
+        }
+        
+        try {
+          const kpi = await API.dashboard.getKPI();
+          if (kpi && kpi.kpi) {
+            window.GLOBAL_KPI = kpi.kpi;
+          }
+          const chart = await API.request('/dashboard/weekly-chart?tenantId=demo-tenant');
+          if (chart && chart.chart) {
+            window.WEEKLY_CHART = chart.chart;
+          }
+        } catch (e) {
+          console.error('Failed to load KPI:', e);
+        }
+
+        try {
+          const catRes = await API.categories.getAll();
+          if (catRes.success) {
+            window.CATEGORIES = catRes.categories.map((c, i) => ({
+              id: c.id,
+              name: c.name,
+              desc: c.description || '',
+              order: c.sort_order || i + 1,
+              active: c.is_active === 1,
+              products: 0 // to be computed
+            }));
+          }
+          const prodRes = await API.products.getAll();
+          if (prodRes.success) {
+            window.PRODUCTS = prodRes.products.map(p => ({
+              id: p.id,
+              name: p.name,
+              cat: p.category_name,
+              price: p.price,
+              desc: p.description || '',
+              active: p.is_active === 1,
+              img: p.image_url || ''
+            }));
+          }
+        } catch (e) {
+          console.error('Failed to load catalog:', e);
+        }
+
+        nav('dashboard', document.querySelector('.sb-item.act'));
+      }
+      
+      initBackoffice();
     </script>
 </body>
 

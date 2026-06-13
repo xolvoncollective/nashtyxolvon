@@ -1,5 +1,7 @@
 // CATEGORIES 
-PAGES.categories=()=>`
+PAGES.categories=()=>{
+  const cats = window.CATEGORIES || [];
+  return `
 <div class="ph">
  <div style="display:flex;align-items:center;justify-content:space-between">
  <div><div class="ph-title">Kategori Menu</div><div class="ph-sub">Kelola kategori yang tampil di POS</div></div>
@@ -9,13 +11,13 @@ PAGES.categories=()=>`
 <div class="card">
  <div class="card-h">
  <div><div class="card-t">Semua Kategori</div><div class="card-sub">Drag untuk mengubah urutan</div></div>
- <span class="badge badge-blue">${CATEGORIES.length} kategori</span>
+ <span class="badge badge-blue">${cats.length} kategori</span>
  </div>
  <div class="tbl-wrap">
  <table>
  <thead><tr><th style="width:32px"></th><th>#</th><th>Nama Kategori</th><th>Deskripsi</th><th>Produk</th><th>Status</th><th>Aksi</th></tr></thead>
  <tbody>
- ${CATEGORIES.map(c=>`
+ ${cats.length ? cats.map(c=>`
  <tr class="drag-row">
  <td><span class="drag-handle"></span></td>
  <td class="mono">${c.order}</td>
@@ -29,11 +31,12 @@ PAGES.categories=()=>`
  <button class="btn btn-sm btn-danger" onclick="confirm_act('Hapus kategori ${c.name}?',()=>${ico('del')})"></button>
  </div>
  </td>
- </tr>`).join('')}
+ </tr>`).join('') : '<tr><td colspan="7" style="text-align:center;padding:20px;color:#999">Belum ada kategori</td></tr>'}
  </tbody>
  </table>
  </div>
 </div>`;
+};
 
 function openCatModal(){
  document.body.insertAdjacentHTML('beforeend',`
@@ -57,7 +60,10 @@ function openCatModal(){
 }
 
 // PRODUCTS 
-PAGES.products=()=>`
+PAGES.products=()=>{
+  const prods = window.PRODUCTS || [];
+  const cats = window.CATEGORIES || [];
+  return `
 <div class="ph">
  <div style="display:flex;align-items:center;justify-content:space-between">
  <div><div class="ph-title">Produk</div><div class="ph-sub">Kelola semua menu yang tersedia di POS</div></div>
@@ -66,7 +72,7 @@ PAGES.products=()=>`
 </div>
 <div class="sf-bar">
  <div class="search-wrap"><input class="search-inp" placeholder="Cari nama produk..."></div>
- <select class="filter-select"><option>Semua Kategori</option>${CATEGORIES.map(c=>`<option>${c.name}</option>`).join('')}</select>
+ <select class="filter-select"><option>Semua Kategori</option>${cats.map(c=>`<option>${c.name}</option>`).join('')}</select>
  <select class="filter-select"><option>Semua Status</option><option>Aktif</option><option>Nonaktif</option></select>
 </div>
 <div class="card">
@@ -74,10 +80,11 @@ PAGES.products=()=>`
  <table>
  <thead><tr><th>Produk</th><th>Kategori</th><th>Harga</th><th>Status</th><th>Outlet</th><th>Aksi</th></tr></thead>
  <tbody>
- ${PRODUCTS.map(p=>`
+ ${prods.length ? prods.map(p=>`
  <tr>
  <td>
  <div style="display:flex;align-items:center;gap:10px">
+ ${p.img ? `<div style="width:40px;height:40px;border-radius:6px;background:url(${p.img}) center/cover"></div>` : `<div style="width:40px;height:40px;border-radius:6px;background:var(--sf3);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--txt3)">No IMG</div>`}
  <div>
  <div class="bold">${p.name}</div>
  <div style="font-size:11.5px;color:var(--txt3)">${p.desc}</div>
@@ -87,7 +94,7 @@ PAGES.products=()=>`
  <td><span class="badge badge-gray">${p.cat}</span></td>
  <td class="mono">${fr(p.price)}</td>
  <td><span class="badge ${p.active?'badge-green':'badge-red'}">${p.active?'Aktif':'Nonaktif'}</span></td>
- <td><span class="badge badge-blue">Galaxy Mall</span></td>
+ <td><span class="badge badge-blue">Global</span></td>
  <td>
  <div style="display:flex;gap:5px">
  <button class="btn btn-sm" onclick="openProdModal('${p.name}')">${ico('edit')} Edit</button>
@@ -95,22 +102,17 @@ PAGES.products=()=>`
  <button class="btn btn-sm btn-danger" onclick="toast('${p.name} diarsipkan','err')">${ico('del')} Arsip</button>
  </div>
  </td>
- </tr>`).join('')}
+ </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;padding:20px;color:#999">Belum ada produk</td></tr>'}
  </tbody>
  </table>
  </div>
  <div style="padding:12px 16px;border-top:1px solid var(--brd)">
  <div class="pagination">
- <span class="pg-info">Menampilkan 10 dari 50 produk</span>
- <div class="pg-btn">‹</div>
- <div class="pg-btn act">1</div>
- <div class="pg-btn">2</div>
- <div class="pg-btn">3</div>
- <div class="pg-btn">5</div>
- <div class="pg-btn">›</div>
+ <span class="pg-info">Menampilkan ${prods.length} produk</span>
  </div>
  </div>
 </div>`;
+};
 
 function openProdModal(name=''){
  document.body.insertAdjacentHTML('beforeend',`

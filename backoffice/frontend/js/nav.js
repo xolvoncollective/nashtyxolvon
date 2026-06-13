@@ -14,12 +14,22 @@ const PAGE_TITLES={
 const PAGES={};
 let curPage='dashboard';
 
-function nav(page,el){
+async function nav(page,el){
  curPage=page;
  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('act'));
  if(el)el.classList.add('act');
  document.getElementById('page-title').textContent=PAGE_TITLES[page]||page;
  document.getElementById('trail-cur').textContent=PAGE_TITLES[page]||page;
- document.getElementById('page-area').innerHTML=PAGES[page]?PAGES[page]():'<p>Coming soon</p>';
+ document.getElementById('page-area').innerHTML='<div style="padding:40px;text-align:center;color:var(--txt3)">Memuat data...</div>';
+ 
+ if(PAGES[page]){
+   try {
+     document.getElementById('page-area').innerHTML = await PAGES[page]();
+   } catch(e) {
+     document.getElementById('page-area').innerHTML = '<div style="padding:40px;color:red">Error: ' + e.message + '</div>';
+   }
+ } else {
+   document.getElementById('page-area').innerHTML = '<p>Coming soon</p>';
+ }
  window.scrollTo&&window.scrollTo(0,0);
 }

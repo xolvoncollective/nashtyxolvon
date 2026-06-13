@@ -1,99 +1,131 @@
-# Quick Start Guide - NASHTY POS
+# 🚀 NASHTY OS - Quick Start Guide
 
-## Masalah dengan better-sqlite3 di Windows
-
-`better-sqlite3` memerlukan Visual Studio Build Tools yang besar dan rumit untuk install. 
-
-## Solusi: Gunakan Backend Existing yang Sudah Jalan
-
-Anda sudah punya backend yang berjalan di folder `NashtyFinal/backend`. Mari kita gunakan itu saja!
-
-## Step by Step:
-
-### 1. Copy Mockup HTML ke Folder Frontend Existing
-
-```powershell
-# Copy file mockup ke folder frontend existing
-Copy-Item "C:\Users\farsya\NashtyFinal\POSLITE\NASHTY_POS_Mockup.html" "C:\Users\farsya\NashtyFinal\frontend\public\"
-Copy-Item "C:\Users\farsya\NashtyFinal\POSLITE\NASHTY_KDS_Mockup.html" "C:\Users\farsya\NashtyFinal\frontend\public\"
-Copy-Item "C:\Users\farsya\NashtyFinal\POSLITE\NASHTY_Backoffice_Mockup_8.html" "C:\Users\farsya\NashtyFinal\frontend\public\"
-Copy-Item "C:\Users\farsya\NashtyFinal\POSLITE\api-client.js" "C:\Users\farsya\NashtyFinal\frontend\public\"
-```
-
-### 2. Start Backend yang Sudah Ada
-
-```powershell
-cd C:\Users\farsya\NashtyFinal\backend
-npm run dev
-```
-
-Backend akan jalan di `http://localhost:3000`
-
-### 3. Start Frontend
-
-```powershell
-# Terminal baru
-cd C:\Users\farsya\NashtyFinal\frontend
-npm run dev
-```
-
-Frontend akan jalan di `http://localhost:5173`
-
-### 4. Update API_BASE di api-client.js
-
-Edit file `api-client.js` line 11:
-
-```javascript
-const API_BASE = 'http://localhost:3000/api';
-```
-
-### 5. Akses Mockup
-
-Buka di browser:
-- POS: http://localhost:5173/NASHTY_POS_Mockup.html
-- KDS: http://localhost:5173/NASHTY_KDS_Mockup.html
-- Backoffice: http://localhost:5173/NASHTY_Backoffice_Mockup_8.html
-
-### 6. Test API Connection
-
-Buka browser console (F12), test:
-
-```javascript
-// Test connection
-fetch('http://localhost:3000/health')
-  .then(r => r.json())
-  .then(d => console.log(d));
-
-// Test get staff
-fetch('http://localhost:3000/api/auth/staff')
-  .then(r => r.json())
-  .then(d => console.log(d));
-```
-
-## Alternatif: Gunakan Mockup Standalone
-
-Jika Anda ingin test mockup tanpa backend dulu:
-
-1. Buka file HTML langsung di browser:
-   ```
-   file:///C:/Users/farsya/NashtyFinal/POSLITE/NASHTY_POS_Mockup.html
-   ```
-
-2. Mockup akan jalan dengan data hardcoded (STAFF, MENU, CATS)
-
-3. Nanti setelah backend ready, baru connect ke API
-
-## Next: Integrasi API
-
-Setelah backend jalan, ikuti guide di `INTEGRATION_GUIDE.md` untuk:
-1. Replace hardcoded data dengan API calls
-2. Fix perhitungan matematika
-3. Submit order ke backend
+**Status:** ✅ Production Ready (Backend + Complete Menu)  
+**UAT:** ✅ 100% Passed (15/15 tests)  
+**Menu:** ✅ 50 Items Imported from Mockup
 
 ---
 
-**TL;DR:** 
-- Backend existing sudah jalan ✅
-- Copy mockup ke folder public ✅  
-- Access via Vite dev server ✅
-- Start integration sesuai guide ✅
+## ⚡ Quick Start (30 Seconds)
+
+### 1. Start Backend
+```powershell
+cd backoffice\backend
+npm run dev
+```
+
+Server akan berjalan di **http://localhost:3099**
+
+### 2. Open Test Page
+Buka browser: **http://localhost:3099/TEST_LIVE_PREVIEW.html**
+
+### 3. Access Modules
+- **POS Terminal:** http://localhost:3099/pos/frontend/index.html
+- **Kitchen Display:** http://localhost:3099/kds/frontend/index.html
+- **Backoffice:** http://localhost:3099/backoffice/frontend/index.html
+
+---
+
+## 🍽️ Menu Data
+
+**Total Items:** 50 items dari mockup  
+**Categories:** 5 (Makanan, Minuman, Camilan, Dessert, Add On)  
+**With Modifiers:** 19 items (38%)  
+**Price Range:** Rp 3,000 - Rp 65,000
+
+### Menu Breakdown:
+- 🍽️ **Makanan:** 10 items (Rp 28K - Rp 65K)
+- 🥤 **Minuman:** 10 items (Rp 5K - Rp 25K)
+- 🍟 **Camilan:** 10 items (Rp 10K - Rp 25K)
+- 🍰 **Dessert:** 10 items (Rp 12K - Rp 32K)
+- ➕ **Add On:** 10 items (Rp 3K - Rp 8K)
+
+---
+
+## 🔑 Demo Login
+
+| PIN | User | Role |
+|-----|------|------|
+| **1234** | Citra Dewi | Cashier |
+| **2345** | Budi Santoso | Cashier |
+| **0000** | Admin Demo | Owner |
+
+---
+
+## 🧪 Run UAT Test
+
+```bash
+node uat_comprehensive_test.js
+```
+
+Expected output: **✅ 100% Success (15/15 tests passed)**
+
+---
+
+## 🔄 Re-Import Menu (if needed)
+
+```bash
+node reimport_menu_complete.js
+```
+
+This will re-import all 50 menu items from mockup with modifiers.
+
+---
+
+## 📋 Complete Documentation
+
+- **Main README:** `README.md`
+- **UAT Report:** `UAT_REPORT.md`
+- **Implementation Summary:** `IMPLEMENTASI_SUMMARY.md`
+- **Menu Import Report:** `MENU_IMPORT_REPORT.md`
+- **API Documentation:** `Draft/API_DOCUMENTATION.md`
+
+---
+
+## ✅ What's Working
+
+- ✅ Backend API (Express + SQLite)
+- ✅ Authentication (JWT + PIN)
+- ✅ **Complete Menu (50 items from mockup)**
+- ✅ **Modifiers System (27 groups, 68 options)**
+- ✅ POS: Order Creation
+- ✅ KDS: Kitchen Display
+- ✅ Backoffice: Dashboard & Menu Management
+- ✅ Full Integration POS → KDS → Backoffice
+
+---
+
+## 🎯 Test Flow
+
+1. Login kasir (PIN: 1234)
+2. Browse menu (50 items available)
+3. Select items with modifiers (e.g., Ayam Bakar Madu)
+4. Buat order di POS
+5. Order muncul di KDS
+6. Chef mark ready di KDS
+7. Kasir confirm completed
+8. Order tercatat di Backoffice
+
+**All flows verified ✅**
+
+---
+
+## 📊 Menu Examples
+
+### Popular Items with Modifiers:
+- **Ayam Bakar Madu** (Rp 55K)
+  - Level Pedas: Original / Sedang / Extra
+  - Add-ons: Extra Sambal, Lalapan, Nasi Putih
+
+- **Kopi Susu Aren** (Rp 22K)
+  - Suhu: Dingin / Hangat
+  - Ekstra: Extra Shot / Extra Aren
+  - Add-ons: Oat Milk Upgrade, Extra Shot
+
+- **French Fries** (Rp 22K)
+  - Saus: Tomat / Mayo / Keju
+  - Add-ons: Extra Saus, Cheese Dip
+
+---
+
+*For detailed information, see `MENU_IMPORT_REPORT.md` or `IMPLEMENTASI_SUMMARY.md`*

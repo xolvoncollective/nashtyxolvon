@@ -14,6 +14,12 @@ let db: SqlJsDatabase;
 let SQL: any;
 let inTransaction = false;
 
+// Debounced saving mechanism
+let saveTimeout: NodeJS.Timeout | null = null;
+const SAVE_DELAY_MS = 2000; // Delay 2 seconds before writing to disk
+let isSaving = false;
+let pendingSave = false;
+
 // Initialize database
 export async function initDatabase() {
   try {
@@ -64,15 +70,36 @@ export async function initDatabase() {
   }
 }
 
-// Save database to file
+// Save database to file (Debounced Async)
 export function saveDatabase() {
-  try {
-    const data = db.export();
-    const buffer = Buffer.from(data);
-    fs.writeFileSync(DB_PATH, buffer);
-  } catch (error) {
-    console.error('Error saving database:', error);
+  if (saveTimeout) {
+    clearTimeout(saveTimeout);
   }
+
+  saveTimeout = setTimeout(async () => {
+    if (isSaving) {
+      pendingSave = true;
+      return;
+    }
+
+    try {
+      isSaving = true;
+      const data = db.export();
+      const buffer = Buffer.from(data);
+      
+      // Use async fs.writeFile to avoid blocking the event loop
+      await fs.promises.writeFile(DB_PATH, buffer);
+      
+      isSaving = false;
+      if (pendingSave) {
+        pendingSave = false;
+        saveDatabase(); // Trigger the pending save
+      }
+    } catch (error) {
+      console.error('Error saving database:', error);
+      isSaving = false;
+    }
+  }, SAVE_DELAY_MS);
 }
 
 // Wrapper untuk execute query

@@ -14,14 +14,62 @@
     /* ════════════════════════
        HISTORY
     ════════════════════════ */
+    let histOffset = 0;
+    let isHistEnd = false;
+
     function setFilter(f, el) {
-      histFilter = f; document.querySelectorAll('.fbt').forEach(b => b.classList.remove('act')); el.classList.add('act'); renderHist();
+      histFilter = f; document.querySelectorAll('.fbt').forEach(b => b.classList.remove('act')); el.classList.add('act');
+      histOffset = 0; isHistEnd = false;
+      loadHist();
     }
-    function histSearch(q) { histQ = q; renderHist(); }
-    function renderHist() {
+    function histSearch(q) { histQ = q; renderHistUI(); }
+
+    async function loadHist() {
+      const el = document.getElementById('hist-items');
+      if(histOffset === 0) el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--txt3);font-size:12px">Memuat data...</div>';
+      
+      try {
+        const filters = { limit: 20, offset: histOffset };
+        if (histFilter !== 'all') filters.status = histFilter;
+        
+        const res = await API.orders.getAll(filters);
+        if (res && res.orders) {
+          const mapped = res.orders.map(o => {
+            const d = new Date(o.created_at);
+            return {
+              id: o.id,
+              no: o.order_number,
+              table: o.table_number || (o.order_type === 'dine' ? 'T??' : 'TAKE'),
+              type: o.order_type,
+              cashier: o.cashier_name || 'System',
+              time: String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'),
+              method: o.payment_method,
+              status: o.order_status === 'paid' || o.order_status === 'confirmed' ? 'done' : o.order_status,
+              sub: o.subtotal, disc: o.discount, tax: o.tax, svc: o.service_charge, total: o.total,
+              items: (o.items || []).map(it => ({
+                id: it.product_id, n: it.name, qty: it.quantity, p: it.unit_price,
+                mods: it.modifier_names ? it.modifier_names.split(', ') : []
+              }))
+            };
+          });
+          
+          if (histOffset === 0) {
+            HISTORY = mapped;
+          } else {
+            HISTORY = HISTORY.concat(mapped);
+          }
+          if (mapped.length < 20) isHistEnd = true;
+          renderHistUI();
+        }
+      } catch (e) {
+        console.error(e);
+        toast('Gagal memuat riwayat', 'err');
+      }
+    }
+
+    function renderHistUI() {
       const el = document.getElementById('hist-items');
       const items = HISTORY.filter(h => {
-        if (histFilter !== 'all' && h.status !== histFilter) return false;
         if (histQ) { const q = histQ.toLowerCase(); return h.no.toLowerCase().includes(q) || String(h.table).toLowerCase().includes(q) || h.cashier.toLowerCase().includes(q) || (h.member || '').toLowerCase().includes(q); }
         return true;
       });
@@ -29,13 +77,24 @@
       if (!items.length) { el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--txt3);font-size:12px">Tidak ada transaksi</div>'; return; }
       items.forEach(h => {
         const d = document.createElement('div');
-        d.className = 'hcard' + (selTxn && selTxn.id === h.id ? ' active' : '') + (h.status === 'voided' ? ' voided' : '');
-        d.innerHTML = `<div class="hc-top"><div class="hc-no">${h.no}</div><div class="hc-st ${h.status}">${h.status === 'done' ? 'SELESAI' : h.status === 'voided' ? 'VOID' : 'TERBUKA'}</div></div><div class="hc-meta"><span>${h.time}</span><span>${h.type === 'take' ? 'Take Away' : 'Meja ' + h.table}</span><span>${h.cashier}</span><span>${h.method}</span></div><div class="hc-total">${fr(h.total)}</div>`;
+        d.className = 'hcard' + (selTxn && selTxn.id === h.id ? ' active' : '') + (h.status === 'voided' || h.status === 'cancelled' ? ' voided' : '');
+        d.innerHTML = `<div class="hc-top"><div class="hc-no">${h.no}</div><div class="hc-st ${h.status}">${h.status === 'done' ? 'SELESAI' : h.status === 'voided' || h.status === 'cancelled' ? 'VOID' : 'TERBUKA'}</div></div><div class="hc-meta"><span>${h.time}</span><span>${h.type === 'take' ? 'Take Away' : 'Meja ' + h.table}</span><span>${h.cashier}</span><span>${h.method}</span></div><div class="hc-total">${fr(h.total)}</div>`;
         d.onclick = () => selHist(h); el.appendChild(d);
       });
+
+      if (!isHistEnd && !histQ) {
+         const btn = document.createElement('button');
+         btn.className = 'btn';
+         btn.style.width = '100%';
+         btn.style.marginTop = '10px';
+         btn.style.justifyContent = 'center';
+         btn.textContent = 'Muat Lebih Banyak';
+         btn.onclick = () => { histOffset += 20; loadHist(); };
+         el.appendChild(btn);
+      }
     }
     function selHist(h) {
-      selTxn = h; renderHist();
+      selTxn = h; renderHistUI();
       document.getElementById('hd-no').textContent = h.no;
       document.getElementById('hd-meta').innerHTML = `<span>Hari ini · ${h.time}</span><span>${h.type === 'take' ? 'Take Away' : 'Meja ' + h.table}</span><span>Kasir: ${h.cashier}</span>${h.member ? `<span>Member: ${h.member}</span>` : ''}`;
       document.getElementById('hd-acts').style.display = 'flex';
@@ -152,19 +211,16 @@
         });
       }
     }
-    function voidPin(k) {
+    async function voidPin(k) {
+      if (typeof k === 'object') k = k.innerText;
       if (k === '⌫') voidArr.pop(); else if (voidArr.length < 4) voidArr.push(k);
       for (let i = 0; i < 4; i++) { const d = document.getElementById('vd' + i); if (d) d.classList.toggle('on', i < voidArr.length); }
       if (voidArr.length === 4) {
-        if (voidArr.join('') === VOID_PIN) {
-          document.getElementById('mo-void')?.remove(); doVoid();
-        } else {
-          const e = document.getElementById('verr'); if (e) e.textContent = 'PIN salah. Coba lagi.';
-          voidArr = []; setTimeout(() => { for (let i = 0; i < 4; i++) { const d = document.getElementById('vd' + i); if (d) d.classList.remove('on'); } const e = document.getElementById('verr'); if (e) e.textContent = ''; }, 900);
-        }
+        doVoid(voidArr.join(''));
       }
     }
-    function doVoid() {
+
+    async function doVoid(pin) {
       if (!selTxn) return;
       var reasonSel = document.getElementById('void-reason-sel');
       var reason = reasonSel ? reasonSel.value : '';
@@ -175,21 +231,27 @@
         for (var i = 0; i < 4; i++) { var d = document.getElementById('vd' + i); if (d) d.classList.remove('on'); }
         return;
       }
+      
+      const voidBy = API.session.user ? API.session.user.name : 'Unknown';
       var doRefund = document.getElementById('void-refund-chk')?.checked || false;
-      var idx = HISTORY.findIndex(function (h) { return h.id === selTxn.id; });
-      if (idx >= 0) {
-        HISTORY[idx].status = 'voided';
-        HISTORY[idx].voidBy = currentUser ? currentUser.name : 'Manager';
-        HISTORY[idx].voidReason = reason;
-        HISTORY[idx].refunded = doRefund;
-        HISTORY[idx].refundAmt = doRefund ? selTxn.total : 0;
-        selTxn = HISTORY[idx];
-        if (doRefund) {
-          REFUNDS.push({ no: selTxn.no, amt: selTxn.total, reason: reason, time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) });
+
+      try {
+        const res = await API.orders.void(selTxn.id, reason, voidBy, pin);
+        if (res.success) {
+           document.getElementById('mo-void')?.remove();
+           toast('Order ' + selTxn.no + ' berhasil di-void', 'success');
+           if (doRefund) {
+             REFUNDS.push({ no: selTxn.no, amt: selTxn.total, reason: reason, time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) });
+             toast('Refund diproses', 'info');
+           }
+           histOffset = 0; // reset
+           loadHist();
+           selHist({ ...selTxn, status: 'voided' }); // update local view
+        } else {
+           throw new Error(res.error || 'Terjadi kesalahan');
         }
+      } catch(err) {
+        const e = document.getElementById('verr'); if (e) { e.textContent = err.message || 'Gagal koneksi ke server'; e.style.color = 'var(--rd)'; }
+        voidArr = []; setTimeout(() => { for (let i = 0; i < 4; i++) { const d = document.getElementById('vd' + i); if (d) d.classList.remove('on'); } const er = document.getElementById('verr'); if (er) er.textContent = ''; }, 1500);
       }
-      document.getElementById('mo-void')?.remove();
-      renderHist(); selHist(selTxn); toast('Order ' + selTxn.no + ' di-void' + (doRefund ? ' + refund' : ''), 'err');
     }
-
-
