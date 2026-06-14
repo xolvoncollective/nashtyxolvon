@@ -1,6 +1,8 @@
 import { Router } from 'express';
-import { query, get } from '../db/database';
+import { query, get, run } from '../db/database';
 import { cacheManager } from '../services/CacheManager';
+import { z } from 'zod';
+import { nanoid } from 'nanoid';
 
 const router = Router();
 
@@ -174,6 +176,318 @@ router.get('/outlet/:outletId', (req, res) => {
   } catch (error: any) {
     const responseTime = Date.now() - startTime;
     console.error(`[ERROR] Get menu error (${responseTime}ms):`, error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message,
+      responseTime: `${responseTime}ms`
+    });
+  }
+});
+
+// Zod schema for menu item creation (Requirements 6.2, 9.7)
+const CreateMenuItemSchema = z.object({
+  tenantId: z.string().min(1, 'Tenant ID is required'),
+  outletId: z.string().min(1, 'Outlet ID is required'),
+  categoryId: z.string().min(1, 'Category ID is required'),
+  name: z.string().min(1, 'Item name is required'),
+  price: z.number().nonnegative('Price cannot be negative'),
+  cost: z.number().nonnegative('Cost cannot be negative').optional().nullable(),
+  sku: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
+  imageUrl: z.string().optional().nullable(),
+  emoji: z.string().optional().nullable(),
+  isFavorite: z.boolean().optional().default(false),
+  hasModifiers: z.boolean().optional().default(false),
+  stockTracking: z.boolean().optional().default(false),
+  stockQty: z.number().int().nonnegative('Stock quantity cannot be negative').optional().default(0),
+  productionTime: z.number().int().positive('Production time must be positive').optional().default(10),
+  stationId: z.string().optional().nullable()
+});
+
+// Route 18: POST /api/menu/items — Create menu item
+// Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 14.5
+router.post('/items', (req, res) => {
+  const startTime = Date.now();
+  
+  try {
+    console.log('[INFO] POST /api/menu/items - Creating menu item');
+
+    // Validate request body against Zod schema (Requirement 6.2)
+    const validationResult = CreateMenuItemSchema.safeParse(req.body);
+    
+    if (!validationResult.success) {
+      // Return 400 Bad Request with structured validation errors (Requirement 6.2, 9.1, 9.2)
+      const errors = validationResult.error.errors.map(err => ({
+        field: err.path.join('.'),
+        message: err.message
+      }));
+      
+      console.log('[WARN] Menu item validation failed:', errors);
+      
+      return res.status(400).json({ 
+        success: false,
+        error: 'Validation failed',
+        errors 
+      });
+    }
+
+    // Extract validated data
+    const {
+      tenantId,
+      outletId,
+      categoryId,
+      name,
+      price,
+      cost = null,
+      sku = null,
+      description = null,
+      imageUrl = null,
+      emoji = null,
+      isFavorite = false,
+      hasModifiers = false,
+      stockTracking = false,
+      stockQty = 0,
+      productionTime = 10,
+      stationId = null
+    } = validationResult.data;
+
+    // Generate unique item ID and slug
+    const itemId = nanoid();
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+    // Insert item into menu_items (products) table (Requirement 6.3)
+    run(`
+      INSERT INTO products (
+        id, tenant_id, category_id, name, slug, description, 
+        price, cost, sku, image_url, is_favorite, has_modifiers, 
+        stock_tracking, stock_qty, production_time, status
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')
+    `, [
+      itemId, tenantId, categoryId, name, slug, description,
+      price, cost || 0, sku, imageUrl, isFavorite ? 1 : 0, hasModifiers ? 1 : 0,
+      stockTracking ? 1 : 0, stockQty, productionTime
+    ]);
+
+    // Invalidate cache key "menu:outlet:{outletId}" (Requirement 6.4)
+    const cacheKey = `menu:outlet:${outletId}`;
+    cacheManager.invalidate(cacheKey);
+    console.log(`[INFO] Cache invalidated for key: ${cacheKey}`);
+
+    // Retrieve the created item with category information
+    const createdItem = get(`
+      SELECT p.*, c.name as category_name 
+      FROM products p 
+      LEFT JOIN categories c ON p.category_id = c.id 
+      WHERE p.id = ?
+    `, [itemId]);
+
+    const responseTime = Date.now() - startTime;
+
+    // Log menu creation with INFO level (Requirement 14.5)
+    console.log(`[INFO] Menu item created successfully - item_id: ${itemId}, name: "${name}", price: ${price} - ${responseTime}ms`);
+
+    // Return 201 Created with item_id and created item (Requirement 6.5)
+    res.status(201).json({
+      success: true,
+      item_id: itemId,
+      item: createdItem,
+      responseTime: `${responseTime}ms`
+    });
+
+  } catch (error: any) {
+    const responseTime = Date.now() - startTime;
+    
+    // Log error (Requirement 14.3)
+    console.error(`[ERROR] Create menu item error (${responseTime}ms):`, error);
+    
+    // Return 500 Internal Server Error (Requirement 9.4)
+    res.status(500).json({ 
+      success: false,
+      error: error.message,
+      responseTime: `${responseTime}ms`
+    });
+  }
+});
+
+// Zod schema for menu item updates (Requirements 6.6, 6.7, 6.8, 9.7)
+const UpdateMenuItemSchema = z.object({
+  name: z.string().min(1, 'Item name is required').optional(),
+  price: z.number().nonnegative('Price cannot be negative').optional(),
+  cost: z.number().nonnegative('Cost cannot be negative').optional().nullable(),
+  sku: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
+  imageUrl: z.string().optional().nullable(),
+  emoji: z.string().optional().nullable(),
+  isFavorite: z.boolean().optional(),
+  hasModifiers: z.boolean().optional(),
+  stockTracking: z.boolean().optional(),
+  stockQty: z.number().int().nonnegative('Stock quantity cannot be negative').optional(),
+  productionTime: z.number().int().positive('Production time must be positive').optional(),
+  status: z.enum(['active', 'inactive', 'soldout']).optional(),
+  categoryId: z.string().optional()
+}).strict();
+
+// Route 19: PATCH /api/menu/items/:id — Update menu item
+// Requirements: 6.6, 6.7, 6.8, 14.5
+router.patch('/items/:id', (req, res) => {
+  const startTime = Date.now();
+  
+  try {
+    const { id: itemId } = req.params;
+
+    console.log(`[INFO] PATCH /api/menu/items/${itemId} - Updating menu item`);
+
+    // Validate itemId exists in database (Requirement 6.7)
+    const existingItem = get('SELECT * FROM products WHERE id = ?', [itemId]);
+    
+    if (!existingItem) {
+      console.log(`[WARN] Menu item not found: ${itemId}`);
+      return res.status(404).json({
+        success: false,
+        error: 'Menu item not found'
+      });
+    }
+
+    // Validate request body against Zod schema (Requirement 6.6)
+    const validationResult = UpdateMenuItemSchema.safeParse(req.body);
+    
+    if (!validationResult.success) {
+      // Return 400 Bad Request with structured validation errors (Requirement 6.6, 9.1, 9.2)
+      const errors = validationResult.error.errors.map(err => ({
+        field: err.path.join('.'),
+        message: err.message
+      }));
+      
+      console.log('[WARN] Menu item update validation failed:', errors);
+      
+      return res.status(400).json({ 
+        success: false,
+        error: 'Validation failed',
+        errors 
+      });
+    }
+
+    const updates = validationResult.data;
+
+    // Build dynamic UPDATE query with only provided fields
+    const updateFields: string[] = [];
+    const updateValues: any[] = [];
+
+    if (updates.name !== undefined) {
+      updateFields.push('name = ?');
+      updateValues.push(updates.name);
+    }
+    if (updates.price !== undefined) {
+      updateFields.push('price = ?');
+      updateValues.push(updates.price);
+    }
+    if (updates.cost !== undefined) {
+      updateFields.push('cost = ?');
+      updateValues.push(updates.cost || 0);
+    }
+    if (updates.sku !== undefined) {
+      updateFields.push('sku = ?');
+      updateValues.push(updates.sku);
+    }
+    if (updates.description !== undefined) {
+      updateFields.push('description = ?');
+      updateValues.push(updates.description);
+    }
+    if (updates.imageUrl !== undefined) {
+      updateFields.push('image_url = ?');
+      updateValues.push(updates.imageUrl);
+    }
+    if (updates.emoji !== undefined) {
+      updateFields.push('emoji = ?');
+      updateValues.push(updates.emoji);
+    }
+    if (updates.isFavorite !== undefined) {
+      updateFields.push('is_favorite = ?');
+      updateValues.push(updates.isFavorite ? 1 : 0);
+    }
+    if (updates.hasModifiers !== undefined) {
+      updateFields.push('has_modifiers = ?');
+      updateValues.push(updates.hasModifiers ? 1 : 0);
+    }
+    if (updates.stockTracking !== undefined) {
+      updateFields.push('stock_tracking = ?');
+      updateValues.push(updates.stockTracking ? 1 : 0);
+    }
+    if (updates.stockQty !== undefined) {
+      updateFields.push('stock_qty = ?');
+      updateValues.push(updates.stockQty);
+    }
+    if (updates.productionTime !== undefined) {
+      updateFields.push('production_time = ?');
+      updateValues.push(updates.productionTime);
+    }
+    if (updates.status !== undefined) {
+      updateFields.push('status = ?');
+      updateValues.push(updates.status);
+    }
+    if (updates.categoryId !== undefined) {
+      updateFields.push('category_id = ?');
+      updateValues.push(updates.categoryId);
+    }
+
+    // Always update updated_at timestamp
+    updateFields.push('updated_at = CURRENT_TIMESTAMP');
+
+    // If no fields to update, return early
+    if (updateFields.length === 1) { // Only updated_at
+      console.log(`[WARN] No fields provided for update: ${itemId}`);
+      return res.status(400).json({
+        success: false,
+        error: 'No update fields provided'
+      });
+    }
+
+    // Update menu_items table with provided fields (Requirement 6.7)
+    const updateQuery = `
+      UPDATE products
+      SET ${updateFields.join(', ')}
+      WHERE id = ?
+    `;
+    updateValues.push(itemId);
+
+    run(updateQuery, updateValues);
+
+    // Get outletId from existing item's tenant to invalidate cache
+    const outletId = (existingItem as any).outlet_id || (existingItem as any).tenant_id;
+
+    // Invalidate cache key "menu:outlet:{outletId}" (Requirement 6.8)
+    const cacheKey = `menu:outlet:${outletId}`;
+    cacheManager.invalidate(cacheKey);
+    console.log(`[INFO] Cache invalidated for key: ${cacheKey}`);
+
+    // Retrieve the updated item with category information
+    const updatedItem = get(`
+      SELECT p.*, c.name as category_name 
+      FROM products p 
+      LEFT JOIN categories c ON p.category_id = c.id 
+      WHERE p.id = ?
+    `, [itemId]);
+
+    const responseTime = Date.now() - startTime;
+
+    // Log menu update with INFO level (Requirement 14.5)
+    console.log(`[INFO] Menu item updated successfully - item_id: ${itemId}, fields: [${Object.keys(updates).join(', ')}] - ${responseTime}ms`);
+
+    // Return 200 OK with updated item (Requirement 6.8)
+    res.status(200).json({
+      success: true,
+      item: updatedItem,
+      responseTime: `${responseTime}ms`
+    });
+
+  } catch (error: any) {
+    const responseTime = Date.now() - startTime;
+    
+    // Log error (Requirement 14.3)
+    console.error(`[ERROR] Update menu item error (${responseTime}ms):`, error);
+    
+    // Return 500 Internal Server Error (Requirement 9.4)
     res.status(500).json({ 
       success: false,
       error: error.message,

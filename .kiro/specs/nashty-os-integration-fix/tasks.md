@@ -230,7 +230,7 @@ The implementation follows an incremental approach, building and testing each pr
   - Refresh menu every 5 minutes (cache TTL)
   - _Requirements: 5.8, 5.9, 5.10_
 
-- [~] 17. Implement menu item creation endpoint
+- [x] 17. Implement menu item creation endpoint
   - Create POST /api/menu/items route
   - Define Zod schema for menu item: name, price, category_id, outlet_id, etc.
   - Validate request body against schema
@@ -241,7 +241,7 @@ The implementation follows an incremental approach, building and testing each pr
   - Log menu creation with INFO level
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 14.5_
 
-- [~] 18. Implement menu item update endpoint
+- [x] 18. Implement menu item update endpoint
   - Create PATCH /api/menu/items/:id route
   - Accept partial updates for fields: name, price, status, etc.
   - Validate itemId exists in database
