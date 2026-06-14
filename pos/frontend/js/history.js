@@ -46,10 +46,14 @@
               method: o.payment_method,
               status: o.order_status === 'paid' || o.order_status === 'confirmed' ? 'done' : o.order_status,
               sub: o.subtotal, disc: o.discount, tax: o.tax, svc: o.service_charge, total: o.total,
-              items: (o.items || []).map(it => ({
-                id: it.product_id, n: it.name, qty: it.quantity, p: it.unit_price,
-                mods: it.modifier_names ? it.modifier_names.split(', ') : []
-              }))
+              items: (o.items || []).map(it => {
+                let modsList = it.modifier_names ? it.modifier_names.split(', ') : [];
+                if (it.notes) modsList.push(it.notes);
+                return {
+                  id: it.product_id, n: it.name, qty: it.quantity, p: it.unit_price,
+                  mods: modsList
+                };
+              })
             };
           });
           

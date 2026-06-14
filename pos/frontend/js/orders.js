@@ -46,6 +46,7 @@
       cart.forEach(function (it) {
         var mods = it.selectedOpts ? Object.values(it.selectedOpts).flat() : [];
         if (it.addonNames) mods = mods.concat(it.addonNames.split(', ').map(function (a) { return '+' + a; }));
+        if (it.note) mods.push(it.note);
         var modsStr = mods.length ? '<div style="font-size:11px;color:var(--or);margin-top:2px">' + mods.join(' · ') + '</div>' : '';
         sumItemsHtml += '<div class="sum-item">'
           + '<div><div class="sum-item-n">' + it.n + '</div>'
@@ -261,7 +262,7 @@
               quantity: i.qty,
               unitPrice: i.p,
               subtotal: i.qty * i.p,
-              notes: mods.join(', '),
+              notes: i.note || null,
               modifiers: apiModifiers
            };
         })
@@ -291,6 +292,7 @@
             items: cart.map(function(i) {
                var mods = i.selectedOpts ? Object.values(i.selectedOpts).flat() : [];
                if (i.addonNames) mods = mods.concat(i.addonNames.split(', ').map(a => '+' + a));
+               if (i.note) mods.push(i.note);
                return { id: i.id, n: i.n, qty: i.qty, p: i.p, mods: mods };
             })
           });
