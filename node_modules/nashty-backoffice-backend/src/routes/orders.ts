@@ -277,7 +277,9 @@ router.get('/', (req, res) => {
         SELECT oi.id, oi.product_id, oi.product_name as name, oi.quantity,
                oi.unit_price, oi.subtotal, oi.notes, oi.kitchen_status as item_status,
                (SELECT GROUP_CONCAT(modifier_option_name, ', ')
-                FROM order_item_modifiers WHERE order_item_id = oi.id) as modifier_names
+                FROM order_item_modifiers WHERE order_item_id = oi.id) as modifier_names,
+               (SELECT json_group_array(json_object('optionName', modifier_option_name, 'priceAdjustment', price_adjustment))
+                FROM order_item_modifiers WHERE order_item_id = oi.id) as modifiers
         FROM order_items oi
         WHERE oi.order_id = ?
       `, [order.id]);
@@ -566,7 +568,9 @@ router.get('/kitchen/queue', (req, res) => {
         SELECT oi.id, oi.product_name as name, oi.quantity, oi.notes,
                oi.kitchen_status as item_status,
                (SELECT GROUP_CONCAT(modifier_option_name, ', ')
-                FROM order_item_modifiers WHERE order_item_id = oi.id) as modifier_names
+                FROM order_item_modifiers WHERE order_item_id = oi.id) as modifier_names,
+               (SELECT json_group_array(json_object('optionName', modifier_option_name, 'priceAdjustment', price_adjustment))
+                FROM order_item_modifiers WHERE order_item_id = oi.id) as modifiers
         FROM order_items oi
         WHERE oi.order_id = ?
       `, [order.id]);
