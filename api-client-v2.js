@@ -139,7 +139,7 @@ const API = {
         localStorage.setItem('nashty_session', JSON.stringify(API.session));
       }
       return data;
-    }
+    },
     logout() {
       // DEV OVERRIDE: Prevent logout
       console.log('Logout prevented in dev mode');
@@ -464,4 +464,5 @@ if (typeof module !== 'undefined' && module.exports) {
 }
 
 // Global namespace
+window.API = API;
 window.APIv2 = API;

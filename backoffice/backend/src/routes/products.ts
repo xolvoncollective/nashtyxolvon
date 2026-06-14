@@ -115,7 +115,7 @@ router.patch('/:id/favorite', (req, res) => {
 // Route 12: POST /api/products — Create product
 router.post('/', (req, res) => {
   try {
-    const { tenantId, categoryId, name, description, price, cost, imageUrl, hasModifiers, modifierGroupIds, productionTime } = req.body;
+    const { tenantId, categoryId, name, description, price, cost, imageUrl, hasModifiers, modifierGroupIds, productionTime, stockTracking, stockQty } = req.body;
 
     if (!tenantId || !categoryId || !name || price === undefined) {
       return res.status(400).json({ error: 'tenantId, categoryId, name, and price are required' });
@@ -125,9 +125,9 @@ router.post('/', (req, res) => {
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
     run(`
-      INSERT INTO products (id, tenant_id, category_id, name, slug, description, price, cost, image_url, has_modifiers, production_time, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')
-    `, [productId, tenantId, categoryId, name, slug, description || null, price, cost || 0, imageUrl || null, hasModifiers ? 1 : 0, productionTime || 10]);
+      INSERT INTO products (id, tenant_id, category_id, name, slug, description, price, cost, image_url, has_modifiers, production_time, status, stock_tracking, stock_qty)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)
+    `, [productId, tenantId, categoryId, name, slug, description || null, price, cost || 0, imageUrl || null, hasModifiers ? 1 : 0, productionTime || 10, stockTracking ? 1 : 0, stockQty || 0]);
 
     // Link modifier groups if provided
     if (modifierGroupIds && Array.isArray(modifierGroupIds)) {
@@ -158,7 +158,7 @@ router.post('/', (req, res) => {
 router.put('/:id', (req, res) => {
   try {
     const { id } = req.params;
-    const { name, categoryId, description, price, cost, imageUrl, hasModifiers, modifierGroupIds, productionTime } = req.body;
+    const { name, categoryId, description, price, cost, imageUrl, hasModifiers, modifierGroupIds, productionTime, stockTracking, stockQty } = req.body;
 
     const existing = get('SELECT * FROM products WHERE id = ?', [id]);
     if (!existing) {
@@ -181,6 +181,8 @@ router.put('/:id', (req, res) => {
     if (imageUrl !== undefined) { updates.push('image_url = ?'); params.push(imageUrl); }
     if (hasModifiers !== undefined) { updates.push('has_modifiers = ?'); params.push(hasModifiers ? 1 : 0); }
     if (productionTime !== undefined) { updates.push('production_time = ?'); params.push(productionTime); }
+    if (stockTracking !== undefined) { updates.push('stock_tracking = ?'); params.push(stockTracking ? 1 : 0); }
+    if (stockQty !== undefined) { updates.push('stock_qty = ?'); params.push(stockQty); }
 
     updates.push('updated_at = ?');
     params.push(new Date().toISOString());

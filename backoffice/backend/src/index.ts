@@ -194,8 +194,9 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`
 ╔══════════════════════════════════════════════════════════╗
 ║   NASHTY OS Backend Server Started (v2.0)                ║
 ╠══════════════════════════════════════════════════════════╣
@@ -226,5 +227,8 @@ app.listen(PORT, () => {
 ║  • /api/settings    — Settings per Outlet              ║
 ║  • /api/activity-logs — Activity Logs                  ║
 ╚══════════════════════════════════════════════════════════╝
-  `);
-});
+    `);
+  });
+}
+
+export default app;

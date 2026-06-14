@@ -44,8 +44,9 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`
 ╔═══════════════════════════════════════╗
 ║    NASHTY KDS Backend Server Started  ║
 ╠═══════════════════════════════════════╣
@@ -53,5 +54,8 @@ app.listen(PORT, () => {
 ║  Env:  ${(process.env.NODE_ENV || 'development').padEnd(30)} ║
 ║  DB:   SQLite (Local)                 ║
 ╚═══════════════════════════════════════╝
-  `);
-});
+    `);
+  });
+}
+
+export default app;

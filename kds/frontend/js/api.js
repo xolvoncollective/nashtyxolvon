@@ -107,7 +107,7 @@ const API = {
         outletId: outletId || API.session.outletId
       });
 
-      const response = await API.request(`/orders/kds/queue?${params}`);
+      const response = await API.request(`/orders/kitchen/queue?${params}`);
       return response;
     },
 
@@ -134,7 +134,7 @@ const API = {
         throw new Error(`Invalid kitchen status: ${status}. Must be one of: ${validStatuses.join(', ')}`);
       }
 
-      return API.request(`/orders/${orderId}/kitchen-status`, {
+      return API.request(`/orders/${orderId}/status`, {
         method: 'PATCH',
         body: JSON.stringify({ kitchenStatus: status })
       });
@@ -146,7 +146,7 @@ const API = {
         outletId: outletId || API.session.outletId
       });
 
-      return API.request(`/orders/kds/stats?${params}`);
+      return API.request(`/orders/kitchen/stats?${params}`);
     },
 
     // Get order configuration (KDS thresholds)
@@ -186,5 +186,8 @@ if (typeof window !== 'undefined') {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = API;
 }
+
+// Expose API globally for app.js guard clause
+window.API = API;
 
 console.log('[KDS API] Client initialized');

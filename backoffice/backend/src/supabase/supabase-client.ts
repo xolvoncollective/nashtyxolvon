@@ -10,17 +10,21 @@ const requiredEnvVars = [
   'SUPABASE_SERVICE_ROLE_KEY'
 ];
 
+let hasSupabaseConfig = true;
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
-    console.error(`❌ Missing required environment variable: ${envVar}`);
-    process.exit(1);
+    hasSupabaseConfig = false;
   }
 }
 
+if (!hasSupabaseConfig) {
+  console.warn('⚠️ Supabase environment variables are missing. Using local SQLite mode.');
+}
+
 // Create Supabase clients
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env.SUPABASE_URL || 'https://dummy.supabase.co';
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || 'dummy-key';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'dummy-key';
 
 // Client for public operations (available to frontend)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {

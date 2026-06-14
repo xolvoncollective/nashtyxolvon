@@ -1,7 +1,7 @@
 // 
 // UTILS
 // 
-function fr(n){return 'Rp '+n.toLocaleString('id-ID')}
+function fr(n){return 'Rp '+(n||0).toLocaleString('id-ID')}
 
 function ico(name){
   var icons={

@@ -15,27 +15,33 @@ try {
     $connection = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue
     
     if ($connection) {
-        $processId = $connection.OwningProcess
-        $process = Get-Process -Id $processId -ErrorAction SilentlyContinue
+        $processIds = $connection.OwningProcess | Where-Object { $_ -ne 0 } | Select-Object -Unique
         
-        Write-Host "Found process using port $Port"
-        Write-Host "  PID: $processId"
-        if ($process) {
-            Write-Host "  Name: $($process.ProcessName)"
-            Write-Host "  Path: $($process.Path)"
-        }
+        if ($processIds) {
+            foreach ($processId in $processIds) {
+                $process = Get-Process -Id $processId -ErrorAction SilentlyContinue
+                
+                Write-Host "Found process using port $Port"
+                Write-Host "  PID: $processId"
+                if ($process) {
+                    Write-Host "  Name: $($process.ProcessName)"
+                    Write-Host "  Path: $($process.Path)"
+                }
+            }
         Write-Host ""
         
         $confirm = Read-Host "Kill this process? (Y/N)"
         
         if ($confirm -eq 'Y' -or $confirm -eq 'y') {
-            Stop-Process -Id $processId -Force
-            Write-Host "✅ Process $processId killed successfully" -ForegroundColor Green
+            foreach ($processId in $processIds) {
+                Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
+                Write-Host "✅ Process $processId killed successfully" -ForegroundColor Green
+            }
             
             Start-Sleep -Seconds 1
             
             # Verify
-            $stillRunning = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue
+            $stillRunning = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
             if ($stillRunning) {
                 Write-Host "⚠️  Port still in use!" -ForegroundColor Yellow
             } else {
@@ -43,6 +49,7 @@ try {
             }
         } else {
             Write-Host "❌ Cancelled" -ForegroundColor Red
+        }
         }
     } else {
         Write-Host "✅ Port $Port is not in use" -ForegroundColor Green

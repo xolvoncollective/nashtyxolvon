@@ -13,14 +13,20 @@ export interface AuthRequest extends Request {
 }
 
 export const requireAuth = (req: AuthRequest, res: Response, next: NextFunction) => {
-  // BYPASS AUTH FOR LOCAL DEV
-  req.user = {
-    id: 'local-admin',
-    role: 'admin',
-    tenantId: 'demo-tenant',
-    outletId: 'demo-outlet'
-  };
-  next();
+  // Allow bypass for local development if headers are missing
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if ((!token || token === 'dev-token') && process.env.NODE_ENV !== 'production') {
+    req.user = {
+      id: 'admin',
+      tenantId: 'demo-tenant',
+      outletId: 'demo-outlet',
+      role: 'admin'
+    };
+    return next();
+  }
+  authenticateToken(req, res, next);
 };
 
 export const requireRole = (roles: string[]) => {
