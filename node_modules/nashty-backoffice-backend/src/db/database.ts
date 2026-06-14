@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
+import { logSlowQuery } from '../middleware/logging';
 
 const DB_PATH = process.env.DATABASE_PATH || '../../data/nashtypos.db';
 const DB_DIR = path.dirname(DB_PATH);
@@ -74,22 +75,30 @@ function createPerformanceIndexes() {
   }
 }
 
-// Wrapper untuk execute query
+// Wrapper untuk execute query (Task 22.2 - Requirement 14.2)
+// Logs queries that take longer than 100ms
 export function query(sql: string, params: any[] = []) {
+  const startTime = Date.now();
   try {
     const stmt = db.prepare(sql);
-    return stmt.all(...params);
+    const result = stmt.all(...params);
+    const duration = Date.now() - startTime;
+    logSlowQuery(sql, duration, params);
+    return result;
   } catch (error) {
     console.error('Query error:', sql.substring(0, 100), error);
     throw error;
   }
 }
 
-// Get single result
+// Get single result (Task 22.2 - Requirement 14.2)
 export function get(sql: string, params: any[] = []) {
+  const startTime = Date.now();
   try {
     const stmt = db.prepare(sql);
     const result = stmt.get(...params);
+    const duration = Date.now() - startTime;
+    logSlowQuery(sql, duration, params);
     return result || null;
   } catch (error) {
     console.error('Get error:', sql.substring(0, 100), error);
@@ -97,11 +106,14 @@ export function get(sql: string, params: any[] = []) {
   }
 }
 
-// Execute without returning results
+// Execute without returning results (Task 22.2 - Requirement 14.2)
 export function run(sql: string, params: any[] = []) {
+  const startTime = Date.now();
   try {
     const stmt = db.prepare(sql);
     const info = stmt.run(...params);
+    const duration = Date.now() - startTime;
+    logSlowQuery(sql, duration, params);
     return { changes: info.changes };
   } catch (error) {
     console.error('Run error:', sql.substring(0, 100), error);

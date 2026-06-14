@@ -1,8 +1,39 @@
 import { Router } from 'express';
 import { query, get, run } from '../db/database';
 import { nanoid } from 'nanoid';
+import { z } from 'zod';
 
 const router = Router();
+
+// Zod validation schemas for product operations (Requirement 9.1, 9.2, 9.7)
+const CreateProductSchema = z.object({
+  tenantId: z.string().min(1, 'Tenant ID is required'),
+  categoryId: z.string().min(1, 'Category ID is required'),
+  name: z.string().min(1, 'Product name is required'),
+  description: z.string().optional().nullable(),
+  price: z.number().nonnegative('Price cannot be negative'),
+  cost: z.number().nonnegative('Cost cannot be negative').optional().default(0),
+  imageUrl: z.string().optional().nullable(),
+  hasModifiers: z.boolean().optional().default(false),
+  modifierGroupIds: z.array(z.string()).optional().default([]),
+  productionTime: z.number().int().positive('Production time must be positive').optional().default(10),
+  stockTracking: z.boolean().optional().default(false),
+  stockQty: z.number().int().nonnegative('Stock quantity cannot be negative').optional().default(0)
+});
+
+const UpdateProductSchema = z.object({
+  name: z.string().min(1, 'Product name is required').optional(),
+  categoryId: z.string().optional(),
+  description: z.string().optional().nullable(),
+  price: z.number().nonnegative('Price cannot be negative').optional(),
+  cost: z.number().nonnegative('Cost cannot be negative').optional(),
+  imageUrl: z.string().optional().nullable(),
+  hasModifiers: z.boolean().optional(),
+  modifierGroupIds: z.array(z.string()).optional(),
+  productionTime: z.number().int().positive('Production time must be positive').optional(),
+  stockTracking: z.boolean().optional(),
+  stockQty: z.number().int().nonnegative('Stock quantity cannot be negative').optional()
+}).strict();
 
 // GET /api/products — Get all products with filters
 router.get('/', (req, res) => {
@@ -115,11 +146,28 @@ router.patch('/:id/favorite', (req, res) => {
 // Route 12: POST /api/products — Create product
 router.post('/', (req, res) => {
   try {
-    const { tenantId, categoryId, name, description, price, cost, imageUrl, hasModifiers, modifierGroupIds, productionTime, stockTracking, stockQty } = req.body;
+    console.log('[INFO] POST /api/products - Creating product');
 
-    if (!tenantId || !categoryId || !name || price === undefined) {
-      return res.status(400).json({ error: 'tenantId, categoryId, name, and price are required' });
+    // Validate request body against Zod schema (Requirement 9.1, 9.2)
+    const validationResult = CreateProductSchema.safeParse(req.body);
+    
+    if (!validationResult.success) {
+      // Return structured validation errors (Requirement 9.1, 9.2)
+      const errors = validationResult.error.errors.map(err => ({
+        field: err.path.join('.'),
+        message: err.message
+      }));
+      
+      console.log('[WARN] Product validation failed:', errors);
+      
+      return res.status(400).json({ 
+        success: false,
+        error: 'Validation failed',
+        errors 
+      });
     }
+
+    const { tenantId, categoryId, name, description, price, cost, imageUrl, hasModifiers, modifierGroupIds, productionTime, stockTracking, stockQty } = validationResult.data;
 
     const productId = nanoid();
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -127,10 +175,10 @@ router.post('/', (req, res) => {
     run(`
       INSERT INTO products (id, tenant_id, category_id, name, slug, description, price, cost, image_url, has_modifiers, production_time, status, stock_tracking, stock_qty)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)
-    `, [productId, tenantId, categoryId, name, slug, description || null, price, cost || 0, imageUrl || null, hasModifiers ? 1 : 0, productionTime || 10, stockTracking ? 1 : 0, stockQty || 0]);
+    `, [productId, tenantId, categoryId, name, slug, description || null, price, cost, imageUrl || null, hasModifiers ? 1 : 0, productionTime, stockTracking ? 1 : 0, stockQty]);
 
     // Link modifier groups if provided
-    if (modifierGroupIds && Array.isArray(modifierGroupIds)) {
+    if (modifierGroupIds && modifierGroupIds.length > 0) {
       for (let i = 0; i < modifierGroupIds.length; i++) {
         run(`
           INSERT INTO product_modifiers (product_id, modifier_group_id, display_order)
@@ -141,7 +189,8 @@ router.post('/', (req, res) => {
 
     const product = get('SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?', [productId]);
 
-    // Log activity
+    // Log activity (Requirement 14.5)
+    console.log(`[INFO] Product created - product_id: ${productId}, name: "${name}", price: ${price}`);
     run(`
       INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
       VALUES (?, ?, 'create', 'product', ?, ?)
@@ -149,8 +198,11 @@ router.post('/', (req, res) => {
 
     res.status(201).json({ success: true, product });
   } catch (error: any) {
-    console.error('Create product error:', error);
-    res.status(500).json({ error: error.message });
+    console.error('[ERROR] Create product error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
   }
 });
 
@@ -158,12 +210,38 @@ router.post('/', (req, res) => {
 router.put('/:id', (req, res) => {
   try {
     const { id } = req.params;
-    const { name, categoryId, description, price, cost, imageUrl, hasModifiers, modifierGroupIds, productionTime, stockTracking, stockQty } = req.body;
+
+    console.log(`[INFO] PUT /api/products/${id} - Updating product`);
 
     const existing = get('SELECT * FROM products WHERE id = ?', [id]);
     if (!existing) {
-      return res.status(404).json({ error: 'Product not found' });
+      console.log(`[WARN] Product not found: ${id}`);
+      return res.status(404).json({ 
+        success: false,
+        error: 'Product not found' 
+      });
     }
+
+    // Validate request body against Zod schema (Requirement 9.1, 9.2)
+    const validationResult = UpdateProductSchema.safeParse(req.body);
+    
+    if (!validationResult.success) {
+      // Return structured validation errors (Requirement 9.1, 9.2)
+      const errors = validationResult.error.errors.map(err => ({
+        field: err.path.join('.'),
+        message: err.message
+      }));
+      
+      console.log('[WARN] Product update validation failed:', errors);
+      
+      return res.status(400).json({ 
+        success: false,
+        error: 'Validation failed',
+        errors 
+      });
+    }
+
+    const { name, categoryId, description, price, cost, imageUrl, hasModifiers, modifierGroupIds, productionTime, stockTracking, stockQty } = validationResult.data;
 
     const updates: string[] = [];
     const params: any[] = [];
@@ -203,7 +281,8 @@ router.put('/:id', (req, res) => {
 
     const product = get('SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?', [id]);
 
-    // Log activity
+    // Log activity (Requirement 14.5)
+    console.log(`[INFO] Product updated - product_id: ${id}, name: "${(existing as any).name}"`);
     run(`
       INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
       VALUES (?, ?, 'update', 'product', ?, ?)
@@ -211,8 +290,11 @@ router.put('/:id', (req, res) => {
 
     res.json({ success: true, product });
   } catch (error: any) {
-    console.error('Update product error:', error);
-    res.status(500).json({ error: error.message });
+    console.error('[ERROR] Update product error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
   }
 });
 

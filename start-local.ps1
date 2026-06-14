@@ -1,7 +1,7 @@
 # start-local.ps1
-# NASHTY OS - Reliable Local Development Starter
-# Version: 2.0.0
-# Date: 2024-01-11
+# NASHTY OS - Advanced Local Development Starter
+# Version: 3.0.0
+# Date: 2026-06-14
 #
 # USAGE:
 #   powershell -ExecutionPolicy Bypass -File .\start-local.ps1
@@ -177,16 +177,19 @@ else {
 # [Step 7/9] Start server
 Write-Step "[7/9] Starting development server..."
 $env:PORT = "3099"
+$env:NODE_ENV = "development"
 
 # Start server as background job
 $job = Start-Job -ScriptBlock {
     param($BackendPath)
     Set-Location $BackendPath
     $env:PORT = "3099"
+    $env:NODE_ENV = "development"
     npm run dev
 } -ArgumentList $backendPath
 
 Write-Success "Server process started (Job ID: $($job.Id))"
+Write-Success "NODE_ENV=development (Auth bypass enabled)"
 Write-Host "   Waiting for server to initialize..."
 
 # [Step 8/9] Health check polling
@@ -240,16 +243,31 @@ Write-Success "Browser opened to http://localhost:3099/"
 # Success message
 Write-Host "`n=================================================="
 Write-Host "   ✅ SUCCESS: Server running on port 3099"
-Write-Host "==================================================`n"
-Write-Host "Access Points:"
+Write-Host "=================================================="
+Write-Host ""
+Write-Host "🌐 Access Points:"
 Write-Host "  • Main Login:   http://localhost:3099/"
 Write-Host "  • POS:          http://localhost:3099/pos"
 Write-Host "  • KDS:          http://localhost:3099/kds"
 Write-Host "  • Backoffice:   http://localhost:3099/backoffice"
+Write-Host "  • API Health:   http://localhost:3099/api/health"
 Write-Host ""
-Write-Host "Server is running in background (Job ID: $($job.Id))"
-Write-Host "To view server logs: Receive-Job -Id $($job.Id) -Keep"
-Write-Host "To stop server: Stop-Job -Id $($job.Id); Remove-Job -Id $($job.Id)"
+Write-Host "🔧 Development Mode Features:"
+Write-Host "  • AUTH BYPASSED - All API routes accessible without token"
+Write-Host "  • Rate limiting DISABLED"
+Write-Host "  • CORS accepts all origins"
+Write-Host "  • Detailed error messages with stack traces"
+Write-Host "  • DEBUG logging enabled"
+Write-Host ""
+Write-Host "📊 Server Info:"
+Write-Host "  • Background Job ID: $($job.Id)"
+Write-Host "  • Environment: development"
+Write-Host "  • Database: SQLite (./data/nashtypos.db)"
+Write-Host ""
+Write-Host "💡 Useful Commands:"
+Write-Host "  • View logs:    Receive-Job -Id $($job.Id) -Keep"
+Write-Host "  • Stop server:  Stop-Job -Id $($job.Id); Remove-Job -Id $($job.Id)"
+Write-Host "  • Restart:      .\start-local.ps1"
 Write-Host ""
 Write-Host "Press Ctrl+C to exit this script (server will continue running)"
 Write-Host "==================================================`n"

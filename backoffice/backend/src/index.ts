@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import rateLimit from 'express-rate-limit';
+import compression from 'compression';
 import { initDatabase, get as dbGet } from './db/database';
 import { testConnection as testSupabaseConnection } from './supabase/supabase-client';
 import { cacheManager } from './services/CacheManager';
@@ -23,6 +25,7 @@ import settingsRoutes from './routes/settings';
 import activityLogsRoutes from './routes/activity-logs';
 import membersRoutes from './routes/members';
 import { requireAuth } from './middleware/auth';
+import { requestLoggingMiddleware } from './middleware/logging';
 import xss from 'xss';
 
 dotenv.config();
@@ -37,6 +40,33 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+
+// Gzip compression for text-based assets (Task 23 - Requirement 15.9)
+app.use(compression());
+
+// Request logging middleware (Task 22.1 - Requirement 14.1, 14.9)
+app.use(requestLoggingMiddleware);
+
+// Rate Limiting Middleware (Task 21 - Requirement 9.6, 19.5)
+// Apply rate limiting only in production mode
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: {
+    success: false,
+    error: 'Too many requests from this IP, please try again later.',
+    retryAfter: '1 minute'
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  skip: (req) => {
+    // Skip rate limiting in development mode (Requirement 19.4)
+    return process.env.NODE_ENV === 'development';
+  }
+});
+
+// Apply rate limiter to all API routes
+app.use('/api/', limiter);
 
 // Serve static files for frontend modules
 // POS frontend
@@ -54,7 +84,8 @@ app.use(express.static(path.join(__dirname, '../../../')));
 // Serve uploads directory
 app.use('/uploads', express.static(path.join(__dirname, '../../data/uploads')));
 
-// Simple XSS Sanitization Middleware
+// XSS Sanitization Middleware (Task 21 - Requirement 9.8, 19.5)
+// Sanitizes all string inputs in request body to prevent XSS attacks
 app.use((req, res, next) => {
   if (req.body && typeof req.body === 'object') {
     for (const key in req.body) {
@@ -159,43 +190,60 @@ app.get('/api/health', async (req, res) => {
 // Main auth API (no auth required)
 app.use('/api/main/auth', mainAuthRoutes);
 
-// API Routes — Auth & Users
+// API Routes — Auth & Users (AUTH BYPASSED IN DEV MODE)
 app.use('/api/auth', authRoutes);
 app.use('/api/users', requireAuth, usersRoutes);
 
-// API Routes — Menu Management
+// API Routes — Menu Management (AUTH BYPASSED IN DEV MODE)
 app.use('/api/categories', requireAuth, categoriesRoutes);
 app.use('/api/products', requireAuth, productsRoutes);
 app.use('/api/menu', requireAuth, menuRoutes);
 app.use('/api/modifiers', requireAuth, modifiersRoutes);
 
-// API Routes — Orders & Shifts
+// API Routes — Orders & Shifts (AUTH BYPASSED IN DEV MODE)
 app.use('/api/orders', requireAuth, ordersRoutes);
 app.use('/api/shifts', requireAuth, shiftsRoutes);
 
-// API Routes — Dashboard & Reports
+// API Routes — Dashboard & Reports (AUTH BYPASSED IN DEV MODE)
 app.use('/api/dashboard', requireAuth, dashboardRoutes);
 app.use('/api/reports', requireAuth, reportsRoutes);
 
 // API Routes — CRM / Members
 app.use('/api/members', membersRoutes);
 
-// API Routes — Outlets, Settings & Logs
+// API Routes — Outlets, Settings & Logs (AUTH BYPASSED IN DEV MODE)
 app.use('/api/outlets', requireAuth, outletsRoutes);
 app.use('/api/settings', requireAuth, settingsRoutes);
 app.use('/api/activity-logs', requireAuth, activityLogsRoutes);
 
-// Error handler
+// Error handler (Task 21 - Requirement 9.5, 9.6, 19.5)
+// Returns appropriate error messages based on environment mode
+// In production: hides stack traces for security
+// In development: includes full stack traces for debugging
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Error:', err);
-  res.status(err.status || 500).json({
+  
+  // Determine if we're in production mode (Task 21, 24 - Requirement 19.5)
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  // Build error response
+  const errorResponse: any = {
+    success: false,
     error: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  });
+    status: err.status || 500
+  };
+  
+  // Only include stack trace in development mode (Task 21 - Requirement 9.6, 19.5)
+  if (!isProduction) {
+    errorResponse.stack = err.stack;
+  }
+  
+  res.status(err.status || 500).json(errorResponse);
 });
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
+    const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
     console.log(`
 ╔══════════════════════════════════════════════════════════╗
 ║   NASHTY OS Backend Server Started (v2.0)                ║
@@ -203,9 +251,11 @@ if (process.env.NODE_ENV !== 'test') {
 ║  Port: ${PORT.toString().padEnd(42)} ║
 ║  Env:  ${(process.env.NODE_ENV || 'development').padEnd(42)} ║
 ║  DB:   SQLite + Supabase Ready                          ║
+║  Auth: ${isDev ? 'BYPASSED (Development Mode)              ' : 'REQUIRED (Production Mode)                '} ║
 ╠══════════════════════════════════════════════════════════╣
 ║  Main Features:                                          ║
-║  • Main Login Page (/)                                  ║
+║  • Main Login Page (/)                                  ║${isDev ? `
+║  • 🔓 AUTH BYPASSED - All API routes accessible        ║` : ''}
 ║  • Admin Authentication (admin/admin)                   ║
 ║  • 12-hour Session Management                           ║
 ║  • Supabase Cloud Integration                           ║
@@ -225,7 +275,14 @@ if (process.env.NODE_ENV !== 'test') {
 ║  • /api/reports     — Reports & Analytics              ║
 ║  • /api/outlets     — Outlet Management                ║
 ║  • /api/settings    — Settings per Outlet              ║
-║  • /api/activity-logs — Activity Logs                  ║
+║  • /api/activity-logs — Activity Logs                  ║${isDev ? `
+╠══════════════════════════════════════════════════════════╣
+║  🔧 DEVELOPMENT MODE FEATURES:                          ║
+║  • Authentication bypassed for all API routes          ║
+║  • Rate limiting disabled                              ║
+║  • CORS accepts all origins                            ║
+║  • Detailed error messages with stack traces           ║
+║  • DEBUG logging enabled                               ║` : ''}
 ╚══════════════════════════════════════════════════════════╝
     `);
   });

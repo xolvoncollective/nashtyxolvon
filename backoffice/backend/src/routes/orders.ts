@@ -3,6 +3,7 @@ import { query, get, run, transaction } from '../db/database';
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
+import { logOrderCreation, logOrderStatusUpdate } from '../middleware/logging';
 
 const router = Router();
 
@@ -220,6 +221,9 @@ router.post('/', (req, res) => {
 
     doTransaction();
 
+    // Log order creation (Task 22.3 - Requirement 14.4)
+    logOrderCreation(orderNumber, orderId, calculatedTotal);
+
     // Get complete order with items
     const order = get(`
       SELECT o.*, u.name as cashier_name
@@ -330,6 +334,12 @@ router.patch('/:id/status', (req, res) => {
     const { id } = req.params;
     const { orderStatus, kitchenStatus } = req.body;
 
+    // Get current status for logging (Task 22.3 - Requirement 14.4)
+    const currentOrder = get('SELECT kitchen_status, order_status FROM orders WHERE id = ?', [id]) as any;
+    if (!currentOrder) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
     const updates: string[] = [];
     const params: any[] = [];
 
@@ -352,6 +362,11 @@ router.patch('/:id/status', (req, res) => {
     params.push(id);
 
     run(`UPDATE orders SET ${updates.join(', ')} WHERE id = ?`, params);
+
+    // Log status update (Task 22.3 - Requirement 14.4)
+    if (kitchenStatus) {
+      logOrderStatusUpdate(id, currentOrder.kitchen_status, kitchenStatus);
+    }
 
     res.json({ success: true, message: 'Status berhasil diperbarui' });
   } catch (error: any) {

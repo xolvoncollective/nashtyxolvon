@@ -3,6 +3,7 @@ import { query, get, run } from '../db/database';
 import { cacheManager } from '../services/CacheManager';
 import { z } from 'zod';
 import { nanoid } from 'nanoid';
+import { logMenuOperation } from '../middleware/logging';
 
 const router = Router();
 
@@ -269,10 +270,10 @@ router.post('/items', (req, res) => {
       stockTracking ? 1 : 0, stockQty, productionTime
     ]);
 
-    // Invalidate cache key "menu:outlet:{outletId}" (Requirement 6.4)
-    const cacheKey = `menu:outlet:${outletId}`;
-    cacheManager.invalidate(cacheKey);
-    console.log(`[INFO] Cache invalidated for key: ${cacheKey}`);
+    // Invalidate all menu caches across outlets since products are tenant-wide
+    // (Requirement 6.4)
+    cacheManager.invalidatePattern('menu:*');
+    console.log(`[INFO] All menu caches invalidated after menu item creation`);
 
     // Retrieve the created item with category information
     const createdItem = get(`
@@ -284,8 +285,8 @@ router.post('/items', (req, res) => {
 
     const responseTime = Date.now() - startTime;
 
-    // Log menu creation with INFO level (Requirement 14.5)
-    console.log(`[INFO] Menu item created successfully - item_id: ${itemId}, name: "${name}", price: ${price} - ${responseTime}ms`);
+    // Log menu creation (Task 22.3 - Requirement 14.5)
+    logMenuOperation(itemId, name, 'create');
 
     // Return 201 Created with item_id and created item (Requirement 6.5)
     res.status(201).json({
@@ -453,13 +454,10 @@ router.patch('/items/:id', (req, res) => {
 
     run(updateQuery, updateValues);
 
-    // Get outletId from existing item's tenant to invalidate cache
-    const outletId = (existingItem as any).outlet_id || (existingItem as any).tenant_id;
-
-    // Invalidate cache key "menu:outlet:{outletId}" (Requirement 6.8)
-    const cacheKey = `menu:outlet:${outletId}`;
-    cacheManager.invalidate(cacheKey);
-    console.log(`[INFO] Cache invalidated for key: ${cacheKey}`);
+    // Invalidate all menu caches across outlets since products are tenant-wide
+    // (Requirement 6.8, 7.3)
+    cacheManager.invalidatePattern('menu:*');
+    console.log(`[INFO] All menu caches invalidated after menu item update`);
 
     // Retrieve the updated item with category information
     const updatedItem = get(`
@@ -471,8 +469,9 @@ router.patch('/items/:id', (req, res) => {
 
     const responseTime = Date.now() - startTime;
 
-    // Log menu update with INFO level (Requirement 14.5)
-    console.log(`[INFO] Menu item updated successfully - item_id: ${itemId}, fields: [${Object.keys(updates).join(', ')}] - ${responseTime}ms`);
+    // Log menu update (Task 22.3 - Requirement 14.5)
+    const itemName = updates.name || (existingItem as any).name;
+    logMenuOperation(itemId, itemName, 'update');
 
     // Return 200 OK with updated item (Requirement 6.8)
     res.status(200).json({

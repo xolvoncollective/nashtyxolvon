@@ -251,7 +251,8 @@ const API = {
     },
 
     async updateStatus(id, status) {
-      return API.request(`/products/${id}/status`, {
+      // Use the menu items endpoint for status updates
+      return API.request(`/menu/items/${id}`, {
         method: 'PATCH',
         body: JSON.stringify({ status })
       });
