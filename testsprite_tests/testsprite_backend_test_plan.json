@@ -1,0 +1,7 @@
+[
+  {
+    "id": "TC001",
+    "title": "get active shift status for outlet",
+    "description": "Verify that GET /api/shifts/active/:outletId returns the correct active shift status for the given outlet, including scenarios with no active shift and with an active shift present."
+  }
+]

@@ -62,9 +62,9 @@ PAGES.dashboard = async () => {
  <div class="chart-bar">
  ${chartData.length ? chartData.map(c=>`
  <div class="bar-col">
- <div class="bar-val">${fr(c.total_sales).replace('Rp ','')}</div>
- <div class="bar" style="height:${Math.max(10, Math.round(c.total_sales/2000000*100))}px" title="${fr(c.total_sales)}"></div>
- <div class="bar-lbl">${c.day_name.substring(0,3)}</div>
+ <div class="bar-val">${fr(c.revenue || 0).replace('Rp ','')}</div>
+ <div class="bar" style="height:${Math.max(10, Math.round((c.revenue || 0)/2000000*100))}px" title="${fr(c.revenue || 0)}"></div>
+ <div class="bar-lbl">${(c.dayName || '').substring(0,3)}</div>
  </div>`).join('') : '<div style="padding:40px 0;text-align:center;width:100%;color:#999">Data belum tersedia</div>'}
  </div>
  </div>

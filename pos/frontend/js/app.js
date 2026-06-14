@@ -147,8 +147,9 @@
       }
       try {
         const res = await API.menu.getOutletMenu(API.session.outletId);
-        if (res.categories && res.items) {
-          const freshCats = res.categories.map(c => ({
+        const data = res.data || res; // Support both nested data and direct response
+        if (data.categories && data.items) {
+          const freshCats = data.categories.map(c => ({
             id: c.id,
             label: c.name,
             svg: c.icon || '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>',
@@ -160,9 +161,14 @@
           } else {
             CATS = freshCats;
           }
+          
+          if (!CATS.find(c => c.id === curCat) && CATS.length > 0) {
+            curCat = CATS.length > 1 && CATS[0].id === 'fav' ? CATS[1].id : CATS[0].id;
+          }
+          
           initCats();
 
-          MENU = res.items.map(p => {
+          MENU = data.items.map(p => {
             const opts = [];
             const addons = [];
             

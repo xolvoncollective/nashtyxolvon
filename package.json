@@ -1,0 +1,16 @@
+{
+  "workspaces": [
+    "pos/backend",
+    "kds/backend",
+    "backoffice/backend"
+  ],
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/supertest": "^7.2.0",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.8"
+  },
+  "scripts": {
+    "test:e2e": "npx playwright test --config=tests/playwright.config.ts"
+  }
+}

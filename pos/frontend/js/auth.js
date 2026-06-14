@@ -73,15 +73,15 @@
       try {
         const res = await API.menu.getOutletMenu(API.session.outletId);
         
-        if (res.categories && res.items) {
-          CATS = res.categories.map(c => ({
+        if (res.data && res.data.categories && res.data.items) {
+          CATS = res.data.categories.map(c => ({
             id: c.id,
             label: c.name,
             svg: c.icon || (c.name.toLowerCase().includes('makan') ? ICO.rice : (c.name.toLowerCase().includes('minum') ? ICO.juice : ICO.nugget))
           }));
           CATS.unshift({ id: 'fav', label: 'Favorit', svg: ICO.cake, isFav: true });
           
-          MENU = res.items.map(p => {
+          MENU = res.data.items.map(p => {
             const opts = [];
             const addons = [];
             

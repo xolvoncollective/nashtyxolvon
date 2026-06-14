@@ -1,5 +1,6 @@
     /* ── CLOCK ── */
-    function tick() { const n = new Date(); document.getElementById('clk').textContent = pad(n.getHours()) + ':' + pad(n.getMinutes()) + ':' + pad(n.getSeconds()); }
+    function utilsPad(v) { return v.toString().padStart(2, '0'); }
+    function tick() { const n = new Date(); document.getElementById('clk').textContent = utilsPad(n.getHours()) + ':' + utilsPad(n.getMinutes()) + ':' + utilsPad(n.getSeconds()); }
     setInterval(tick, 1000); tick();
 
     /* ── THEME ── */

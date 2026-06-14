@@ -192,7 +192,7 @@
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         console.log('[NASHTY AUTH] DEV MODE — Skipping auth redirect, using demo credentials');
         storeAuthData('dev-token', 
-          { id: 'local-admin', name: 'Admin Demo', role: 'admin', tenantId: 'demo-tenant', outletId: 'demo-outlet' },
+          { id: 'admin', name: 'Admin Demo', role: 'admin', tenantId: 'demo-tenant', outletId: 'demo-outlet' },
           { id: 'demo-outlet', name: 'Demo Outlet' }
         );
         syncAuthWithAPI();

@@ -46,7 +46,7 @@ async function fetchOrders() {
           table: o.table_number || (o.order_type === 'dine' ? 'T??' : o.order_type),
           type: o.order_type,
           cashier: o.cashier_name || 'System',
-          startTs: new Date(o.created_at).getTime(),
+          startTs: new Date(o.created_at ? o.created_at.replace(' ', 'T') + (o.created_at.includes('Z') ? '' : 'Z') : Date.now()).getTime(),
           status: 'active',
           items: (o.items || []).map(it => {
             let mods = [];

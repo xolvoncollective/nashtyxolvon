@@ -1,0 +1,11 @@
+[      40ms] [LOG] [KDS] Session restored: {token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiO…kxMX0.yDRQjHr82u6AkKx9G8f08QW7pQV88XO0XBiAYN8bP_I, user: Object, tenantId: demo-tenant, outletId: demo-outlet, shiftId: null} @ http://localhost:3099/kds/frontend/js/api.js:91
+[      41ms] [LOG] [KDS API] Client initialized @ http://localhost:3099/kds/frontend/js/api.js:192
+[      49ms] [LOG] [NASHTY AUTH] Initializing authentication system... @ http://localhost:3099/shared/auth.js:175
+[      49ms] [LOG] [NASHTY AUTH] Message listener initialized @ http://localhost:3099/shared/auth.js:137
+[      49ms] [LOG] [NASHTY AUTH] Fetch interceptor installed @ http://localhost:3099/shared/auth.js:168
+[      49ms] [LOG] [NASHTY AUTH] Syncing auth data with API.session @ http://localhost:3099/shared/auth.js:225
+[      49ms] [LOG] [NASHTY AUTH] Valid authentication found @ http://localhost:3099/shared/auth.js:208
+[      49ms] [LOG] [NASHTY AUTH] User: Admin Demo @ http://localhost:3099/shared/auth.js:210
+[      49ms] [LOG] [NASHTY AUTH] Outlet: Demo Outlet @ http://localhost:3099/shared/auth.js:211
+[      49ms] [LOG] [NASHTY AUTH] Syncing auth data with API.session @ http://localhost:3099/shared/auth.js:225
+[     345ms] [WARNING] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio @ http://localhost:3099/kds/frontend/js/utils.js:45
