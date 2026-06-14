@@ -188,13 +188,23 @@
     if (!hasValidAuth()) {
       console.warn('[NASHTY AUTH] No valid authentication found');
       
-      // Wait a moment for postMessage to arrive (if opened from launcher)
-      setTimeout(function() {
-        if (!hasValidAuth()) {
-          console.warn('[NASHTY AUTH] Still no auth after waiting, redirecting to launcher');
-          redirectToLauncher();
-        }
-      }, 2000);
+      // DEV MODE: Skip redirect on localhost, auto-set demo credentials
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        console.log('[NASHTY AUTH] DEV MODE — Skipping auth redirect, using demo credentials');
+        storeAuthData('dev-token', 
+          { id: 'admin', name: 'Admin Demo', role: 'admin', tenantId: 'demo-tenant', outletId: 'demo-outlet' },
+          { id: 'demo-outlet', name: 'Demo Outlet' }
+        );
+        syncAuthWithAPI();
+      } else {
+        // Production: wait for postMessage then redirect
+        setTimeout(function() {
+          if (!hasValidAuth()) {
+            console.warn('[NASHTY AUTH] Still no auth after waiting, redirecting to launcher');
+            redirectToLauncher();
+          }
+        }, 2000);
+      }
     } else {
       console.log('[NASHTY AUTH] Valid authentication found');
       const authData = getAuthData();

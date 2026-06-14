@@ -226,6 +226,11 @@
           } else {
             CATS = freshCats;
           }
+          
+          if (!CATS.find(c => c.id === curCat) && CATS.length > 0) {
+            curCat = CATS.length > 1 && CATS[0].id === 'fav' ? CATS[1].id : CATS[0].id;
+          }
+          
           initCats();
         }
 

@@ -35,7 +35,7 @@
         const res = await API.orders.getAll(filters);
         if (res && res.orders) {
           const mapped = res.orders.map(o => {
-            const d = new Date(o.created_at);
+            const d = new Date(o.created_at ? o.created_at.replace(' ', 'T') + (o.created_at.includes('Z') ? '' : 'Z') : Date.now());
             return {
               id: o.id,
               no: o.order_number,

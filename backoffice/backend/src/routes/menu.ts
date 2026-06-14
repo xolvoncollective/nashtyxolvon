@@ -82,11 +82,7 @@ router.get('/outlet/:outletId', (req, res) => {
              p.category_id, p.is_favorite, p.has_modifiers, p.stock_tracking,
              p.stock_qty, p.production_time, p.status
       FROM products p
-<<<<<<< HEAD
-      WHERE p.tenant_id = ?
-=======
       WHERE p.tenant_id = ? AND p.status IN ('active', 'soldout')
->>>>>>> origin/main
       ORDER BY p.is_favorite DESC, p.name
     `, [tenantId]);
 

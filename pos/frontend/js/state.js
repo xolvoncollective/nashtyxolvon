@@ -106,7 +106,7 @@
       { id: 49, cat: 'addon', n: 'Extra Nasi', p: 6000, ico: 'rice', d: 'Tambah nasi putih' },
       { id: 50, cat: 'addon', n: 'Minuman Pendamping', p: 8000, ico: 'milk', d: 'Susu UHT / teh kotak' },
     ];
-    const HISTORY = [
+    var HISTORY = [
       { id: 1, no: 'SNY-0187', table: 'T12', type: 'dine', cashier: 'Citra', time: '14:18', method: 'QRIS', status: 'done', sub: 129000, disc: 0, tax: 14190, svc: 6450, total: 149640, member: 'Ahmad Sudirman', items: [{ id: 1, n: 'Nasi Goreng Spesial', qty: 2, p: 35000, mods: ['Pedas Extra'] }, { id: 12, n: 'Kopi Susu Aren', qty: 1, p: 22000, mods: ['Dingin', 'Extra Shot'] }, { id: 21, n: 'French Fries', qty: 1, p: 22000, mods: ['Keju'] }] },
       { id: 2, no: 'SNY-0186', table: 'TAKE', type: 'take', cashier: 'Budi', time: '14:05', method: 'Tunai', status: 'done', sub: 55000, disc: 0, tax: 6050, svc: 2750, total: 63800, member: null, items: [{ id: 2, n: 'Ayam Bakar Madu', qty: 1, p: 55000, mods: ['Original'] }] },
       { id: 3, no: 'SNY-0185', table: 'T07', type: 'dine', cashier: 'Citra', time: '13:45', method: 'Debit', status: 'done', sub: 115000, disc: 10000, tax: 11550, svc: 5250, total: 121800, member: 'Rina Kusuma', items: [{ id: 3, n: 'Rawon Spesial', qty: 2, p: 42000, mods: ['Telur Asin'] }, { id: 11, n: 'Es Teh Manis', qty: 2, p: 8000, mods: ['Kurang Manis'] }] },
