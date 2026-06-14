@@ -13,11 +13,28 @@ export interface AuthRequest extends Request {
 }
 
 export const requireAuth = (req: AuthRequest, res: Response, next: NextFunction) => {
-  // Allow bypass for local development if headers are missing
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  
-  if ((!token || token === 'dev-token') && process.env.NODE_ENV !== 'production') {
+  // Allow bypass for local development regardless of token status
+  if (process.env.NODE_ENV !== 'production') {
+    // If there is a token, try to decode it, but ignore errors
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    if (token && token !== 'dev-token' && token !== 'null' && token !== 'undefined') {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
+        req.user = {
+          id: decoded.userId,
+          role: decoded.role,
+          tenantId: 'demo-tenant',
+          outletId: decoded.outletId
+        };
+        return next();
+      } catch (e) {
+        // Ignore token errors in dev mode, fallback to default dev user
+      }
+    }
+    
+    // Fallback default user for development
     req.user = {
       id: 'admin',
       tenantId: 'demo-tenant',
@@ -26,6 +43,7 @@ export const requireAuth = (req: AuthRequest, res: Response, next: NextFunction)
     };
     return next();
   }
+  
   authenticateToken(req, res, next);
 };
 

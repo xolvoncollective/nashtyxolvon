@@ -22,13 +22,13 @@ const OrderItemSchema = z.object({
   quantity: z.number().int().positive('Quantity must be positive'),
   unitPrice: z.number().nonnegative('Unit price cannot be negative'),
   subtotal: z.number().nonnegative('Subtotal cannot be negative'),
-  notes: z.string().optional(),
+  notes: z.string().optional().nullable(),
   modifiers: z.array(OrderItemModifierSchema).optional().default([])
 });
 
 const PaymentSchema = z.object({
   method: z.string().min(1, 'Payment method is required'),
-  amount: z.number().positive('Payment amount must be positive'),
+  amount: z.number().nonnegative('Payment amount cannot be negative'),
   change: z.number().nonnegative('Change amount cannot be negative').optional().default(0),
   platformRef: z.string().optional()
 });
@@ -47,7 +47,7 @@ const CreateOrderSchema = z.object({
   discount: z.number().nonnegative('Discount cannot be negative').optional().default(0),
   tax: z.number().nonnegative('Tax cannot be negative').optional().default(0),
   serviceCharge: z.number().nonnegative('Service charge cannot be negative').optional().default(0),
-  total: z.number().positive('Total must be positive'),
+  total: z.number().nonnegative('Total cannot be negative'),
   paymentMethod: z.string().optional().nullable(),
   payments: z.array(PaymentSchema).min(1, 'At least one payment is required'),
   notes: z.string().optional().nullable()

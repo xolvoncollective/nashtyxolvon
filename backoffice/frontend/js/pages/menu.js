@@ -5,7 +5,7 @@ PAGES.categories=()=>{
 <div class="ph">
  <div style="display:flex;align-items:center;justify-content:space-between">
  <div><div class="ph-title">Kategori Menu</div><div class="ph-sub">Kelola kategori yang tampil di POS</div></div>
- <button class="btn btn-primary" onclick="openCatModal()">'+ico('plus')+' Tambah Kategori</button>
+ <button class="btn btn-primary" onclick="openCatModal()">${ico('plus')} Tambah Kategori</button>
  </div>
 </div>
 <div class="card">
@@ -88,7 +88,7 @@ PAGES.products=()=>{
 <div class="ph">
  <div style="display:flex;align-items:center;justify-content:space-between">
  <div><div class="ph-title">Produk</div><div class="ph-sub">Kelola semua menu yang tersedia di POS</div></div>
- <button class="btn btn-primary" onclick="openProdModal()">'+ico('plus')+' Tambah Produk</button>
+ <button class="btn btn-primary" onclick="openProdModal()">${ico('plus')} Tambah Produk</button>
  </div>
 </div>
 <div class="sf-bar">
@@ -225,7 +225,7 @@ window.saveProduct = async function() {
     const res = await API.products.create({
       name: name,
       price: parseInt(price),
-      categoryId: cat ? cat.id : null,
+      categoryId: cat ? String(cat.id) : null,
       description: desc,
       hasModifiers: false
     });
@@ -240,7 +240,7 @@ window.saveProduct = async function() {
     }
   } catch (err) {
     console.error(err);
-    toast('Error menyimpan produk', 'err');
+    toast('Error menyimpan produk: ' + err.message, 'err');
   }
 };
 
@@ -249,7 +249,7 @@ PAGES.modifiers=()=>`
 <div class="ph">
  <div style="display:flex;align-items:center;justify-content:space-between">
  <div><div class="ph-title">Modifier Groups</div><div class="ph-sub">Opsi dan variasi add-on untuk produk</div></div>
- <button class="btn btn-primary" onclick="openModModal()">'+ico('plus')+' Tambah Group</button>
+ <button class="btn btn-primary" onclick="openModModal()">${ico('plus')} Tambah Group</button>
  </div>
 </div>
 <div class="three-col">
@@ -273,7 +273,7 @@ PAGES.modifiers=()=>`
  <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--sf2);border-radius:8px">
  <span style="font-size:13px;font-weight:500">${it}</span>
  <div style="display:flex;gap:4px">
- <button class="btn btn-sm" onclick="toast('Edit item')">'+ico('edit')+'</button>
+ <button class="btn btn-sm" onclick="toast('Edit item')">${ico('edit')}</button>
  <button class="btn btn-sm btn-danger" onclick="toast('Item dihapus','err')">✕</button>
  </div>
  </div>`).join('')}
