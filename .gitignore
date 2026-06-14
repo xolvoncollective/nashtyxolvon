@@ -1,0 +1,6 @@
+testsprite_tests\tmp\config.json
+node_modules/
+*.db-shm
+*.db-wal
+.playwright-mcp/
+.serena/memories/
