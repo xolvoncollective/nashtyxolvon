@@ -139,16 +139,82 @@
     }
 
 
+    /* ── MENU CACHE MANAGEMENT ── */
+    const MENU_CACHE_KEY = 'nashty_menu_cache';
+    const MENU_CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+    function getMenuFromCache() {
+      try {
+        const cached = localStorage.getItem(MENU_CACHE_KEY);
+        if (!cached) return null;
+
+        const { data, timestamp } = JSON.parse(cached);
+        const age = Date.now() - timestamp;
+
+        if (age > MENU_CACHE_TTL) {
+          console.log('Menu cache expired, age:', age, 'ms');
+          localStorage.removeItem(MENU_CACHE_KEY);
+          return null;
+        }
+
+        console.log('Menu loaded from cache, age:', age, 'ms');
+        return data;
+      } catch (err) {
+        console.error('Failed to read menu cache:', err);
+        return null;
+      }
+    }
+
+    function saveMenuToCache(menuData) {
+      try {
+        const cacheEntry = {
+          data: menuData,
+          timestamp: Date.now()
+        };
+        localStorage.setItem(MENU_CACHE_KEY, JSON.stringify(cacheEntry));
+        console.log('Menu saved to cache');
+      } catch (err) {
+        console.error('Failed to save menu cache:', err);
+      }
+    }
+
+    function invalidateMenuCache() {
+      localStorage.removeItem(MENU_CACHE_KEY);
+      console.log('Menu cache invalidated');
+    }
+
     /* ── INIT ── */
-    async function fetchMenuData() {
+    async function fetchMenuData(forceRefresh = false) {
       if (!API.session.tenantId) {
         API.session.tenantId = 'demo-tenant';
         API.session.outletId = 'demo-outlet';
       }
+
       try {
-        const res = await API.menu.getOutletMenu(API.session.outletId);
-        if (res.categories && res.items) {
-          const freshCats = res.categories.map(c => ({
+        let menuData = null;
+
+        // Try to load from cache first (unless forced refresh)
+        if (!forceRefresh) {
+          menuData = getMenuFromCache();
+        }
+
+        // If no cache or forced refresh, fetch from API
+        if (!menuData) {
+          console.log('Fetching menu from API for outlet:', API.session.outletId);
+          const res = await API.menu.getOutletMenu(API.session.outletId);
+          
+          if (res.success && res.data) {
+            menuData = res.data;
+            saveMenuToCache(menuData);
+          } else {
+            console.error('Invalid menu response:', res);
+            return;
+          }
+        }
+
+        // Process categories
+        if (menuData.categories && menuData.categories.length > 0) {
+          const freshCats = menuData.categories.map(c => ({
             id: c.id,
             label: c.name,
             svg: c.icon || '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>',
@@ -161,8 +227,11 @@
             CATS = freshCats;
           }
           initCats();
+        }
 
-          MENU = res.items.map(p => {
+        // Process menu items
+        if (menuData.items && menuData.items.length > 0) {
+          MENU = menuData.items.map(p => {
             const opts = [];
             const addons = [];
             
@@ -181,6 +250,12 @@
               });
             }
 
+            // Handle sold-out status: check for 'sold_out' or 'soldout' or inactive
+            const isSoldOut = p.status === 'sold_out' || 
+                            p.status === 'soldout' || 
+                            p.status === 'inactive' || 
+                            p.is_active === 0;
+
             return {
               id: p.id,
               cat: p.category_id,
@@ -188,7 +263,7 @@
               p: p.price,
               ico: p.category_name && p.category_name.toLowerCase().includes('minum') ? 'tea' : 'rice',
               d: p.description || '',
-              sold: p.status === 'soldout' || p.is_active === 0 || p.status === 'inactive',
+              sold: isSoldOut,
               opts: opts,
               addons: addons
             };
@@ -197,12 +272,18 @@
         }
       } catch (err) {
         console.error('Failed to fetch menu:', err);
+        toast('Gagal memuat menu', 'err');
       }
     }
 
     initLogin();
     fetchMenuData();
-    setInterval(fetchMenuData, 30000); // 30s polling
+    
+    // Refresh menu every 5 minutes (cache TTL)
+    setInterval(() => {
+      console.log('Auto-refreshing menu (5-minute interval)');
+      fetchMenuData(true);
+    }, MENU_CACHE_TTL);
   
     /* ── GLOBAL TOAST NOTIFICATION ── */
     window.toast = function(msg, type = 'info') {

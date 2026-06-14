@@ -266,6 +266,15 @@ const API = {
     }
   },
 
+  // ========== MENU ==========
+  menu: {
+    async getOutletMenu(outletId) {
+      if (!outletId) throw new Error('No outlet ID provided');
+      
+      return API.request(`/menu/outlet/${outletId}`);
+    }
+  },
+
   // ========== DASHBOARD ==========
   dashboard: {
     async getKPI(filters = {}) {

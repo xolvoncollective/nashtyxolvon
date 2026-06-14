@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { initDatabase, get as dbGet } from './db/database';
 import { testConnection as testSupabaseConnection } from './supabase/supabase-client';
+import { cacheManager } from './services/CacheManager';
 
 // Routes
 import authRoutes from './routes/auth';
@@ -67,6 +68,24 @@ app.use((req, res, next) => {
 
 // Initialize databases
 initDatabase();
+
+// Initialize CacheManager (Requirement 10.1)
+// The singleton instance is already created, so we just set up periodic cleanup
+console.log('🗄️  Initializing CacheManager...');
+
+// Set up periodic cache cleanup every 5 minutes to prevent memory leaks
+const CACHE_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
+setInterval(() => {
+  const removed = cacheManager.cleanupExpired();
+  if (removed > 0) {
+    console.log(`🧹 Cache cleanup: removed ${removed} expired entries`);
+  }
+}, CACHE_CLEANUP_INTERVAL);
+
+console.log('✅ CacheManager initialized with periodic cleanup (every 5 minutes)');
+
+// Make cache manager accessible through app.locals for route handlers
+app.locals.cacheManager = cacheManager;
 
 // Test Supabase connection on startup
 const initializeSupabase = async () => {

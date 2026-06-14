@@ -183,7 +183,7 @@ The implementation follows an incremental approach, building and testing each pr
   - Display error toast if status update fails
   - _Requirements: 4.6, 4.7, 4.8_
 
-- [~] 13. Checkpoint - Test POS to KDS order flow
+- [x] 13. Checkpoint - Test POS to KDS order flow
   - Create order in POS with multiple items and modifiers
   - Verify order appears in KDS within 5 seconds
   - Mark order as preparing in KDS, verify status updates
@@ -193,8 +193,8 @@ The implementation follows an incremental approach, building and testing each pr
 
 ### Priority 4: Menu Sync (Backoffice → POS)
 
-- [ ] 14. Implement cache manager for menu data
-  - [~] 14.1 Create CacheManager class in backend
+- [x] 14. Implement cache manager for menu data
+  - [x] 14.1 Create CacheManager class in backend
     - Implement in-memory Map for cache storage
     - Implement get(key) method returning cached value or null
     - Implement set(key, value, ttl) method with expiration timestamp
@@ -204,12 +204,12 @@ The implementation follows an incremental approach, building and testing each pr
     - Implement automatic cleanup of expired entries on get operations
     - _Requirements: 10.1, 10.8, 10.9_
   
-  - [~] 14.2 Initialize CacheManager in Express app
+  - [x] 14.2 Initialize CacheManager in Express app
     - Create singleton CacheManager instance
     - Make cache manager accessible to route handlers
     - _Requirements: 10.1_
 
-- [~] 15. Implement menu retrieval endpoint with caching
+- [x] 15. Implement menu retrieval endpoint with caching
   - Create GET /api/menu/outlet/:outletId route
   - Check cache for key "menu:outlet:{outletId}" on request
   - Return cached MenuTree if cache hit and not expired
@@ -221,7 +221,7 @@ The implementation follows an incremental approach, building and testing each pr
   - Ensure response time is under 200ms at 95th percentile
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 10.2, 10.3, 10.4, 10.5, 10.6, 12.2, 12.4, 16.1_
 
-- [~] 16. Update POS frontend to store and render menu
+- [x] 16. Update POS frontend to store and render menu
   - Fetch menu from GET /api/menu/outlet/:outletId on app load
   - Store menu data in localStorage with timestamp
   - Render menu grid with categories and items
