@@ -1,6 +1,10 @@
-testsprite_tests\tmp\config.json
+testsprite_tests/tmp/
 node_modules/
 *.db-shm
 *.db-wal
 .playwright-mcp/
 .serena/memories/
+playwright-report/
+test-results/
+Draft/
+ULTIMATE_NOTES.md
