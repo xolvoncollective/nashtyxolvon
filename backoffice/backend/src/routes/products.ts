@@ -23,7 +23,7 @@ const CreateProductSchema = z.object({
 
 const UpdateProductSchema = z.object({
   name: z.string().min(1, 'Product name is required').optional(),
-  categoryId: z.string().optional(),
+  categoryId: z.string().nullable().optional(),
   description: z.string().optional().nullable(),
   price: z.number().nonnegative('Price cannot be negative').optional(),
   cost: z.number().nonnegative('Cost cannot be negative').optional(),
@@ -58,7 +58,7 @@ router.get('/', (req, res) => {
       params.push(categoryId);
     }
 
-    if (status) {
+    if (status && status !== 'all') {
       sql += ` AND p.status = ?`;
       params.push(status);
     }
@@ -252,7 +252,7 @@ router.put('/:id', (req, res) => {
       updates.push('slug = ?');
       params.push(name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
     }
-    if (categoryId) { updates.push('category_id = ?'); params.push(categoryId); }
+    if (categoryId !== undefined) { updates.push('category_id = ?'); params.push(categoryId || null); }
     if (description !== undefined) { updates.push('description = ?'); params.push(description); }
     if (price !== undefined) { updates.push('price = ?'); params.push(price); }
     if (cost !== undefined) { updates.push('cost = ?'); params.push(cost); }

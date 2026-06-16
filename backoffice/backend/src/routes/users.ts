@@ -120,10 +120,10 @@ router.delete('/:id', (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Soft delete by setting status to inactive
-    run('UPDATE users SET status = ?, updated_at = ? WHERE id = ?', ['inactive', new Date().toISOString(), id]);
+    // Soft delete by setting status to deleted
+    run('UPDATE users SET status = ?, updated_at = ? WHERE id = ?', ['deleted', new Date().toISOString(), id]);
 
-    res.json({ success: true, message: 'User berhasil dihapus (nonaktif)' });
+    res.json({ success: true, message: 'User berhasil dihapus' });
   } catch (error: any) {
     console.error('Delete user error:', error);
     res.status(500).json({ error: error.message });
@@ -144,7 +144,7 @@ router.get('/', (req, res) => {
              o.name as outlet_name
       FROM users u
       LEFT JOIN outlets o ON u.outlet_id = o.id
-      WHERE u.tenant_id = ?
+      WHERE u.tenant_id = ? AND u.status != 'deleted'
     `;
     const params: any[] = [tenantId];
 

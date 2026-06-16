@@ -152,6 +152,37 @@ const API = {
     }
   },
 
+  // ========== USERS ==========
+  users: {
+    async getAll(filters = {}) {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      const params = new URLSearchParams({ tenantId: API.session.tenantId, ...filters });
+      return API.request(`/users?${params}`);
+    },
+    async create(userData) {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      return API.request('/users', {
+        method: 'POST',
+        body: JSON.stringify({ tenantId: API.session.tenantId, ...userData })
+      });
+    },
+    async update(id, userData) {
+      return API.request(`/users/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(userData)
+      });
+    },
+    async updateStatus(id, status) {
+      return API.request(`/users/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status })
+      });
+    },
+    async delete(id) {
+      return API.request(`/users/${id}`, { method: 'DELETE' });
+    }
+  },
+
   // ========== MENU ==========
   menu: {
     async getOutletMenu(outletId) {
@@ -194,6 +225,17 @@ const API = {
         method: 'PUT',
         body: JSON.stringify(data)
       });
+    },
+
+    async updateStatus(id, status) {
+      return API.request(`/categories/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status })
+      });
+    },
+
+    async getProducts(id) {
+      return API.request(`/categories/${id}/products`);
     },
 
     async delete(id) {
@@ -251,15 +293,86 @@ const API = {
     },
 
     async updateStatus(id, status) {
-      // Use the menu items endpoint for status updates
-      return API.request(`/menu/items/${id}`, {
+      return API.request(`/products/${id}/status`, {
         method: 'PATCH',
         body: JSON.stringify({ status })
       });
     },
 
+    async removeFromCategory(id) {
+      // Unlink product from its category by setting category_id via update
+      return API.request(`/products/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ categoryId: null })
+      });
+    },
+
     async delete(id) {
       return API.request(`/products/${id}`, {
+        method: 'DELETE'
+      });
+    }
+  },
+
+  // ========== MODIFIERS ==========
+  modifiers: {
+    async getAll() {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      return API.request(`/modifiers?tenantId=${API.session.tenantId}`);
+    },
+
+    async getById(id) {
+      return API.request(`/modifiers/${id}`);
+    },
+
+    async create(data) {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      return API.request('/modifiers', {
+        method: 'POST',
+        body: JSON.stringify({ ...data, tenantId: API.session.tenantId })
+      });
+    },
+
+    async update(id, data) {
+      return API.request(`/modifiers/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+    },
+
+    async delete(id) {
+      return API.request(`/modifiers/${id}`, {
+        method: 'DELETE'
+      });
+    },
+
+    async createOption(groupId, data) {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      return API.request(`/modifiers/${groupId}/options`, {
+        method: 'POST',
+        body: JSON.stringify({ ...data, tenantId: API.session.tenantId })
+      });
+    },
+
+    async deleteOption(optionId) {
+      return API.request(`/modifiers/options/${optionId}`, {
+        method: 'DELETE'
+      });
+    },
+
+    async getProducts(groupId) {
+      return API.request(`/modifiers/${groupId}/products`);
+    },
+
+    async assignProduct(groupId, productId) {
+      return API.request(`/modifiers/${groupId}/assign-product`, {
+        method: 'POST',
+        body: JSON.stringify({ productId })
+      });
+    },
+
+    async unassignProduct(groupId, productId) {
+      return API.request(`/modifiers/${groupId}/unassign-product/${productId}`, {
         method: 'DELETE'
       });
     }
@@ -408,6 +521,79 @@ const API = {
     }
   },
   
+  // ========== SETTINGS ==========
+  settings: {
+    async get() {
+      if (!API.session.outletId) throw new Error('No outlet ID in session');
+      return API.request(`/settings/${API.session.outletId}`);
+    },
+    async update(settingsObj) {
+      if (!API.session.outletId) throw new Error('No outlet ID in session');
+      return API.request(`/settings/${API.session.outletId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ settings: settingsObj })
+      });
+    }
+  },
+
+  // ========== KDS ==========
+  kds: {
+    async getAnalytics() {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      return API.request(`/kds/analytics?tenantId=${API.session.tenantId}&outletId=${API.session.outletId}`);
+    },
+    async updateCategoryProductionTime(categoryId, timeMinutes) {
+      return API.request(`/kds/production-time/category/${categoryId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ timeMinutes })
+      });
+    }
+  },
+  // ========== OUTLETS ==========
+  outlets: {
+    async getAll() {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      return API.request(`/outlets?tenantId=${API.session.tenantId}`);
+    },
+    async create(data) {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      return API.request('/outlets', {
+        method: 'POST',
+        body: JSON.stringify({ tenantId: API.session.tenantId, ...data })
+      });
+    },
+    async update(id, data) {
+      return API.request(`/outlets/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+    }
+  },
+
+  // ========== REPORTS ==========
+  reports: {
+    async getSales(filters = {}) {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      const params = new URLSearchParams({ tenantId: API.session.tenantId, ...filters });
+      return API.request(`/reports/sales?${params}`);
+    },
+    async getProducts(filters = {}) {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      const params = new URLSearchParams({ tenantId: API.session.tenantId, ...filters });
+      return API.request(`/reports/products?${params}`);
+    },
+    async getCashiers(filters = {}) {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      const params = new URLSearchParams({ tenantId: API.session.tenantId, ...filters });
+      return API.request(`/reports/cashiers?${params}`);
+    },
+    async getMenuEngineering(filters = {}) {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      const params = new URLSearchParams({ tenantId: API.session.tenantId, ...filters });
+      return API.request(`/reports/menu-engineering?${params}`);
+    }
+  },
+
   // ========== UTILITIES ==========
   utils: {
     // Check if main admin is logged in

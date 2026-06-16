@@ -12,7 +12,7 @@ router.get('/kpi', (req, res) => {
       return res.status(400).json({ error: 'tenantId required' });
     }
 
-    let whereClause = 'WHERE o.tenant_id = ? AND o.payment_status = "paid" AND o.order_status != "cancelled"';
+    let whereClause = "WHERE o.tenant_id = ? AND o.payment_status = 'paid' AND o.order_status != 'cancelled'";
     const params: any[] = [tenantId];
 
     if (outletId) {
@@ -149,7 +149,7 @@ router.get('/weekly-chart', (req, res) => {
       return res.status(400).json({ error: 'tenantId required' });
     }
 
-    let whereClause = 'WHERE o.tenant_id = ? AND o.payment_status = "paid" AND o.order_status != "cancelled"';
+    let whereClause = "WHERE o.tenant_id = ? AND o.payment_status = 'paid' AND o.order_status != 'cancelled'";
     const params: any[] = [tenantId];
 
     if (outletId) {
@@ -205,7 +205,7 @@ router.get('/payment-distribution', (req, res) => {
       return res.status(400).json({ error: 'tenantId required' });
     }
 
-    let whereClause = 'WHERE o.tenant_id = ? AND o.payment_status = "paid" AND o.order_status != "cancelled"';
+    let whereClause = "WHERE o.tenant_id = ? AND o.payment_status = 'paid' AND o.order_status != 'cancelled'";
     const params: any[] = [tenantId];
 
     if (outletId) { whereClause += ' AND o.outlet_id = ?'; params.push(outletId); }
@@ -251,7 +251,7 @@ router.get('/top-products', (req, res) => {
       return res.status(400).json({ error: 'tenantId required' });
     }
 
-    let whereClause = 'WHERE o.tenant_id = ? AND o.payment_status = "paid" AND o.order_status != "cancelled"';
+    let whereClause = "WHERE o.tenant_id = ? AND o.payment_status = 'paid' AND o.order_status != 'cancelled'";
     const params: any[] = [tenantId];
 
     if (outletId) { whereClause += ' AND o.outlet_id = ?'; params.push(outletId); }
@@ -301,7 +301,7 @@ router.get('/hourly-sales', (req, res) => {
 
     const targetDate = date || new Date().toISOString().split('T')[0];
 
-    let whereClause = 'WHERE o.tenant_id = ? AND o.payment_status = "paid" AND o.order_status != "cancelled" AND DATE(o.created_at) = DATE(?)';
+    let whereClause = "WHERE o.tenant_id = ? AND o.payment_status = 'paid' AND o.order_status != 'cancelled' AND DATE(o.created_at) = DATE(?)";
     const params: any[] = [tenantId, targetDate];
 
     if (outletId) {

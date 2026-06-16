@@ -13,14 +13,14 @@ function getFiltered(){
   if(curFilter==='dine')     list=list.filter(o=>o.type==='dine');
   else if(curFilter==='take')list=list.filter(o=>o.type==='take');
   else if(curFilter==='delivery') list=list.filter(o=>['gofood','grabfood','shopee'].includes(o.type));
-  else if(curFilter==='urgent')   list=list.filter(o=>urgClass(getElapsed(o.startTs))==='urgent');
+  else if(curFilter==='urgent')   list=list.filter(o=>urgClass(getElapsed(o.startTs), o)==='urgent');
 
   // Auto-sort: Urgent → Warning → Fresh, then oldest first within each
   if(CFG.autoSort){
     const urgOrder = {urgent:0, warn:1, fresh:2};
     list.sort((a,b)=>{
-      const ua = urgOrder[urgClass(getElapsed(a.startTs))];
-      const ub = urgOrder[urgClass(getElapsed(b.startTs))];
+      const ua = urgOrder[urgClass(getElapsed(a.startTs), a)];
+      const ub = urgOrder[urgClass(getElapsed(b.startTs), b)];
       return ua !== ub ? ua-ub : a.startTs-b.startTs;
     });
   }
@@ -37,7 +37,7 @@ function render(){
 
   // Queue summary
   const totalItems = active.reduce((s,o)=>s+o.items.reduce((si,i)=>si+i.qty,0),0);
-  const urgCount   = active.filter(o=>urgClass(getElapsed(o.startTs))==='urgent').length;
+  const urgCount   = active.filter(o=>urgClass(getElapsed(o.startTs), o)==='urgent').length;
   document.getElementById('qs-orders-n').textContent = active.length;
   document.getElementById('qs-items-n').textContent  = totalItems;
   document.getElementById('qs-urgent-n').textContent = urgCount;
@@ -47,7 +47,7 @@ function render(){
   const ustOrders = document.getElementById('ust-orders');
   if(CFG.stickyUrgent && urgCount > 0){
     strip.classList.add('visible');
-    const urgList = active.filter(o=>urgClass(getElapsed(o.startTs))==='urgent');
+    const urgList = active.filter(o=>urgClass(getElapsed(o.startTs), o)==='urgent');
     ustOrders.innerHTML = urgList.map(o=>
       `<div class="ust-no" onclick="scrollToCard(${o.id})">${o.no}</div>`
     ).join('');
@@ -89,15 +89,18 @@ function render(){
 // ═══════════════════════════════════════════════════════
 function buildCard(o){
   const sec     = getElapsed(o.startTs);
-  const urg     = urgClass(sec);
+  const urg     = urgClass(sec, o);
   const isDone  = o.status === 'done';
   const typeCss = TYPE_CSS[o.type] || 'dine';
   const typeLabel = TYPE_LABEL[o.type] || o.type;
+  
+  const targetTime = o.targetTime || CFG.urgentMin;
+  const warnTime = Math.floor(targetTime * 0.8) || CFG.warnMin;
 
   const urgBadge = {
     fresh:  `<span class="oc-urgency urg-ok">On time</span>`,
-    warn:   `<span class="oc-urgency urg-warn">&gt;${CFG.warnMin} mnt</span>`,
-    urgent: `<span class="oc-urgency urg-urg">&gt;${CFG.urgentMin} mnt</span>`,
+    warn:   `<span class="oc-urgency urg-warn">&gt;${warnTime} mnt</span>`,
+    urgent: `<span class="oc-urgency urg-urg">&gt;${targetTime} mnt</span>`,
   }[urg];
 
   // Items HTML
@@ -117,10 +120,14 @@ function buildCard(o){
     </div>`;
   }).join('');
 
-  // Swipe button
+  // Swipe button / Status workflow indicator
+  const workflowStep = CFG.workflow[1] || { name: 'Preparing', color: '#F59E0B' };
   const swipeHtml = `<div class="swipe-wrap">
-    <div class="oc-cashier">Kasir: ${o.cashier}</div>
-    <div class="swipe-track" id="swipe-${o.id}">
+    <div style="display:flex;gap:6px;align-items:center;flex:1;min-width:0;padding-right:8px">
+      <span class="oc-cashier" style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Kasir: ${o.cashier}</span>
+      <span style="background:${workflowStep.color};color:#fff;font-size:10px;font-weight:700;padding:4px 8px;border-radius:5px;flex-shrink:0">${workflowStep.name}</span>
+    </div>
+    <div class="swipe-track" id="swipe-${o.id}" style="width:140px;flex-shrink:0">
       <div class="swipe-fill" id="swipefill-${o.id}"></div>
       <div class="swipe-thumb" id="swipethumb-${o.id}">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>

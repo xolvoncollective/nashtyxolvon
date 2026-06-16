@@ -22,14 +22,17 @@ async function fetchOrders() {
     }
   }
 
-  // Fetch config once
-  if (!window._kdsConfigFetched && API.session.outletId) {
+  // Fetch config every cycle to sync real-time changes
+  if (API.session.outletId) {
     try {
-      const cfgData = await API.orders.getConfig(API.session.outletId);
-      if (cfgData && cfgData.config) {
-        CFG.warnMin = cfgData.config.kdsWarnThreshold || 10;
-        CFG.urgentMin = cfgData.config.kdsUrgentThreshold || 20;
-        window._kdsConfigFetched = true;
+      const res = await API.settings.get();
+      if (res && res.settings) {
+        const s = res.settings;
+        if (s.kds_alert_sound !== undefined) CFG.soundEnabled = s.kds_alert_sound;
+        if (s.kds_alert_flash !== undefined) CFG.flashEnabled = s.kds_alert_flash;
+        if (s.kds_alert_escalation !== undefined) CFG.escalationEnabled = s.kds_alert_escalation;
+        if (s.kds_alert_interval !== undefined) CFG.escalationInterval = s.kds_alert_interval;
+        if (s.kds_workflow !== undefined) CFG.workflow = typeof s.kds_workflow === 'string' ? JSON.parse(s.kds_workflow) : s.kds_workflow;
       }
     } catch(e) {
       console.error('KDS failed to fetch config', e);
@@ -40,7 +43,7 @@ async function fetchOrders() {
     const data = await API.orders.getAll({ status: 'confirmed', kitchenStatus: 'pending' });
     if (data && data.orders) {
       const newOrders = data.orders.map(o => {
-        return {
+        const oData = {
           id: o.id,
           no: o.order_number || '#0000',
           table: o.table_number || (o.order_type === 'dine' ? 'T??' : o.order_type),
@@ -65,10 +68,14 @@ async function fetchOrders() {
               qty: it.quantity,
               mods: mods,
               addons: addons,
-              note: it.notes || ''
+              note: it.notes || '',
+              pt: it.production_time || 10
             };
           })
         };
+        // Calculate max production time for the order items
+        oData.targetTime = oData.items.reduce((max, it) => Math.max(max, it.pt), 0);
+        return oData;
       });
       
       // Merge logic: check if there are new orders to trigger sound
@@ -93,6 +100,27 @@ async function fetchOrders() {
       
       if (hasNew) {
         playSound('new');
+      } else if (CFG.escalationEnabled) {
+        let hasEscalation = false;
+        const now = Date.now();
+        if (!window._lastEscalation || (now - window._lastEscalation > 60000)) {
+          for (const no of newOrders) {
+            if (no.status !== 'active') continue;
+            const sec = Math.floor((now - no.startTs) / 1000);
+            const targetSec = (no.targetTime || CFG.urgentMin) * 60;
+            if (sec >= targetSec) {
+              const minsOverdue = Math.floor((sec - targetSec) / 60);
+              if (minsOverdue > 0 && minsOverdue % (CFG.escalationInterval || 1) === 0) {
+                hasEscalation = true;
+                break;
+              }
+            }
+          }
+        }
+        if (hasEscalation) {
+          playSound('escalation');
+          window._lastEscalation = now;
+        }
       }
     }
   } catch (err) {

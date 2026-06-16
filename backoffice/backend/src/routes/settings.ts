@@ -82,9 +82,22 @@ router.put('/:outletId', (req, res) => {
 
     const tenantId = (outlet as any).tenant_id;
 
-    for (const [key, value] of Object.entries(settings)) {
-      const type = typeof value === 'boolean' ? 'boolean' : typeof value === 'number' ? 'number' : 'string';
-      const stringValue = String(value);
+    for (let [key, value] of Object.entries(settings)) {
+      let type = 'string';
+      let stringValue = '';
+
+      if (typeof value === 'boolean') {
+        type = 'boolean';
+        stringValue = String(value);
+      } else if (typeof value === 'number') {
+        type = 'number';
+        stringValue = String(value);
+      } else if (typeof value === 'object' && value !== null) {
+        type = 'json';
+        stringValue = JSON.stringify(value);
+      } else {
+        stringValue = String(value);
+      }
 
       // Upsert setting
       const existing = get(

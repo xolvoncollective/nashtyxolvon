@@ -166,7 +166,7 @@ router.post('/:id/options', (req, res) => {
   }
 });
 
-// Route 23: DELETE /api/modifiers/options/:optionId — Delete modifier option
+// Route 23: DELETE /api/modifiers/options/:optionId — Delete modifier option (must be before /:id routes)
 router.delete('/options/:optionId', (req, res) => {
   try {
     const { optionId } = req.params;
@@ -181,6 +181,94 @@ router.delete('/options/:optionId', (req, res) => {
     res.json({ success: true, message: 'Modifier option berhasil dihapus' });
   } catch (error: any) {
     console.error('Delete modifier option error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Route 24: GET /api/modifiers/:id/products — Get products using this modifier group
+router.get('/:id/products', (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const existing = get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
+    if (!existing) {
+      return res.status(404).json({ error: 'Modifier group not found' });
+    }
+
+    const products = query(`
+      SELECT p.id, p.name, p.price, p.status, c.name as category_name
+      FROM products p
+      JOIN product_modifiers pm ON p.id = pm.product_id
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE pm.modifier_group_id = ?
+      ORDER BY p.name
+    `, [id]);
+
+    res.json({ success: true, products });
+  } catch (error: any) {
+    console.error('Get modifier products error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Route 25: POST /api/modifiers/:id/assign-product — Assign a product to this modifier group
+router.post('/:id/assign-product', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { productId } = req.body;
+
+    if (!productId) {
+      return res.status(400).json({ error: 'productId is required' });
+    }
+
+    const existing = get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
+    if (!existing) {
+      return res.status(404).json({ error: 'Modifier group not found' });
+    }
+
+    const product = get('SELECT * FROM products WHERE id = ?', [productId]);
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    // Check if already assigned
+    const alreadyLinked = get('SELECT * FROM product_modifiers WHERE product_id = ? AND modifier_group_id = ?', [productId, id]);
+    if (alreadyLinked) {
+      return res.json({ success: true, message: 'Already assigned' });
+    }
+
+    // Get next display order for this product
+    const lastOrder = get('SELECT MAX(display_order) as max_order FROM product_modifiers WHERE product_id = ?', [productId]);
+    const nextOrder = ((lastOrder as any)?.max_order || 0) + 1;
+
+    run('INSERT INTO product_modifiers (product_id, modifier_group_id, display_order) VALUES (?, ?, ?)', [productId, id, nextOrder]);
+
+    // Mark product as has_modifiers = 1
+    run('UPDATE products SET has_modifiers = 1, updated_at = ? WHERE id = ?', [new Date().toISOString(), productId]);
+
+    res.json({ success: true, message: 'Product assigned to modifier group' });
+  } catch (error: any) {
+    console.error('Assign product to modifier error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Route 26: DELETE /api/modifiers/:id/unassign-product/:productId — Unassign a product from this modifier group
+router.delete('/:id/unassign-product/:productId', (req, res) => {
+  try {
+    const { id, productId } = req.params;
+
+    run('DELETE FROM product_modifiers WHERE modifier_group_id = ? AND product_id = ?', [id, productId]);
+
+    // If product has no more modifiers, set has_modifiers = 0
+    const remaining = get('SELECT COUNT(*) as cnt FROM product_modifiers WHERE product_id = ?', [productId]);
+    if ((remaining as any)?.cnt === 0) {
+      run('UPDATE products SET has_modifiers = 0, updated_at = ? WHERE id = ?', [new Date().toISOString(), productId]);
+    }
+
+    res.json({ success: true, message: 'Product unassigned from modifier group' });
+  } catch (error: any) {
+    console.error('Unassign product from modifier error:', error);
     res.status(500).json({ error: error.message });
   }
 });

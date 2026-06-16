@@ -180,7 +180,7 @@ router.get('/', (req, res) => {
     // Get items for each order
     for (const order of orders as any[]) {
       order.items = db.prepare(`
-        SELECT oi.*, 
+        SELECT oi.*, p.production_time,
           (SELECT json_group_array(
             json_object(
               'groupName', modifier_group_name,
@@ -189,6 +189,7 @@ router.get('/', (req, res) => {
             )
           ) FROM order_item_modifiers WHERE order_item_id = oi.id) as modifiers
         FROM order_items oi
+        LEFT JOIN products p ON oi.product_id = p.id
         WHERE oi.order_id = ?
       `).all(order.id);
     }

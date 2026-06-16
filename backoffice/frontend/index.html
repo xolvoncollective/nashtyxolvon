@@ -282,22 +282,42 @@
               id: c.id,
               name: c.name,
               desc: c.description || '',
-              order: c.sort_order || i + 1,
+              order: c.display_order || i + 1,
               active: c.is_active === 1 || c.status === 'active',
-              products: 0 // to be computed
+              products: c.product_count || 0
             }));
           }
-          const prodRes = await API.products.getAll();
+          const prodRes = await API.products.getAll({ status: 'all' });
           if (prodRes.success) {
             window.PRODUCTS = prodRes.data.map(p => ({
               id: p.id,
               name: p.name,
               cat: p.category_name,
+              categoryId: p.category_id,
               price: p.price,
               desc: p.description || '',
               active: p.is_active === 1 || p.status === 'active',
               status: p.status || 'active',
               img: p.image_url || ''
+            }));
+          }
+          const modRes = await API.modifiers.getAll();
+          if (modRes.success) {
+            window.MODIFIERS = modRes.modifiers.map(m => ({
+              id: m.id,
+              name: m.name,
+              desc: m.description || '',
+              type: m.type === 'single' ? 'single' : 'multi',
+              required: m.required === 1 || m.required === true,
+              min: m.min_select || 0,
+              max: m.max_select || 1,
+              order: m.display_order || 0,
+              productCount: m.product_count || 0,
+              items: (m.options || []).map(o => ({
+                id: o.id,
+                name: o.name,
+                price: o.price_adjustment || 0
+              }))
             }));
           }
         } catch (e) {

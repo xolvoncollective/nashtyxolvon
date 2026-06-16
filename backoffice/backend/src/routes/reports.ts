@@ -13,7 +13,7 @@ router.get('/sales', (req, res) => {
       return res.status(400).json({ error: 'tenantId required' });
     }
 
-    let whereClause = 'WHERE o.tenant_id = ? AND o.payment_status = "paid"';
+    let whereClause = "WHERE o.tenant_id = ? AND o.payment_status = 'paid'";
     const params: any[] = [tenantId];
 
     if (outletId) {
@@ -91,7 +91,7 @@ router.get('/products', (req, res) => {
       return res.status(400).json({ error: 'tenantId required' });
     }
 
-    let whereClause = 'WHERE o.tenant_id = ? AND o.payment_status = "paid"';
+    let whereClause = "WHERE o.tenant_id = ? AND o.payment_status = 'paid'";
     const params: any[] = [tenantId];
 
     if (outletId) {
@@ -147,7 +147,7 @@ router.get('/cashiers', (req, res) => {
       return res.status(400).json({ error: 'tenantId required' });
     }
 
-    let whereClause = 'WHERE o.tenant_id = ? AND o.payment_status = "paid"';
+    let whereClause = "WHERE o.tenant_id = ? AND o.payment_status = 'paid'";
     const params: any[] = [tenantId];
 
     if (outletId) {
@@ -197,7 +197,7 @@ router.get('/menu-engineering', (req, res) => {
       return res.status(400).json({ error: 'tenantId required' });
     }
 
-    let whereClause = 'WHERE o.tenant_id = ? AND o.payment_status = "paid"';
+    let whereClause = "WHERE o.tenant_id = ? AND o.payment_status = 'paid'";
     const params: any[] = [tenantId];
 
     if (outletId) {

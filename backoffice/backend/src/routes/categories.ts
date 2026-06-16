@@ -30,6 +30,31 @@ router.get('/', (req, res) => {
   }
 });
 
+// GET /api/categories/:id/products — Get all products in a category (all statuses)
+router.get('/:id/products', (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const category = get('SELECT * FROM categories WHERE id = ?', [id]);
+    if (!category) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+
+    const products = query(`
+      SELECT p.*, c.name as category_name
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE p.category_id = ?
+      ORDER BY p.status, p.name
+    `, [id]);
+
+    res.json({ success: true, category, products });
+  } catch (error: any) {
+    console.error('Get category products error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET /api/categories/:id — Get category by ID
 router.get('/:id', (req, res) => {
   try {

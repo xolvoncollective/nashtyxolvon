@@ -11,9 +11,11 @@ function fmtTimer(sec){
   return pad(m)+':'+pad(s);
 }
 
-function urgClass(sec){
-  if(sec >= CFG.urgentMin*60) return 'urgent';
-  if(sec >= CFG.warnMin*60)   return 'warn';
+function urgClass(sec, o){
+  const targetSec = (o && o.targetTime ? o.targetTime : CFG.urgentMin) * 60;
+  const warnSec = (o && o.targetTime ? o.targetTime * 0.8 : CFG.warnMin) * 60;
+  if(sec >= targetSec) return 'urgent';
+  if(sec >= warnSec)   return 'warn';
   return 'fresh';
 }
 
