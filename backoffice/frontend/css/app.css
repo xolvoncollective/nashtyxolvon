@@ -1,19 +1,32 @@
-:root{
- --bg:#F5F4F1;--sf:#FFFFFF;--sf2:#F0EEE9;--sf3:#E8E5DF;
- --brd:rgba(0,0,0,.08);--brd2:rgba(0,0,0,.14);
- --txt:#1C1A16;--txt2:#6B6459;--txt3:#A8A099;
- --or:#E4540C;--orD:#C23D08;--orL:rgba(228,84,12,.1);--orL2:rgba(228,84,12,.06);
- --gn:#16A34A;--gnL:rgba(22,163,74,.1);
- --rd:#DC2626;--rdL:rgba(220,38,38,.1);
- --ye:#D97706;--yeL:rgba(217,119,6,.1);
- --bl:#2563EB;--blL:rgba(37,99,235,.1);
- --pu:#7C3AED;--puL:rgba(124,58,237,.1);
- --fn:'Plus Jakarta Sans',sans-serif;
- --mo:'JetBrains Mono',monospace;
- --sh:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.05);
- --sh2:0 4px 16px rgba(0,0,0,.1),0 2px 4px rgba(0,0,0,.06);
- --sb-w:228px;
-}
+ :root{
+  --bg:#F5F4F1;--sf:#FFFFFF;--sf2:#F0EEE9;--sf3:#E8E5DF;
+  --brd:rgba(0,0,0,.08);--brd2:rgba(0,0,0,.14);
+  --txt:#1C1A16;--txt2:#6B6459;--txt3:#A8A099;
+  --or:#E4540C;--orD:#C23D08;--orL:rgba(228,84,12,.1);--orL2:rgba(228,84,12,.06);
+  --gn:#16A34A;--gnL:rgba(22,163,74,.1);
+  --rd:#DC2626;--rdL:rgba(220,38,38,.1);
+  --ye:#D97706;--yeL:rgba(217,119,6,.1);
+  --bl:#2563EB;--blL:rgba(37,99,235,.1);
+  --pu:#7C3AED;--puL:rgba(124,58,237,.1);
+  --fn:'Plus Jakarta Sans',sans-serif;
+  --mo:'JetBrains Mono',monospace;
+  --sh:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.05);
+  --sh2:0 4px 16px rgba(0,0,0,.1),0 2px 4px rgba(0,0,0,.06);
+  --sb-w:228px;
+ }
+ :root.dark-mode{
+  --bg:#121212;--sf:#1E1E1E;--sf2:#2D2D2D;--sf3:#3D3D3D;
+  --brd:rgba(255,255,255,.08);--brd2:rgba(255,255,255,.14);
+  --txt:#F5F4F1;--txt2:#A8A099;--txt3:#6B6459;
+  --or:#E4540C;--orD:#FF6A22;--orL:rgba(228,84,12,.2);--orL2:rgba(228,84,12,.15);
+  --gn:#22C55E;--gnL:rgba(34,197,94,.2);
+  --rd:#EF4444;--rdL:rgba(239,68,68,.2);
+  --ye:#F59E0B;--yeL:rgba(245,158,11,.2);
+  --bl:#3B82F6;--blL:rgba(59,130,246,.2);
+  --pu:#8B5CF6;--puL:rgba(139,92,246,.2);
+  --sh:0 1px 3px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.2);
+  --sh2:0 4px 16px rgba(0,0,0,.4),0 2px 4px rgba(0,0,0,.3);
+ }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;font-family:var(--fn);background:var(--bg);color:var(--txt);font-size:14px}
 button,input,select,textarea{font-family:var(--fn)}

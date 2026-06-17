@@ -24,3 +24,8 @@ function toast(msg,type='ok'){
  setTimeout(()=>t.remove(),3000);
 }
 function confirm_act(msg,cb){if(window.confirm(msg))cb();}
+
+function toggleDarkMode() {
+  const isDark = document.documentElement.classList.toggle('dark-mode');
+  localStorage.setItem('nashty_dark_mode', isDark);
+}

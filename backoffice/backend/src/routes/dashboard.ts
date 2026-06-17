@@ -37,14 +37,14 @@ router.get('/kpi', (req, res) => {
         COALESCE(SUM(discount), 0) as total_discount,
         COALESCE(AVG(total), 0) as avg_order_value
       FROM orders o
-      ${whereClause} AND DATE(o.created_at) = DATE('now')
+      ${whereClause} AND DATE(o.created_at, 'localtime') = DATE('now', 'localtime')
     `, params);
 
     // Yesterday's sales for comparison
     const yesterdaySales = get(`
       SELECT COALESCE(SUM(total), 0) as total_sales
       FROM orders o
-      ${whereClause} AND DATE(o.created_at) = DATE('now', '-1 day')
+      ${whereClause} AND DATE(o.created_at, 'localtime') = DATE('now', '-1 day', 'localtime')
     `, params) as any;
 
     // Top products
