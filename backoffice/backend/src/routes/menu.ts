@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { query, get, run } from '../db/database';
 import { cacheManager } from '../services/CacheManager';
 import { z } from 'zod';
-import { nanoid } from 'nanoid';
+import { randomUUID } from 'crypto';
 import { logMenuOperation } from '../middleware/logging';
 
 const router = Router();
@@ -253,7 +253,7 @@ router.post('/items', (req, res) => {
     } = validationResult.data;
 
     // Generate unique item ID and slug
-    const itemId = nanoid();
+    const itemId = randomUUID();
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
     // Insert item into menu_items (products) table (Requirement 6.3)

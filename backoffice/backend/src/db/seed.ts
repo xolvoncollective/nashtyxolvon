@@ -1,5 +1,5 @@
 import db, { initDatabase } from './database';
-import { nanoid } from 'nanoid';
+import { randomUUID } from 'crypto';
 import bcrypt from 'bcryptjs';
 
 async function runSeed() {
@@ -50,10 +50,10 @@ db.run(`
 // Seed Users
 console.log('Seeding users...');
 const users = [
-  { id: 'admin', name: 'Admin Demo', email: 'admin@nashty.demo', role: 'owner', pin: '0000' },
-  { id: 'citra', name: 'Citra Dewi', email: 'citra@nashty.demo', role: 'cashier', pin: '1234' },
-  { id: 'budi', name: 'Budi Santoso', email: 'budi@nashty.demo', role: 'cashier', pin: '2345' },
-  { id: 'ani', name: 'Ani Kitchen', email: 'ani@nashty.demo', role: 'kitchen', pin: '3456' },
+  { id: '00000000-0000-0000-0000-000000000006', name: 'Admin Demo', email: 'admin@nashty.demo', role: 'owner', pin: '0000' },
+  { id: '00000000-0000-0000-0000-000000000003', name: 'Citra Dewi', email: 'citra@nashty.demo', role: 'cashier', pin: '1234' },
+  { id: '00000000-0000-0000-0000-000000000004', name: 'Budi Santoso', email: 'budi@nashty.demo', role: 'cashier', pin: '2345' },
+  { id: '00000000-0000-0000-0000-000000000005', name: 'Ani Kitchen', email: 'ani@nashty.demo', role: 'kitchen', pin: '3456' },
 ];
 
 const userSql = `
@@ -93,7 +93,7 @@ const catSql = `
 
 const categoryIds: Record<string, string> = {};
 categories.forEach((cat, idx) => {
-  const id = nanoid();
+  const id = randomUUID();
   categoryIds[cat.slug] = id;
   db.run(catSql, [
     id,
@@ -144,7 +144,7 @@ const prodSql = `
 products.forEach(prod => {
   const slug = prod.name.toLowerCase().replace(/\s+/g, '-');
   db.run(prodSql, [
-    nanoid(),
+    randomUUID(),
     tenantId,
     categoryIds[prod.cat],
     prod.name,

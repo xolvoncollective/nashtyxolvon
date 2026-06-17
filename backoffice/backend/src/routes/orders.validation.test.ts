@@ -1,20 +1,24 @@
 import request from 'supertest';
 import express from 'express';
 import ordersRouter from './orders';
-import { initDatabase } from '../db/database';
-
-// Mock nanoid to avoid ESM issues in Jest
-jest.mock('nanoid', () => ({
-  nanoid: () => 'test-id-' + Date.now()
-}));
+import { initDatabase, run } from '../db/database';
 
 const app = express();
 app.use(express.json());
 app.use('/api/orders', ordersRouter);
 
 describe('POST /api/orders - Validation Tests', () => {
-  beforeAll(() => {
-    initDatabase();
+  beforeAll(async () => {
+    await initDatabase();
+    try {
+      run(`INSERT OR IGNORE INTO tenants (id, name, slug) VALUES ('tenant-test-123', 'Test Tenant', 'test-tenant')`);
+      run(`INSERT OR IGNORE INTO outlets (id, tenant_id, name, slug) VALUES ('outlet-test-123', 'tenant-test-123', 'Test Outlet', 'test-outlet')`);
+      run(`INSERT OR IGNORE INTO users (id, tenant_id, name, role, pin) VALUES ('user-test-123', 'tenant-test-123', 'Test User', 'cashier', '1234')`);
+      run(`INSERT OR IGNORE INTO categories (id, tenant_id, name, slug) VALUES ('cat-test-123', 'tenant-test-123', 'Test Category', 'test-category')`);
+      run(`INSERT OR IGNORE INTO products (id, tenant_id, category_id, name, slug, price) VALUES ('prod-test-123', 'tenant-test-123', 'cat-test-123', 'Test Product', 'test-product', 10000)`);
+    } catch (e) {
+      console.error('Failed to seed mock validation product:', e);
+    }
   });
 
   describe('Request Body Validation', () => {

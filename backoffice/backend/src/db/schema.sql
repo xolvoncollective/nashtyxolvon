@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS users (
   pin TEXT NOT NULL,
   password_hash TEXT,
   avatar TEXT,
-  status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
+  status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive', 'deleted')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
@@ -294,6 +294,19 @@ CREATE TABLE IF NOT EXISTS stations (
   FOREIGN KEY (outlet_id) REFERENCES outlets(id) ON DELETE CASCADE
 );
 
+-- Nashtycosts (Operational Costs)
+CREATE TABLE IF NOT EXISTS nashtycosts (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  outlet_id TEXT,
+  amount REAL NOT NULL,
+  category TEXT NOT NULL CHECK(category IN ('bahan-baku', 'operasional', 'gaji', 'utilitas', 'sewa', 'lainnya')),
+  description TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+  FOREIGN KEY (outlet_id) REFERENCES outlets(id) ON DELETE SET NULL
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_outlets_tenant ON outlets(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_users_tenant ON users(tenant_id);
@@ -314,3 +327,6 @@ CREATE INDEX IF NOT EXISTS idx_shifts_user ON shifts(user_id);
 CREATE INDEX IF NOT EXISTS idx_activity_logs_tenant ON activity_logs(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_payments_order ON payments(order_id);
 CREATE INDEX IF NOT EXISTS idx_stations_outlet ON stations(outlet_id);
+CREATE INDEX IF NOT EXISTS idx_nashtycosts_tenant ON nashtycosts(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_nashtycosts_outlet ON nashtycosts(outlet_id);
+CREATE INDEX IF NOT EXISTS idx_nashtycosts_created ON nashtycosts(created_at);

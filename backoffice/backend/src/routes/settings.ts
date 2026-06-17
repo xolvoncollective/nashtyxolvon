@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { query, get, run } from '../db/database';
-import { nanoid } from 'nanoid';
+import { randomUUID } from 'crypto';
 
 const router = Router();
 
@@ -113,7 +113,7 @@ router.put('/:outletId', (req, res) => {
       } else {
         run(
           'INSERT INTO settings (id, tenant_id, outlet_id, key, value, type) VALUES (?, ?, ?, ?, ?, ?)',
-          [nanoid(), tenantId, outletId, key, stringValue, type]
+          [randomUUID(), tenantId, outletId, key, stringValue, type]
         );
       }
     }
@@ -122,7 +122,7 @@ router.put('/:outletId', (req, res) => {
     run(`
       INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
       VALUES (?, ?, 'update', 'settings', ?, ?)
-    `, [nanoid(), tenantId, outletId, `Settings diperbarui: ${Object.keys(settings).join(', ')}`]);
+    `, [randomUUID(), tenantId, outletId, `Settings diperbarui: ${Object.keys(settings).join(', ')}`]);
 
     res.json({ success: true, message: 'Settings berhasil diperbarui' });
   } catch (error: any) {

@@ -82,6 +82,41 @@ router.get('/kpi', (req, res) => {
       growth = 100; // If yesterday was 0 and today has sales, growth is 100%
     }
 
+    // Calculate costs
+    let todayCostWhere = "WHERE tenant_id = ? AND DATE(created_at, 'localtime') = DATE('now', 'localtime')";
+    const todayCostParams: any[] = [tenantId];
+    if (outletId) {
+      todayCostWhere += ' AND outlet_id = ?';
+      todayCostParams.push(outletId);
+    }
+    const todayCostsResult = get(`
+      SELECT COALESCE(SUM(amount), 0) as total_cost
+      FROM nashtycosts
+      ${todayCostWhere}
+    `, todayCostParams) as any;
+    const todayCosts = todayCostsResult?.total_cost || 0;
+
+    let rangeCostWhere = "WHERE tenant_id = ?";
+    const rangeCostParams: any[] = [tenantId];
+    if (outletId) {
+      rangeCostWhere += ' AND outlet_id = ?';
+      rangeCostParams.push(outletId);
+    }
+    if (dateFrom) {
+      rangeCostWhere += ' AND DATE(created_at) >= DATE(?)';
+      rangeCostParams.push(dateFrom);
+    }
+    if (dateTo) {
+      rangeCostWhere += ' AND DATE(created_at) <= DATE(?)';
+      rangeCostParams.push(dateTo);
+    }
+    const rangeCostsResult = get(`
+      SELECT COALESCE(SUM(amount), 0) as total_cost
+      FROM nashtycosts
+      ${rangeCostWhere}
+    `, rangeCostParams) as any;
+    const rangeCosts = rangeCostsResult?.total_cost || 0;
+
     res.json({
       success: true,
       data: {
@@ -91,6 +126,9 @@ router.get('/kpi', (req, res) => {
         netRevenue: (todaySales as any).total_sales,
         totalDiscounts: (todaySales as any).total_discount,
         averageOrderValue: (todaySales as any).avg_order_value,
+        totalCosts: todayCosts,
+        grossProfit: (todaySales as any).total_sales - todayCosts,
+        rangeCosts,
         paymentMethods: [],
         yesterday: yesterdaySales,
         growth,

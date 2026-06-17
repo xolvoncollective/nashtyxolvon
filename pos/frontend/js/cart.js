@@ -28,7 +28,7 @@
       renderCart(); renderMenu(document.getElementById('msearch').value);
     }
     function clearCart() {
-      cart = []; discount = 0; curMember = null; document.getElementById('mem-lbl').textContent = 'Member';
+      cart = []; discount = 0; curMember = null; window.curMemberPhone = null; document.getElementById('mem-lbl').textContent = 'Member';
       document.getElementById('mem-pill').classList.remove('on');
       document.getElementById('tbl-no').value = '';
       renderCart(); renderMenu(document.getElementById('msearch').value);

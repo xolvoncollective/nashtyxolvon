@@ -509,6 +509,19 @@
       color: var(--gn)
     }
 
+    .online-chip.offline {
+      background: var(--yeL) !important;
+      border-color: rgba(245, 158, 11, .18) !important;
+    }
+    .ondot.offline {
+      background: var(--ye) !important;
+      animation: none !important;
+      box-shadow: none !important;
+    }
+    .online-t.offline {
+      color: var(--ye) !important;
+    }
+
     .clk {
       font-size: 12px;
       font-weight: 700;
@@ -3620,8 +3633,8 @@
         </div>
       </div>
       <div class="tb-right">
-        <div class="online-chip">
-          <div class="ondot"></div><span class="online-t">Online</span>
+        <div class="online-chip" id="online-status-chip">
+          <div class="ondot" id="online-status-dot"></div><span class="online-t" id="online-status-text">Online</span>
         </div>
         <div class="clk" id="clk">00:00:00</div>
         <button class="theme-btn" onclick="toggleTheme()">
@@ -3845,6 +3858,7 @@
   <script src="../../shared/auth.js"></script>
   
   <script src="../../api-client-v2.js?v=2027"></script>
+  <script src="js/sync-manager.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/state.js"></script>
   <script src="js/printer.js"></script>

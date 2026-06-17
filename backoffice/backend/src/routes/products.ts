@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { query, get, run } from '../db/database';
-import { nanoid } from 'nanoid';
+import { randomUUID } from 'crypto';
 import { z } from 'zod';
 
 const router = Router();
@@ -155,21 +155,21 @@ router.post('/', (req, res) => {
       // Return structured validation errors (Requirement 9.1, 9.2)
       const errors = validationResult.error.errors.map(err => ({
         field: err.path.join('.'),
-        message: err.message
+        message: err.message === 'Required' ? `${err.path.join('.')} is required` : err.message
       }));
       
       console.log('[WARN] Product validation failed:', errors);
       
       return res.status(400).json({ 
         success: false,
-        error: 'Validation failed',
+        error: errors.map(e => e.message).join(', '),
         errors 
       });
     }
 
     const { tenantId, categoryId, name, description, price, cost, imageUrl, hasModifiers, modifierGroupIds, productionTime, stockTracking, stockQty } = validationResult.data;
 
-    const productId = nanoid();
+    const productId = randomUUID();
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
     run(`
@@ -194,7 +194,7 @@ router.post('/', (req, res) => {
     run(`
       INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
       VALUES (?, ?, 'create', 'product', ?, ?)
-    `, [nanoid(), tenantId, productId, `Produk "${name}" ditambahkan (Rp ${price.toLocaleString()})`]);
+    `, [randomUUID(), tenantId, productId, `Produk "${name}" ditambahkan (Rp ${price.toLocaleString()})`]);
 
     res.status(201).json({ success: true, product });
   } catch (error: any) {
@@ -286,7 +286,7 @@ router.put('/:id', (req, res) => {
     run(`
       INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
       VALUES (?, ?, 'update', 'product', ?, ?)
-    `, [nanoid(), (existing as any).tenant_id, id, `Produk "${(existing as any).name}" diperbarui`]);
+    `, [randomUUID(), (existing as any).tenant_id, id, `Produk "${(existing as any).name}" diperbarui`]);
 
     res.json({ success: true, product });
   } catch (error: any) {
@@ -321,7 +321,7 @@ router.patch('/:id/status', (req, res) => {
     run(`
       INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
       VALUES (?, ?, 'update', 'product', ?, ?)
-    `, [nanoid(), (existing as any).tenant_id, id, `Produk "${(existing as any).name}" ${statusLabels[status]}`]);
+    `, [randomUUID(), (existing as any).tenant_id, id, `Produk "${(existing as any).name}" ${statusLabels[status]}`]);
 
     res.json({ success: true, message: `Produk ${statusLabels[status]}` });
   } catch (error: any) {
@@ -359,7 +359,7 @@ router.post('/:id/duplicate', (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    const newId = nanoid();
+    const newId = randomUUID();
     const newName = `${original.name} (Copy)`;
     const newSlug = `${original.slug}-copy-${Date.now()}`;
 

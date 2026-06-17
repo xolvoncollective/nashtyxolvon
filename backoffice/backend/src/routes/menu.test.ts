@@ -19,14 +19,10 @@ jest.mock('../db/database', () => ({
   run: mockRun
 }));
 
-jest.mock('nanoid', () => ({
-  nanoid: jest.fn(() => 'test-item-id-123')
-}));
-
 describe('Menu Route - GET /api/menu/outlet/:outletId', () => {
   beforeEach(() => {
     // Clear all mocks before each test
-    jest.clearAllMocks();
+    jest.resetAllMocks();
     
     // Clear cache before each test
     cacheManager.clear();
@@ -329,7 +325,7 @@ describe('Menu Route - GET /api/menu/outlet/:outletId', () => {
 describe('Menu Route - PATCH /api/menu/items/:id', () => {
   beforeEach(() => {
     // Clear all mocks before each test
-    jest.clearAllMocks();
+    jest.resetAllMocks();
     
     // Clear cache before each test
     cacheManager.clear();
@@ -749,7 +745,7 @@ describe('Menu Route - PATCH /api/menu/items/:id', () => {
 describe('Menu Route - POST /api/menu/items', () => {
   beforeEach(() => {
     // Clear all mocks before each test
-    jest.clearAllMocks();
+    jest.resetAllMocks();
     
     // Clear cache before each test
     cacheManager.clear();

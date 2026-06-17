@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { query, get, run } from '../db/database';
-import { nanoid } from 'nanoid';
+import { randomUUID } from 'crypto';
 
 const router = Router();
 
@@ -48,7 +48,7 @@ router.post('/', (req, res) => {
       return res.status(400).json({ error: 'tenantId, name, and type are required' });
     }
 
-    const groupId = nanoid();
+    const groupId = randomUUID();
 
     run(`
       INSERT INTO modifier_groups (id, tenant_id, name, description, type, required, min_select, max_select)
@@ -62,7 +62,7 @@ router.post('/', (req, res) => {
         run(`
           INSERT INTO modifier_options (id, group_id, name, price_adjustment, display_order)
           VALUES (?, ?, ?, ?, ?)
-        `, [nanoid(), groupId, opt.name, opt.priceAdjustment || 0, i + 1]);
+        `, [randomUUID(), groupId, opt.name, opt.priceAdjustment || 0, i + 1]);
       }
     }
 
@@ -151,7 +151,7 @@ router.post('/:id/options', (req, res) => {
     const lastOrder = get('SELECT MAX(display_order) as max_order FROM modifier_options WHERE group_id = ?', [id]);
     const nextOrder = ((lastOrder as any)?.max_order || 0) + 1;
 
-    const optionId = nanoid();
+    const optionId = randomUUID();
     run(`
       INSERT INTO modifier_options (id, group_id, name, price_adjustment, display_order)
       VALUES (?, ?, ?, ?, ?)

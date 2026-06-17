@@ -196,6 +196,161 @@
         }
       }
     }
+    async function proceedWithOrderCreation(orderData, sub, disc, tax, svc, grand, paid, chg, delivNote) {
+      var btn = document.getElementById('btn-cfm');
+      // Offline sync integration
+      if (!navigator.onLine) {
+        try {
+          if (!window.OfflineSyncManager) {
+            throw new Error('Offline Sync Manager tidak tersedia');
+          }
+          const offlineOrder = await window.OfflineSyncManager.queueOrder(orderData);
+          
+          var newId = HISTORY.length ? HISTORY[0].id + 1 : 1;
+          var now = new Date();
+          var hh = String(now.getHours()).padStart(2, '0');
+          var mm = String(now.getMinutes()).padStart(2, '0');
+          var PM_LABELS = { cash: 'Tunai', qris: 'QRIS', bca: 'BCA', debit: 'Debit', gofood: 'GoFood', grabfood: 'GrabFood', shopee: 'ShopeeFood', transfer: 'Transfer' };
+          
+          HISTORY.unshift({
+            id: newId,
+            no: offlineOrder.order_number,
+            table: orderData.tableNumber || 'TAKE',
+            type: orderType,
+            cashier: currentUser ? currentUser.name : 'Kasir',
+            time: hh + ':' + mm,
+            method: PM_LABELS[pmSel] || pmSel,
+            status: 'pending',
+            sub: sub, disc: disc, tax: tax, svc: svc, tips: 0, total: grand,
+            member: curMember, delivNote: delivNote,
+            items: cart.map(function(i) {
+               var mods = i.selectedOpts ? Object.values(i.selectedOpts).flat() : [];
+               if (i.addonNames) mods = mods.concat(i.addonNames.split(', ').map(a => '+' + a));
+               if (i.note) mods.push(i.note);
+               return { id: i.id, n: i.n, qty: i.qty, p: i.p, mods: mods };
+            })
+          });
+
+          document.getElementById('pay-ov')?.remove();
+          showSuccess(grand, chg, delivNote);
+          toast('Offline: Pesanan disimpan secara lokal!', 'info');
+        } catch (err) {
+          console.error(err);
+          toast('Gagal menyimpan pesanan offline: ' + err.message, 'err');
+          if (btn) { btn.innerHTML = 'Konfirmasi'; btn.disabled = false; }
+        }
+        return;
+      }
+
+      try {
+        const res = await API.orders.create(orderData);
+        if (res.success) {
+          var newId = HISTORY.length ? HISTORY[0].id + 1 : 1;
+          var now = new Date();
+          var hh = String(now.getHours()).padStart(2, '0');
+          var mm = String(now.getMinutes()).padStart(2, '0');
+          var PM_LABELS = { cash: 'Tunai', qris: 'QRIS', bca: 'BCA', debit: 'Debit', gofood: 'GoFood', grabfood: 'GrabFood', shopee: 'ShopeeFood', transfer: 'Transfer' };
+          HISTORY.unshift({
+            id: newId,
+            no: res.order ? res.order.order_number : ('SNY-' + String(newId + 186).padStart(4, '0')),
+            table: orderData.tableNumber || 'TAKE',
+            type: orderType,
+            cashier: currentUser ? currentUser.name : 'Kasir',
+            time: hh + ':' + mm,
+            method: PM_LABELS[pmSel] || pmSel,
+            status: 'done',
+            sub: sub, disc: disc, tax: tax, svc: svc, tips: 0, total: grand,
+            member: curMember, delivNote: delivNote,
+            items: cart.map(function(i) {
+               var mods = i.selectedOpts ? Object.values(i.selectedOpts).flat() : [];
+               if (i.addonNames) mods = mods.concat(i.addonNames.split(', ').map(a => '+' + a));
+               if (i.note) mods.push(i.note);
+               return { id: i.id, n: i.n, qty: i.qty, p: i.p, mods: mods };
+            })
+          });
+
+          document.getElementById('pay-ov')?.remove();
+          showSuccess(grand, chg, delivNote);
+        } else {
+          toast('Gagal: ' + res.error, 'err');
+          if (btn) { btn.innerHTML = 'Konfirmasi'; btn.disabled = false; }
+        }
+      } catch (err) {
+        console.error(err);
+        toast('Gagal memproses pesanan: ' + err.message, 'err');
+        if (btn) { btn.innerHTML = 'Konfirmasi'; btn.disabled = false; }
+      }
+    }
+
+    function showManualPaymentModal(method, amount, callback) {
+      const isQris = method === 'qris';
+      const title = isQris ? 'Pembayaran QRIS Statis' : 'Pembayaran EDC Manual';
+      const instructions = isQris 
+        ? 'Tunjukkan QRIS Statis di meja kasir ke pelanggan. Minta pelanggan melakukan scan dan transfer.' 
+        : 'Gunakan mesin EDC fisik. Gesek/masukkan kartu debit/kredit pelanggan dan masukkan nominal ' + fr(amount) + '.';
+      
+      const ov = document.createElement('div');
+      ov.className = 'pay-ov';
+      ov.id = 'manual-pay-ov';
+      ov.style.zIndex = '2000';
+      
+      let visualContent = '';
+      if (isQris) {
+        visualContent = `
+          <div style="background:#fff;padding:12px;border-radius:12px;margin:15px auto;width:150px;height:150px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+            <svg viewBox="0 0 100 100" width="100%" height="100%">
+              <rect x="0" y="0" width="100" height="100" fill="#fff"/>
+              <rect x="10" y="10" width="25" height="25" fill="#1E293B"/>
+              <rect x="15" y="15" width="15" height="15" fill="#fff"/>
+              <rect x="65" y="10" width="25" height="25" fill="#1E293B"/>
+              <rect x="70" y="15" width="15" height="15" fill="#fff"/>
+              <rect x="10" y="65" width="25" height="25" fill="#1E293B"/>
+              <rect x="15" y="70" width="15" height="15" fill="#fff"/>
+              <rect x="45" y="20" width="10" height="10" fill="#1E293B"/>
+              <rect x="45" y="45" width="10" height="10" fill="#1E293B"/>
+              <rect x="20" y="45" width="10" height="10" fill="#1E293B"/>
+              <rect x="65" y="45" width="15" height="10" fill="#1E293B"/>
+              <rect x="45" y="65" width="15" height="15" fill="#1E293B"/>
+              <rect x="65" y="65" width="10" height="10" fill="#1E293B"/>
+              <rect x="80" y="80" width="10" height="10" fill="#1E293B"/>
+            </svg>
+          </div>
+          <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:15px;letter-spacing:0.05em">PINDAI QRIS UNTUK BAYAR</div>
+        `;
+      } else {
+        visualContent = `
+          <div style="font-size:48px;margin:20px 0;">💳</div>
+        `;
+      }
+      
+      ov.innerHTML = `
+        <div class="pay-modal" style="max-width:380px;height:auto;padding:24px">
+          <div class="pay-head" style="margin-bottom:16px">
+            <div class="pay-head-t">${title}</div>
+            <div class="pay-x" onclick="document.getElementById('manual-pay-ov').remove(); window.manualPayCallback(false, 'Dibatalkan oleh kasir');">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:13px;color:var(--txt2);margin-bottom:10px">${instructions}</div>
+            <div style="font-size:24px;font-weight:900;color:var(--or);font-family:var(--mo);margin-bottom:15px">${fr(amount)}</div>
+            ${visualContent}
+            <div style="display:flex;gap:10px;margin-top:20px">
+              <button class="btn-cfm" style="flex:1;background:rgba(239,68,68,0.15);color:#EF4444;border:1px solid rgba(239,68,68,0.2)" onclick="document.getElementById('manual-pay-ov').remove(); window.manualPayCallback(false, 'Dana Kurang / Decline');">
+                ❌ Gagal
+              </button>
+              <button class="btn-cfm" style="flex:1;background:#22C55E;color:#fff" onclick="document.getElementById('manual-pay-ov').remove(); window.manualPayCallback(true);">
+                ✅ Sukses
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(ov);
+      window.manualPayCallback = callback;
+    }
+
     async function doPay(tot) {
       var btn = document.getElementById('btn-cfm');
       if (btn) { btn.innerHTML = 'Memproses...'; btn.disabled = true; }
@@ -217,6 +372,8 @@
         tax: tax,
         serviceCharge: svc,
         total: grand,
+        customerName: curMember || null,
+        customerPhone: window.curMemberPhone || null,
         payments: [{
            method: pmSel,
            amount: paid,
@@ -251,7 +408,7 @@
                  groupName: 'Add-on',
                  optionId: 'addon-' + addonName,
                  optionName: addonName,
-                 priceAdjustment: 0 // The price is already merged in i.p
+                 priceAdjustment: 0
                });
              });
            }
@@ -268,46 +425,36 @@
         })
       };
 
-      try {
-        const res = await API.orders.create(orderData);
-        if (res.success) {
-          // Push to local mockup HISTORY so UI doesn't break instantly
-          // This is a hybrid approach to keep the UI snappy
-          var newId = HISTORY.length ? HISTORY[0].id + 1 : 1;
-          var now = new Date();
-          var hh = String(now.getHours()).padStart(2, '0');
-          var mm = String(now.getMinutes()).padStart(2, '0');
-          var PM_LABELS = { cash: 'Tunai', qris: 'QRIS', bca: 'BCA', debit: 'Debit', gofood: 'GoFood', grabfood: 'GrabFood', shopee: 'ShopeeFood', transfer: 'Transfer' };
-          HISTORY.unshift({
-            id: newId,
-            no: res.order ? res.order.order_number : ('SNY-' + String(newId + 186).padStart(4, '0')),
-            table: orderData.table_number,
-            type: orderType,
-            cashier: currentUser ? currentUser.name : 'Kasir',
-            time: hh + ':' + mm,
-            method: PM_LABELS[pmSel] || pmSel,
-            status: 'done',
-            sub: sub, disc: disc, tax: tax, svc: svc, tips: 0, total: grand,
-            member: curMember, delivNote: delivNote,
-            items: cart.map(function(i) {
-               var mods = i.selectedOpts ? Object.values(i.selectedOpts).flat() : [];
-               if (i.addonNames) mods = mods.concat(i.addonNames.split(', ').map(a => '+' + a));
-               if (i.note) mods.push(i.note);
-               return { id: i.id, n: i.n, qty: i.qty, p: i.p, mods: mods };
-            })
-          });
-
-          document.getElementById('pay-ov')?.remove();
-          showSuccess(grand, chg, delivNote);
-        } else {
-          toast('Gagal: ' + res.error, 'err');
-          if (btn) { btn.innerHTML = 'Konfirmasi'; btn.disabled = false; }
-        }
-      } catch (err) {
-        console.error(err);
-        toast('Gagal memproses pesanan: ' + err.message, 'err');
-        if (btn) { btn.innerHTML = 'Konfirmasi'; btn.disabled = false; }
+      if (pmSel === 'qris' || pmSel === 'bca' || pmSel === 'debit') {
+        showManualPaymentModal(pmSel, grand, async function(success, errorMsg) {
+          if (success) {
+            await proceedWithOrderCreation(orderData, sub, disc, tax, svc, grand, paid, chg, delivNote);
+          } else {
+            try {
+              if (navigator.onLine) {
+                await fetch('http://localhost:3099/api/orders/payment-failed', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    tenantId: API.session.tenantId || 'demo-tenant',
+                    userId: API.session.user ? API.session.user.id : null,
+                    paymentMethod: pmSel,
+                    amount: grand,
+                    error: errorMsg || 'Transaksi dibatalkan'
+                  })
+                });
+              }
+            } catch (e) {
+              console.error('Failed to log payment failure:', e);
+            }
+            toast('Pembayaran ' + pmSel.toUpperCase() + ' dibatalkan/gagal!', 'err');
+            if (btn) { btn.innerHTML = 'Konfirmasi'; btn.disabled = false; }
+          }
+        });
+        return;
       }
+
+      await proceedWithOrderCreation(orderData, sub, disc, tax, svc, grand, paid, chg, delivNote);
     }
 
 
@@ -318,7 +465,7 @@
       document.body.appendChild(ov);
     }
     function newOrder() {
-      document.getElementById('mo-ok')?.remove(); cart = []; discount = 0; curMember = null;
+      document.getElementById('mo-ok')?.remove(); cart = []; discount = 0; curMember = null; window.curMemberPhone = null;
       document.getElementById('mem-lbl').textContent = 'Member';
       document.getElementById('mem-pill').classList.remove('on');
       document.getElementById('tbl-no').value = '';
@@ -382,17 +529,24 @@
       const c = MEMBERS[clean] || MEMBERS[clean.slice(0, 11)];
       if (c) {
         const [sc, sl] = SEG[c.seg] || SEG.new;
-        res.innerHTML = `<div class="mem-result-card"><div class="mem-res-h"><div class="mem-av">${c.name[0]}</div><div><div class="mem-nm">${c.name}</div><div class="mem-ph">${c.phone}</div><span class="segb ${sc}">${sl}</span></div></div><div class="mem-stats"><div class="mem-stat"><div class="mem-stat-lbl">Kunjungan</div><div class="mem-stat-val">${c.v}×</div></div><div class="mem-stat"><div class="mem-stat-lbl">Total Belanja</div><div class="mem-stat-val">${frS(c.sp)}</div></div></div><button class="btn-pick" onclick="pickMem('${c.name}','found')">✓ Pilih Member Ini</button></div>`;
+        res.innerHTML = `<div class="mem-result-card"><div class="mem-res-h"><div class="mem-av">${c.name[0]}</div><div><div class="mem-nm">${c.name}</div><div class="mem-ph">${c.phone}</div><span class="segb ${sc}">${sl}</span></div></div><div class="mem-stats"><div class="mem-stat"><div class="mem-stat-lbl">Kunjungan</div><div class="mem-stat-val">${c.v}×</div></div><div class="mem-stat"><div class="mem-stat-lbl">Total Belanja</div><div class="mem-stat-val">${frS(c.sp)}</div></div></div><button class="btn-pick" onclick="pickMem('${c.name}','found','${clean}')">✓ Pilih Member Ini</button></div>`;
       } else if (clean.length >= 7) {
         res.innerHTML = `<div style="text-align:center;padding:12px;color:var(--txt3);font-size:12px">Tidak ditemukan untuk nomor <strong style="color:var(--txt)">${clean}</strong></div>`;
       }
     }
-    function pickMem(name, type) {
+    function pickMem(name, type, phone) {
       curMember = name;
+      window.curMemberPhone = phone;
       const lbl = document.getElementById('mem-lbl'), pill = document.getElementById('mem-pill');
       if (name && type === 'found') { lbl.textContent = name.split(' ')[0]; pill.classList.add('on'); }
-      else if (type === 'new') { lbl.textContent = 'Baru'; pill.classList.add('on'); toast('Pelanggan akan didaftarkan saat checkout', 'info'); }
-      else { lbl.textContent = 'Member'; pill.classList.remove('on'); }
+      else if (type === 'new') { 
+        curMember = 'Pelanggan Baru';
+        window.curMemberPhone = memInput.replace(/\D/g, '');
+        lbl.textContent = 'Baru'; 
+        pill.classList.add('on'); 
+        toast('Pelanggan akan didaftarkan saat checkout', 'info'); 
+      }
+      else { lbl.textContent = 'Member'; pill.classList.remove('on'); window.curMemberPhone = null; }
       document.getElementById('mo-mem')?.remove();
     }
 

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import db, { query, get, run } from '../db/database';
 import bcrypt from 'bcryptjs';
-import { nanoid } from 'nanoid';
+import { randomUUID } from 'crypto';
 
 const router = Router();
 
@@ -21,7 +21,7 @@ router.post('/', async (req, res) => {
 
     // Hash the PIN
     const pinHash = await bcrypt.hash(pin, 10);
-    const userId = nanoid();
+    const userId = randomUUID();
 
     run(`
       INSERT INTO users (id, tenant_id, outlet_id, name, email, phone, role, pin, status)
@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
     run(`
       INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description)
       VALUES (?, ?, ?, 'create', 'user', ?, ?)
-    `, [nanoid(), tenantId, null, userId, `User ${name} (${role}) ditambahkan`]);
+    `, [randomUUID(), tenantId, null, userId, `User ${name} (${role}) ditambahkan`]);
 
     res.status(201).json({ success: true, user });
   } catch (error: any) {

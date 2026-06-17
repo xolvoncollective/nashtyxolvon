@@ -8,7 +8,7 @@ const PAGE_TITLES={
  'kds-workflow':'KDS — Workflow Status','kds-time':'KDS — Production Time',
  'kds-alerts':'KDS — Alert Settings','kds-analytics':'KDS — Analytics',
  owners:'Owners',managers:'Managers',cashiers:'Kasir',
- outlets:'Outlets',reports:'Laporan','menu-engineering':'Menu Engineering Analytics',settings:'Pengaturan',actlogs:'Activity Logs'
+ outlets:'Outlets',costs:'Nashtycost (Biaya)',reports:'Laporan','menu-engineering':'Menu Engineering Analytics',settings:'Pengaturan',actlogs:'Activity Logs'
 };
 
 const PAGES={};

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { query, get, run, transaction } from '../db/database';
-import { nanoid } from 'nanoid';
+import { randomUUID } from 'crypto';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { logOrderCreation, logOrderStatusUpdate } from '../middleware/logging';
@@ -47,10 +47,12 @@ const CreateOrderSchema = z.object({
   discount: z.number().nonnegative('Discount cannot be negative').optional().default(0),
   tax: z.number().nonnegative('Tax cannot be negative').optional().default(0),
   serviceCharge: z.number().nonnegative('Service charge cannot be negative').optional().default(0),
-  total: z.number().nonnegative('Total cannot be negative'),
+  total: z.number().positive('Total must be positive'),
   paymentMethod: z.string().optional().nullable(),
   payments: z.array(PaymentSchema).min(1, 'At least one payment is required'),
-  notes: z.string().optional().nullable()
+  notes: z.string().optional().nullable(),
+  customerName: z.string().optional().nullable(),
+  customerPhone: z.string().optional().nullable()
 });
 
 // Helper removed, using inline sequence generator in route
@@ -81,7 +83,8 @@ router.post('/', (req, res) => {
       tenantId, outletId, shiftId = null, userId,
       orderType, tableNumber = null, items,
       subtotal, discount = 0, tax = 0, serviceCharge = 0, total,
-      paymentMethod = null, payments, notes = null
+      paymentMethod = null, payments, notes = null,
+      customerName = null, customerPhone = null
     } = validationResult.data;
 
     // Generate sequential order number
@@ -92,7 +95,7 @@ router.post('/', (req, res) => {
     const seq = ((seqResult?.count || 0) + 1).toString().padStart(4, '0');
     const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, '');
     const orderNumber = `SNY-${dateStr}-${seq}`;
-    const orderId = nanoid();
+    const orderId = randomUUID();
 
     // SERVER-SIDE RECALCULATION TO PREVENT PRICE MANIPULATION
     let calculatedSubtotal = 0;
@@ -168,18 +171,60 @@ router.post('/', (req, res) => {
       run(`
         INSERT INTO orders (
           id, tenant_id, outlet_id, shift_id, user_id, order_number,
-          order_type, table_number, subtotal, discount, tax, service_charge,
+          order_type, table_number, customer_name, customer_phone, subtotal, discount, tax, service_charge,
           total, payment_method, payment_status, order_status, kitchen_status, notes
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [
         orderId, tenantId, outletId, shiftId, userId, orderNumber,
-        mappedOrderType, tableNumber, calculatedSubtotal, validDiscount, calculatedTax, calculatedServiceCharge,
+        mappedOrderType, tableNumber, customerName, customerPhone, calculatedSubtotal, validDiscount, calculatedTax, calculatedServiceCharge,
         calculatedTotal, paymentMethod, paymentStatus, 'confirmed', 'pending', notes
       ]);
 
+      // CRM points / member registration
+      if (customerPhone) {
+        const cleanPhone = customerPhone.replace(/\D/g, '');
+        if (cleanPhone) {
+          let member = get('SELECT id, points, total_spent, visit_count FROM members WHERE tenant_id = ? AND phone = ?', [tenantId, cleanPhone]) as any;
+          const pointsEarned = Math.floor(calculatedTotal / 10000); // 1 point for every Rp 10.000 spent
+          
+          if (!member) {
+            const memberId = randomUUID();
+            const defaultName = customerName || 'Pelanggan Baru';
+            run(`
+              INSERT INTO members (id, tenant_id, name, phone, points, total_spent, visit_count, segment, status)
+              VALUES (?, ?, ?, ?, ?, ?, 1, 'new', 'active')
+            `, [memberId, tenantId, defaultName, cleanPhone, pointsEarned, calculatedTotal]);
+            
+            run(`
+              INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
+              VALUES (?, ?, 'member_registered', 'member', ?, ?)
+            `, [randomUUID(), tenantId, memberId, `Member baru terdaftar via POS checkout: ${defaultName} (${cleanPhone})`]);
+          } else {
+            const newSpent = (member.total_spent || 0) + calculatedTotal;
+            const newVisits = (member.visit_count || 0) + 1;
+            const newPoints = (member.points || 0) + pointsEarned;
+            
+            let newSegment = 'new';
+            if (newVisits > 30) newSegment = 'vip';
+            else if (newVisits > 15) newSegment = 'loyal';
+            else if (newVisits > 5) newSegment = 'regular';
+            
+            run(`
+              UPDATE members
+              SET points = ?,
+                  total_spent = ?,
+                  visit_count = ?,
+                  segment = ?,
+                  updated_at = CURRENT_TIMESTAMP
+              WHERE id = ?
+            `, [newPoints, newSpent, newVisits, newSegment, member.id]);
+          }
+        }
+      }
+
       // Insert order items
       for (const item of items) {
-        const itemId = nanoid();
+        const itemId = randomUUID();
         run(`
           INSERT INTO order_items (
             id, order_id, product_id, product_name, quantity, unit_price, subtotal, notes
@@ -194,7 +239,7 @@ router.post('/', (req, res) => {
                 id, order_item_id, modifier_group_id, modifier_group_name,
                 modifier_option_id, modifier_option_name, price_adjustment
               ) VALUES (?, ?, ?, ?, ?, ?, ?)
-            `, [nanoid(), itemId, mod.groupId, mod.groupName, mod.optionId, mod.optionName, mod.priceAdjustment || 0]);
+            `, [randomUUID(), itemId, mod.groupId, mod.groupName, mod.optionId, mod.optionName, mod.priceAdjustment || 0]);
           }
         }
 
@@ -214,12 +259,37 @@ router.post('/', (req, res) => {
           run(`
             INSERT INTO payments (id, order_id, method, amount, change_amount, platform_ref)
             VALUES (?, ?, ?, ?, ?, ?)
-          `, [nanoid(), orderId, payment.method, payment.amount, payment.change || 0, payment.platformRef || null]);
+          `, [randomUUID(), orderId, payment.method, payment.amount, payment.change || 0, payment.platformRef || null]);
         }
       }
     });
 
     doTransaction();
+
+    // Log order creation to activity_logs
+    try {
+      run(`
+        INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description, metadata)
+        VALUES (?, ?, ?, 'order_created', 'order', ?, ?, ?)
+      `, [
+        randomUUID(), tenantId, userId, orderId,
+        `Order ${orderNumber} dibuat dengan total Rp ${calculatedTotal.toLocaleString()}`,
+        JSON.stringify({ orderNumber, total: calculatedTotal })
+      ]);
+
+      if (paymentStatus === 'paid') {
+        run(`
+          INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description, metadata)
+          VALUES (?, ?, ?, 'order_paid', 'order', ?, ?, ?)
+        `, [
+          randomUUID(), tenantId, userId, orderId,
+          `Order ${orderNumber} dibayar penuh sebesar Rp ${totalPaid.toLocaleString()} menggunakan ${paymentMethod || 'manual'}`,
+          JSON.stringify({ orderNumber, totalPaid, paymentMethod })
+        ]);
+      }
+    } catch (logErr) {
+      console.error('Error logging order creation to db:', logErr);
+    }
 
     // Log order creation (Task 22.3 - Requirement 14.4)
     logOrderCreation(orderNumber, orderId, calculatedTotal);
@@ -366,6 +436,9 @@ router.patch('/:id/status', (req, res) => {
     // Log status update (Task 22.3 - Requirement 14.4)
     if (kitchenStatus) {
       logOrderStatusUpdate(id, currentOrder.kitchen_status, kitchenStatus);
+      if (kitchenStatus === 'ready') {
+        logKitchenStatusUpdate(id);
+      }
     }
 
     res.json({ success: true, message: 'Status berhasil diperbarui' });
@@ -421,9 +494,9 @@ router.put('/:id/void', async (req, res) => {
 
     // Log activity
     run(`
-      INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description)
-      VALUES (?, ?, ?, 'void', 'order', ?, ?)
-    `, [nanoid(), order.tenant_id, voidBy || null, id, `Void order ${order.order_number} — ${reason} (Rp ${order.total.toLocaleString()})`]);
+      INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description, metadata)
+      VALUES (?, ?, ?, 'order_cancelled', 'order', ?, ?, ?)
+    `, [randomUUID(), order.tenant_id, voidBy || null, id, `Order ${order.order_number} dibatalkan (void) — ${reason} (Rp ${order.total.toLocaleString()})`, JSON.stringify({ orderNumber: order.order_number, reason, total: order.total })]);
 
     res.json({ success: true, message: `Order ${order.order_number} berhasil di-void` });
   } catch (error: any) {
@@ -542,6 +615,8 @@ router.patch('/:id/items/:itemId/status', (req, res) => {
           updated_at = ?
         WHERE id = ?
       `, [new Date().toISOString(), new Date().toISOString(), id]);
+
+      logKitchenStatusUpdate(id);
     }
 
     res.json({ success: true, message: 'Item status berhasil diperbarui' });
@@ -732,23 +807,103 @@ router.post('/:id/refund', (req, res) => {
     run(`
       INSERT INTO payments (id, order_id, method, amount, change_amount, platform_ref)
       VALUES (?, ?, ?, ?, ?, ?)
-    `, [nanoid(), id, order.payment_method || 'tunai', -Math.abs(amount), 0, 'REFUND']);
+    `, [randomUUID(), id, order.payment_method || 'tunai', -Math.abs(amount), 0, 'REFUND']);
 
     // If full refund, void the order
     if (amount >= order.total) {
       run(`UPDATE orders SET order_status = 'cancelled', payment_status = 'cancelled' WHERE id = ?`, [id]);
+      
+      run(`
+        INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description, metadata)
+        VALUES (?, ?, ?, 'order_cancelled', 'order', ?, ?, ?)
+      `, [randomUUID(), order.tenant_id, refundBy || null, id, `Order ${order.order_number} dibatalkan (refund penuh sebesar Rp ${amount.toLocaleString()}) — ${reason}`, JSON.stringify({ orderNumber: order.order_number, reason, amount })]);
     }
 
     // Log activity
     run(`
       INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description)
       VALUES (?, ?, ?, 'refund', 'order', ?, ?)
-    `, [nanoid(), order.tenant_id, refundBy || null, id, `Refund order ${order.order_number} — Rp ${amount.toLocaleString()} — ${reason}`]);
+    `, [randomUUID(), order.tenant_id, refundBy || null, id, `Refund order ${order.order_number} — Rp ${amount.toLocaleString()} — ${reason}`]);
 
     res.json({ success: true, message: `Refund Rp ${amount.toLocaleString()} untuk order ${order.order_number} berhasil diproses` });
   } catch (error: any) {
     console.error('Refund order error:', error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Helper for kitchen completed & late logging
+function logKitchenStatusUpdate(orderId: string) {
+  try {
+    const order = get('SELECT tenant_id, order_number, created_at, completed_at FROM orders WHERE id = ?', [orderId]) as any;
+    if (!order) return;
+    
+    const startTime = new Date(order.created_at).getTime();
+    const endTime = order.completed_at ? new Date(order.completed_at).getTime() : Date.now();
+    const durationMinutes = Math.round((endTime - startTime) / (60 * 1000));
+    
+    // Get maximum production time for items in this order
+    const prodResult = get(`
+      SELECT MAX(COALESCE(p.production_time, 10)) as max_time
+      FROM order_items oi
+      LEFT JOIN products p ON oi.product_id = p.id
+      WHERE oi.order_id = ?
+    `, [orderId]) as any;
+    
+    const maxProductionTime = prodResult?.max_time || 10;
+    
+    // Log kitchen completed
+    run(`
+      INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description, metadata)
+      VALUES (?, ?, 'kitchen_completed', 'order', ?, ?, ?)
+    `, [
+      randomUUID(),
+      order.tenant_id,
+      orderId,
+      `Pesanan dapur ${order.order_number} selesai dalam ${durationMinutes} menit (Target: ${maxProductionTime} m)`,
+      JSON.stringify({ orderNumber: order.order_number, durationMinutes, maxProductionTime })
+    ]);
+    
+    // Check if late
+    if (durationMinutes > maxProductionTime) {
+      run(`
+        INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description, metadata)
+        VALUES (?, ?, 'kitchen_late', 'order', ?, ?, ?)
+      `, [
+        randomUUID(),
+        order.tenant_id,
+        orderId,
+        `Dapur TERLAMBAT untuk pesanan ${order.order_number}: selesai dalam ${durationMinutes} menit (Target: ${maxProductionTime} m)`,
+        JSON.stringify({ orderNumber: order.order_number, durationMinutes, maxProductionTime, delay: durationMinutes - maxProductionTime })
+      ]);
+    }
+  } catch (err) {
+    console.error('Error logging kitchen status update:', err);
+  }
+}
+
+// POST /api/orders/payment-failed — Log failed static QRIS/manual EDC payments
+router.post('/payment-failed', (req, res) => {
+  try {
+    const { tenantId, userId, paymentMethod, amount, error } = req.body;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'tenantId is required' });
+    }
+    const logId = randomUUID();
+    run(`
+      INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, description, metadata)
+      VALUES (?, ?, ?, 'payment_failed', 'payment', ?, ?)
+    `, [
+      logId,
+      tenantId,
+      userId || null,
+      `Pembayaran ${paymentMethod || 'QRIS'} sebesar Rp ${Number(amount || 0).toLocaleString()} gagal: ${error || 'Transaksi didecline/dana kurang'}`,
+      JSON.stringify({ paymentMethod, amount, error })
+    ]);
+    res.json({ success: true, logId });
+  } catch (err: any) {
+    console.error('Log payment failure error:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 

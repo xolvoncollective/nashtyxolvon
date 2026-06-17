@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { get, query, run } from '../db/database';
-import { nanoid } from 'nanoid';
+import { randomUUID } from 'crypto';
 import jwt from 'jsonwebtoken';
 
 const router = Router();
@@ -31,7 +31,7 @@ router.post('/auth/login', (req, res) => {
 
     if (!member) {
       // Auto-register
-      const memberId = nanoid();
+      const memberId = randomUUID();
       // Assume a default tenant for demo
       const tenant = get('SELECT id FROM tenants LIMIT 1') as any;
       if (!tenant) return res.status(500).json({ error: 'Sistem belum dikonfigurasi (No tenant found)' });

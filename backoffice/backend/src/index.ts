@@ -25,6 +25,7 @@ import settingsRoutes from './routes/settings';
 import activityLogsRoutes from './routes/activity-logs';
 import membersRoutes from './routes/members';
 import kdsRoutes from './routes/kds';
+import costsRoutes from './routes/costs';
 import { requireAuth } from './middleware/auth';
 import { requestLoggingMiddleware } from './middleware/logging';
 import xss from 'xss';
@@ -217,6 +218,7 @@ app.use('/api/outlets', requireAuth, outletsRoutes);
 app.use('/api/settings', requireAuth, settingsRoutes);
 app.use('/api/kds', requireAuth, kdsRoutes);
 app.use('/api/activity-logs', requireAuth, activityLogsRoutes);
+app.use('/api/costs', requireAuth, costsRoutes);
 
 // Error handler (Task 21 - Requirement 9.5, 9.6, 19.5)
 // Returns appropriate error messages based on environment mode
