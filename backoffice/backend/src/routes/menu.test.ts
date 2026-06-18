@@ -19,14 +19,16 @@ jest.mock('../db/database', () => ({
   run: mockRun
 }));
 
-jest.mock('nanoid', () => ({
-  nanoid: jest.fn(() => 'test-item-id-123')
-}));
+import crypto from 'crypto';
+jest.spyOn(crypto, 'randomUUID').mockReturnValue('test-item-id-123' as any);
 
 describe('Menu Route - GET /api/menu/outlet/:outletId', () => {
   beforeEach(() => {
     // Clear all mocks before each test
     jest.clearAllMocks();
+    mockGet.mockReset();
+    mockRun.mockReset();
+    mockQuery.mockReset();
     
     // Clear cache before each test
     cacheManager.clear();
@@ -718,20 +720,24 @@ describe('Menu Route - PATCH /api/menu/items/:id', () => {
       const outletId = 'outlet-1';
 
       // Manager marks item as sold out
-      mockGet.mockReturnValueOnce({
-        id: itemId,
-        tenant_id: outletId,
-        status: 'active'
+      // Use mockImplementation to avoid queue issues
+      mockGet.mockImplementation((sql: any) => {
+        if (sql.includes('LEFT JOIN categories')) {
+          return {
+            id: itemId,
+            tenant_id: outletId,
+            status: 'soldout',
+            category_name: 'Beverages'
+          };
+        }
+        return {
+          id: itemId,
+          tenant_id: outletId,
+          status: 'active'
+        };
       });
 
-      mockRun.mockReturnValueOnce({ changes: 1 });
-
-      mockGet.mockReturnValueOnce({
-        id: itemId,
-        tenant_id: outletId,
-        status: 'soldout',
-        category_name: 'Beverages'
-      });
+      mockRun.mockReturnValue({ changes: 1 });
 
       mockGet('SELECT * FROM products WHERE id = ?', [itemId]);
       mockRun('UPDATE products SET status = ? WHERE id = ?', ['soldout', itemId]);
@@ -742,6 +748,10 @@ describe('Menu Route - PATCH /api/menu/items/:id', () => {
 
       // POS will receive updated status on next fetch
       expect(updatedItem).toHaveProperty('status', 'soldout');
+      
+      // Clean up mock implementations
+      mockGet.mockReset();
+      mockRun.mockReset();
     });
   });
 });
@@ -750,6 +760,9 @@ describe('Menu Route - POST /api/menu/items', () => {
   beforeEach(() => {
     // Clear all mocks before each test
     jest.clearAllMocks();
+    mockGet.mockReset();
+    mockRun.mockReset();
+    mockQuery.mockReset();
     
     // Clear cache before each test
     cacheManager.clear();

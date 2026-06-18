@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import db from '../db/database';
-import { nanoid } from 'nanoid';
+import crypto from 'crypto';
 
 const router = Router();
 
@@ -27,7 +27,7 @@ router.post('/start', (req, res) => {
       });
     }
 
-    const shiftId = nanoid();
+    const shiftId = crypto.randomUUID();
 
     db.prepare(`
       INSERT INTO shifts (id, outlet_id, user_id, start_cash, status)

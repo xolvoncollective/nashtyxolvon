@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { query, get, run } from '../db/database';
-import { nanoid } from 'nanoid';
+import crypto from 'crypto';
 import { z } from 'zod';
 
 const router = Router();
@@ -169,7 +169,7 @@ router.post('/', (req, res) => {
 
     const { tenantId, categoryId, name, description, price, cost, imageUrl, hasModifiers, modifierGroupIds, productionTime, stockTracking, stockQty } = validationResult.data;
 
-    const productId = nanoid();
+    const productId = crypto.randomUUID();
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
     run(`
@@ -194,7 +194,7 @@ router.post('/', (req, res) => {
     run(`
       INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
       VALUES (?, ?, 'create', 'product', ?, ?)
-    `, [nanoid(), tenantId, productId, `Produk "${name}" ditambahkan (Rp ${price.toLocaleString()})`]);
+    `, [crypto.randomUUID(), tenantId, productId, `Produk "${name}" ditambahkan (Rp ${price.toLocaleString()})`]);
 
     res.status(201).json({ success: true, product });
   } catch (error: any) {
@@ -286,7 +286,7 @@ router.put('/:id', (req, res) => {
     run(`
       INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
       VALUES (?, ?, 'update', 'product', ?, ?)
-    `, [nanoid(), (existing as any).tenant_id, id, `Produk "${(existing as any).name}" diperbarui`]);
+    `, [crypto.randomUUID(), (existing as any).tenant_id, id, `Produk "${(existing as any).name}" diperbarui`]);
 
     res.json({ success: true, product });
   } catch (error: any) {
@@ -321,7 +321,7 @@ router.patch('/:id/status', (req, res) => {
     run(`
       INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
       VALUES (?, ?, 'update', 'product', ?, ?)
-    `, [nanoid(), (existing as any).tenant_id, id, `Produk "${(existing as any).name}" ${statusLabels[status]}`]);
+    `, [crypto.randomUUID(), (existing as any).tenant_id, id, `Produk "${(existing as any).name}" ${statusLabels[status]}`]);
 
     res.json({ success: true, message: `Produk ${statusLabels[status]}` });
   } catch (error: any) {
@@ -359,7 +359,7 @@ router.post('/:id/duplicate', (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    const newId = nanoid();
+    const newId = crypto.randomUUID();
     const newName = `${original.name} (Copy)`;
     const newSlug = `${original.slug}-copy-${Date.now()}`;
 

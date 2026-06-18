@@ -3,10 +3,9 @@ import express from 'express';
 import ordersRouter from './orders';
 import { initDatabase } from '../db/database';
 
-// Mock nanoid to avoid ESM issues in Jest
-jest.mock('nanoid', () => ({
-  nanoid: () => 'test-id-' + Date.now()
-}));
+import crypto from 'crypto';
+// Mock crypto.randomUUID to avoid ESM issues in Jest
+jest.spyOn(crypto, 'randomUUID').mockImplementation((() => 'test-id-' + Date.now()) as any);
 
 const app = express();
 app.use(express.json());
@@ -303,8 +302,9 @@ describe('POST /api/orders - Validation Tests', () => {
         .post('/api/orders')
         .send(validOrder);
 
-      // It may fail with DB constraints but should pass validation (not 400)
-      expect(response.status).not.toBe(400);
+      // It passes Zod validation, but fails business validation because product is not found
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('not found');
     });
 
     it('should accept order with modifiers', async () => {
@@ -339,8 +339,9 @@ describe('POST /api/orders - Validation Tests', () => {
         .post('/api/orders')
         .send(validOrder);
 
-      // It may fail with DB constraints but should pass validation (not 400)
-      expect(response.status).not.toBe(400);
+      // It passes Zod validation, but fails business validation because product is not found
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('not found');
     });
 
     it('should accept order with multiple payments (split payment)', async () => {
@@ -375,8 +376,9 @@ describe('POST /api/orders - Validation Tests', () => {
         .post('/api/orders')
         .send(validOrder);
 
-      // It may fail with DB constraints but should pass validation (not 400)
-      expect(response.status).not.toBe(400);
+      // It passes Zod validation, but fails business validation because product is not found
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('not found');
     });
 
     it('should accept all valid orderType variations', async () => {
@@ -407,8 +409,9 @@ describe('POST /api/orders - Validation Tests', () => {
           .post('/api/orders')
           .send(validOrder);
 
-        // Should pass validation (not 400)
-        expect(response.status).not.toBe(400);
+        // Should pass validation, but fails business validation because product is not found
+        expect(response.status).toBe(400);
+        expect(response.body.error).toContain('not found');
       }
     });
   });

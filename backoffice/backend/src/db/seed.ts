@@ -1,5 +1,5 @@
 import db, { initDatabase } from './database';
-import { nanoid } from 'nanoid';
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 
 async function runSeed() {
@@ -93,7 +93,7 @@ const catSql = `
 
 const categoryIds: Record<string, string> = {};
 categories.forEach((cat, idx) => {
-  const id = nanoid();
+  const id = crypto.randomUUID();
   categoryIds[cat.slug] = id;
   db.run(catSql, [
     id,
@@ -144,7 +144,7 @@ const prodSql = `
 products.forEach(prod => {
   const slug = prod.name.toLowerCase().replace(/\s+/g, '-');
   db.run(prodSql, [
-    nanoid(),
+    crypto.randomUUID(),
     tenantId,
     categoryIds[prod.cat],
     prod.name,

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { query, get, run } from '../db/database';
-import { nanoid } from 'nanoid';
+import crypto from 'crypto';
 
 const router = Router();
 
@@ -39,7 +39,7 @@ router.post('/', (req, res) => {
       return res.status(400).json({ error: 'tenantId and name are required' });
     }
 
-    const outletId = nanoid();
+    const outletId = crypto.randomUUID();
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
     run(`
@@ -65,7 +65,7 @@ router.post('/', (req, res) => {
       run(`
         INSERT OR IGNORE INTO settings (id, tenant_id, outlet_id, key, value, type)
         VALUES (?, ?, ?, ?, ?, ?)
-      `, [nanoid(), tenantId, outletId, setting.key, setting.value, setting.type]);
+      `, [crypto.randomUUID(), tenantId, outletId, setting.key, setting.value, setting.type]);
     }
 
     const outlet = get('SELECT * FROM outlets WHERE id = ?', [outletId]);
@@ -74,7 +74,7 @@ router.post('/', (req, res) => {
     run(`
       INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
       VALUES (?, ?, 'create', 'outlet', ?, ?)
-    `, [nanoid(), tenantId, outletId, `Outlet ${name} ditambahkan`]);
+    `, [crypto.randomUUID(), tenantId, outletId, `Outlet ${name} ditambahkan`]);
 
     res.status(201).json({ success: true, outlet });
   } catch (error: any) {

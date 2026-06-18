@@ -102,7 +102,13 @@ describe('Menu API Integration Tests', () => {
           });
         
         expect(res.status).toBe(400);
-        expect(res.body.error).toContain('required');
+        expect(res.body.errors).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              message: expect.stringContaining('Required')
+            })
+          ])
+        );
       });
     });
 

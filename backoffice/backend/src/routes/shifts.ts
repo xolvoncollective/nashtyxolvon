@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { query, get, run } from '../db/database';
-import { nanoid } from 'nanoid';
+import crypto from 'crypto';
 
 const router = Router();
 
@@ -22,7 +22,7 @@ router.post('/start', (req, res) => {
       return res.status(400).json({ error: 'User already has an open shift', shiftId: (existingShift as any).id });
     }
 
-    const shiftId = nanoid();
+    const shiftId = crypto.randomUUID();
 
     run(`
       INSERT INTO shifts (id, outlet_id, user_id, start_cash, status) VALUES (?, ?, ?, ?, 'open')

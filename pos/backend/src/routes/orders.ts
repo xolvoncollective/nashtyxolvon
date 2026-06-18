@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import db from '../db/database';
-import { nanoid } from 'nanoid';
+import crypto from 'crypto';
 
 const router = Router();
 
@@ -36,7 +36,7 @@ router.post('/', (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const orderId = nanoid();
+    const orderId = crypto.randomUUID();
     const orderNumber = generateOrderNumber();
 
     // Map order type from frontend format to database constraint format
@@ -81,7 +81,7 @@ router.post('/', (req, res) => {
       `);
 
       for (const item of items) {
-        const itemId = nanoid();
+        const itemId = crypto.randomUUID();
         itemInsert.run(
           itemId,
           orderId,
@@ -97,7 +97,7 @@ router.post('/', (req, res) => {
         if (item.modifiers && item.modifiers.length > 0) {
           for (const mod of item.modifiers) {
             modifierInsert.run(
-              nanoid(),
+              crypto.randomUUID(),
               itemId,
               mod.groupId,
               mod.groupName,

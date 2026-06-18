@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { query, get, run, transaction } from '../db/database';
-import { nanoid } from 'nanoid';
+import crypto from 'crypto';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { logOrderCreation, logOrderStatusUpdate } from '../middleware/logging';
@@ -47,7 +47,7 @@ const CreateOrderSchema = z.object({
   discount: z.number().nonnegative('Discount cannot be negative').optional().default(0),
   tax: z.number().nonnegative('Tax cannot be negative').optional().default(0),
   serviceCharge: z.number().nonnegative('Service charge cannot be negative').optional().default(0),
-  total: z.number().nonnegative('Total cannot be negative'),
+  total: z.number().positive('Total must be positive'),
   paymentMethod: z.string().optional().nullable(),
   payments: z.array(PaymentSchema).min(1, 'At least one payment is required'),
   notes: z.string().optional().nullable()
@@ -92,7 +92,7 @@ router.post('/', (req, res) => {
     const seq = ((seqResult?.count || 0) + 1).toString().padStart(4, '0');
     const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, '');
     const orderNumber = `SNY-${dateStr}-${seq}`;
-    const orderId = nanoid();
+    const orderId = crypto.randomUUID();
 
     // SERVER-SIDE RECALCULATION TO PREVENT PRICE MANIPULATION
     let calculatedSubtotal = 0;
@@ -179,7 +179,7 @@ router.post('/', (req, res) => {
 
       // Insert order items
       for (const item of items) {
-        const itemId = nanoid();
+        const itemId = crypto.randomUUID();
         run(`
           INSERT INTO order_items (
             id, order_id, product_id, product_name, quantity, unit_price, subtotal, notes
@@ -194,7 +194,7 @@ router.post('/', (req, res) => {
                 id, order_item_id, modifier_group_id, modifier_group_name,
                 modifier_option_id, modifier_option_name, price_adjustment
               ) VALUES (?, ?, ?, ?, ?, ?, ?)
-            `, [nanoid(), itemId, mod.groupId, mod.groupName, mod.optionId, mod.optionName, mod.priceAdjustment || 0]);
+            `, [crypto.randomUUID(), itemId, mod.groupId, mod.groupName, mod.optionId, mod.optionName, mod.priceAdjustment || 0]);
           }
         }
 
@@ -214,7 +214,7 @@ router.post('/', (req, res) => {
           run(`
             INSERT INTO payments (id, order_id, method, amount, change_amount, platform_ref)
             VALUES (?, ?, ?, ?, ?, ?)
-          `, [nanoid(), orderId, payment.method, payment.amount, payment.change || 0, payment.platformRef || null]);
+          `, [crypto.randomUUID(), orderId, payment.method, payment.amount, payment.change || 0, payment.platformRef || null]);
         }
       }
     });
@@ -423,7 +423,7 @@ router.put('/:id/void', async (req, res) => {
     run(`
       INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description)
       VALUES (?, ?, ?, 'void', 'order', ?, ?)
-    `, [nanoid(), order.tenant_id, voidBy || null, id, `Void order ${order.order_number} — ${reason} (Rp ${order.total.toLocaleString()})`]);
+    `, [crypto.randomUUID(), order.tenant_id, voidBy || null, id, `Void order ${order.order_number} — ${reason} (Rp ${order.total.toLocaleString()})`]);
 
     res.json({ success: true, message: `Order ${order.order_number} berhasil di-void` });
   } catch (error: any) {
@@ -732,7 +732,7 @@ router.post('/:id/refund', (req, res) => {
     run(`
       INSERT INTO payments (id, order_id, method, amount, change_amount, platform_ref)
       VALUES (?, ?, ?, ?, ?, ?)
-    `, [nanoid(), id, order.payment_method || 'tunai', -Math.abs(amount), 0, 'REFUND']);
+    `, [crypto.randomUUID(), id, order.payment_method || 'tunai', -Math.abs(amount), 0, 'REFUND']);
 
     // If full refund, void the order
     if (amount >= order.total) {
@@ -743,7 +743,7 @@ router.post('/:id/refund', (req, res) => {
     run(`
       INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description)
       VALUES (?, ?, ?, 'refund', 'order', ?, ?)
-    `, [nanoid(), order.tenant_id, refundBy || null, id, `Refund order ${order.order_number} — Rp ${amount.toLocaleString()} — ${reason}`]);
+    `, [crypto.randomUUID(), order.tenant_id, refundBy || null, id, `Refund order ${order.order_number} — Rp ${amount.toLocaleString()} — ${reason}`]);
 
     res.json({ success: true, message: `Refund Rp ${amount.toLocaleString()} untuk order ${order.order_number} berhasil diproses` });
   } catch (error: any) {

@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS users (
   pin TEXT NOT NULL,
   password_hash TEXT,
   avatar TEXT,
-  status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
+  status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive', 'deleted')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
