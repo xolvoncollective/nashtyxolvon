@@ -149,7 +149,6 @@ const API = {
       return API.request(`/orders/kitchen/stats?${params}`);
     },
 
-    // Get order configuration (KDS thresholds)
     async getConfig(outletId) {
       try {
         const response = await API.request(`/settings/${outletId || API.session.outletId}`);
@@ -173,6 +172,13 @@ const API = {
           }
         };
       }
+    }
+  },
+
+  // ========== SETTINGS ==========
+  settings: {
+    async get(outletId) {
+      return API.request(`/settings/${outletId || API.session.outletId}`);
     }
   }
 };

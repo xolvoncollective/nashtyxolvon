@@ -207,6 +207,24 @@
             color: #f59e0b;
         }
 
+        .btn-crm {
+            color: #ec4899;
+        }
+
+        .btn-crm .icon {
+            background: #fce7f3;
+            color: #ec4899;
+        }
+
+        .btn-cost {
+            color: #8b5cf6;
+        }
+
+        .btn-cost .icon {
+            background: #ede9fe;
+            color: #8b5cf6;
+        }
+
         .error-message {
             background: #fee;
             color: #c33;
@@ -370,6 +388,22 @@
                             <div class="description">Management & Reports</div>
                         </div>
                     </button>
+
+                    <button class="btn btn-module btn-crm" id="openCrmBtn">
+                        <div class="icon">👥</div>
+                        <div class="content">
+                            <div class="title">Open CRM</div>
+                            <div class="description">Customer Relationship</div>
+                        </div>
+                    </button>
+
+                    <button class="btn btn-module btn-cost" id="openCostBtn">
+                        <div class="icon">💰</div>
+                        <div class="content">
+                            <div class="title">Open Cost</div>
+                            <div class="description">Cost Management</div>
+                        </div>
+                    </button>
                 </div>
 
                 <button class="btn logout-btn" id="logoutBtn">
@@ -403,6 +437,8 @@
         const openPosBtn = document.getElementById('openPosBtn');
         const openKdsBtn = document.getElementById('openKdsBtn');
         const openBackofficeBtn = document.getElementById('openBackofficeBtn');
+        const openCrmBtn = document.getElementById('openCrmBtn');
+        const openCostBtn = document.getElementById('openCostBtn');
         const logoutBtn = document.getElementById('logoutBtn');
 
         // Initialize
@@ -539,6 +575,14 @@
 
         openBackofficeBtn.addEventListener('click', () => {
             openModule('/backoffice/frontend/', 'Backoffice');
+        });
+
+        openCrmBtn.addEventListener('click', () => {
+            openModule('/crm/', 'CRM');
+        });
+
+        openCostBtn.addEventListener('click', () => {
+            openModule('/cost/', 'Cost');
         });
 
         // Open module in new window

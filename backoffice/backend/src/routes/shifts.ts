@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { query, get, run } from '../db/database';
 import crypto from 'crypto';
+import { FinancialCalculationService } from '../services/FinancialCalculationService';
 
 const router = Router();
 
@@ -8,6 +9,7 @@ const router = Router();
 router.post('/start', (req, res) => {
   try {
     const { outletId, userId, startCash } = req.body;
+    console.log('[DEBUG] Shift Start Payload:', { outletId, userId, startCash });
 
     if (!outletId || !userId) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -153,66 +155,13 @@ router.get('/:id/summary', (req, res) => {
   try {
     const { id } = req.params;
 
-    const shift = get(`
-      SELECT s.*, u.name as user_name, o.name as outlet_name
-      FROM shifts s LEFT JOIN users u ON s.user_id = u.id LEFT JOIN outlets o ON s.outlet_id = o.id
-      WHERE s.id = ?
-    `, [id]) as any;
+    const data = FinancialCalculationService.getShiftSummary(id);
 
-    if (!shift) return res.status(404).json({ error: 'Shift not found' });
-
-    // Order summary
-    const orderSummary = get(`
-      SELECT
-        COUNT(*) as total_orders,
-        COUNT(CASE WHEN payment_status = 'paid' AND order_status != 'cancelled' THEN 1 END) as completed_orders,
-        COUNT(CASE WHEN order_status = 'cancelled' THEN 1 END) as void_count,
-        COALESCE(SUM(CASE WHEN payment_status = 'paid' AND order_status != 'cancelled' THEN subtotal ELSE 0 END), 0) as gross_sales,
-        COALESCE(SUM(CASE WHEN payment_status = 'paid' AND order_status != 'cancelled' THEN discount ELSE 0 END), 0) as total_discount,
-        COALESCE(SUM(CASE WHEN payment_status = 'paid' AND order_status != 'cancelled' THEN tax ELSE 0 END), 0) as total_tax,
-        COALESCE(SUM(CASE WHEN payment_status = 'paid' AND order_status != 'cancelled' THEN service_charge ELSE 0 END), 0) as total_sc,
-        COALESCE(SUM(CASE WHEN payment_status = 'paid' AND order_status != 'cancelled' THEN total ELSE 0 END), 0) as net_sales,
-        COALESCE(AVG(CASE WHEN payment_status = 'paid' AND order_status != 'cancelled' THEN total ELSE NULL END), 0) as avg_order_value
-      FROM orders WHERE shift_id = ?
-    `, [id]);
-
-    // Payment method breakdown
-    const paymentBreakdown = query(`
-      SELECT payment_method, COUNT(*) as count, COALESCE(SUM(total), 0) as total_amount
-      FROM orders
-      WHERE shift_id = ? AND payment_status = 'paid' AND order_status != 'cancelled'
-      GROUP BY payment_method
-      ORDER BY total_amount DESC
-    `, [id]);
-
-    // Order type breakdown
-    const orderTypeBreakdown = query(`
-      SELECT order_type, COUNT(*) as count, COALESCE(SUM(total), 0) as total_amount
-      FROM orders
-      WHERE shift_id = ? AND payment_status = 'paid' AND order_status != 'cancelled'
-      GROUP BY order_type
-      ORDER BY total_amount DESC
-    `, [id]);
-
-    // Top products
-    const topProducts = query(`
-      SELECT oi.product_name, SUM(oi.quantity) as total_qty, SUM(oi.subtotal) as total_sales
-      FROM order_items oi
-      JOIN orders o ON oi.order_id = o.id
-      WHERE o.shift_id = ? AND o.payment_status = 'paid' AND o.order_status != 'cancelled'
-      GROUP BY oi.product_id, oi.product_name
-      ORDER BY total_sales DESC LIMIT 10
-    `, [id]);
+    if (!data) return res.status(404).json({ error: 'Shift not found' });
 
     res.json({
       success: true,
-      data: {
-        shift,
-        summary: orderSummary,
-        paymentBreakdown,
-        orderTypeBreakdown,
-        topProducts
-      }
+      data
     });
   } catch (error: any) {
     console.error('Shift summary error:', error);
@@ -325,16 +274,13 @@ router.get('/report/daily', (req, res) => {
       ORDER BY s.started_at
     `, [outletId, targetDate]);
 
-    // Daily totals
-    const dailyTotal = get(`
-      SELECT
-        COUNT(*) as total_orders,
-        COALESCE(SUM(total), 0) as total_revenue,
-        COALESCE(AVG(total), 0) as avg_order_value
-      FROM orders
-      WHERE outlet_id = ? AND DATE(created_at) = DATE(?)
-        AND payment_status = 'paid' AND order_status != 'cancelled'
-    `, [outletId, targetDate]);
+    // Daily totals using shared service logic
+    // But since it's a specific simple query for daily totals, we could use the service or a helper method.
+    // FinancialCalculationService.getSalesSummary handles this well.
+    const dailyTotal = FinancialCalculationService.getSalesSummary(
+      'ignore-tenant-for-internal-query', 
+      [`AND outlet_id = ? AND DATE(created_at) = DATE(?) AND payment_status = 'paid' AND order_status != 'cancelled'`, [outletId, targetDate]]
+    );
 
     res.json({
       success: true,

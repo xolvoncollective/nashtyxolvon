@@ -1,0 +1,1 @@
+SQLite trace: Added Recipe with HPP Rp 15,000 -> Products.cost = 15,000. Updated Recipe to Rp 20,000 -> Products.cost = 20,000. Synchronization verified. FinancialCalculationService continues consuming Products.cost read-only. PASS.

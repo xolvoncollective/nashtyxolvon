@@ -14,7 +14,7 @@ function updateTimers(){
   ORDERS.forEach(o=>{
     if(o.status!=='active') return;
     const sec = getElapsed(o.startTs);
-    const urg = urgClass(sec);
+    const urg = urgClass(sec, o);
 
     const timerEl = document.getElementById('timer-'+o.id);
     if(timerEl){
@@ -37,7 +37,7 @@ function updateTimers(){
   // Update queue summary counts
   const active = ORDERS.filter(o=>o.status==='active');
   const totalItems = active.reduce((s,o)=>s+o.items.reduce((si,i)=>si+i.qty,0),0);
-  const urgCount   = active.filter(o=>urgClass(getElapsed(o.startTs))==='urgent').length;
+  const urgCount   = active.filter(o=>urgClass(getElapsed(o.startTs), o)==='urgent').length;
   const el_o = document.getElementById('qs-orders-n');
   const el_i = document.getElementById('qs-items-n');
   const el_u = document.getElementById('qs-urgent-n');
@@ -50,7 +50,7 @@ function updateTimers(){
   const ustOrders = document.getElementById('ust-orders');
   if(CFG.stickyUrgent && urgCount > 0){
     strip.classList.add('visible');
-    const urgList = active.filter(o=>urgClass(getElapsed(o.startTs))==='urgent');
+    const urgList = active.filter(o=>urgClass(getElapsed(o.startTs), o)==='urgent');
     const expected = urgList.map(o=>o.no).join(',');
     if(ustOrders.dataset.last !== expected){
       ustOrders.dataset.last = expected;

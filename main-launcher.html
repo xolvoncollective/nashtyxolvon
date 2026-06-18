@@ -314,6 +314,24 @@
         <div class="app-arrow">→</div>
       </div>
       
+      <div class="app-button" onclick="openApp('crm')">
+        <div class="app-icon">👥</div>
+        <div class="app-info">
+          <div class="app-name">CRM / Members</div>
+          <div class="app-desc">Customer Relationship Management</div>
+        </div>
+        <div class="app-arrow">→</div>
+      </div>
+      
+      <div class="app-button" onclick="openApp('cost')">
+        <div class="app-icon">💰</div>
+        <div class="app-info">
+          <div class="app-name">Cost Management</div>
+          <div class="app-desc">Food Cost & Recipes</div>
+        </div>
+        <div class="app-arrow">→</div>
+      </div>
+      
       <button class="launch-all" onclick="openAll()">
         🚀 Buka Semua (Testing Mode)
       </button>
@@ -409,7 +427,9 @@
       const urls = {
         pos: '/pos/frontend/index.html',
         kds: '/kds/frontend/index.html',
-        backoffice: '/backoffice/frontend/index.html'
+        backoffice: '/backoffice/frontend/index.html',
+        crm: '/crm/index.html',
+        cost: '/cost/index.html'
       };
       
       const url = urls[appName] + '?token=' + jwtToken;
@@ -420,6 +440,8 @@
       openApp('pos');
       setTimeout(() => openApp('kds'), 300);
       setTimeout(() => openApp('backoffice'), 600);
+      setTimeout(() => openApp('crm'), 900);
+      setTimeout(() => openApp('cost'), 1200);
     }
 
     function logout() {

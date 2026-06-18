@@ -54,6 +54,9 @@ export async function initDatabase() {
     // Create performance indexes
     createPerformanceIndexes();
     
+    // Migrate soft deletes
+    migrateSoftDeletes();
+    
     console.log('✓ Database initialized');
   } catch (error) {
     console.error('Database initialization error:', error);
@@ -71,6 +74,23 @@ function createPerformanceIndexes() {
   } catch (error: any) {
     if (!error.message.includes('already exists')) {
       console.error('Error creating indexes:', error);
+    }
+  }
+}
+
+// Migrate soft deletes for existing tables (Task 4)
+function migrateSoftDeletes() {
+  const tables = ['users', 'members', 'categories', 'products', 'modifier_groups', 'modifier_options', 'payment_methods', 'outlets', 'tenants', 'settings', 'orders', 'crm_customers', 'crm_rewards', 'crm_point_transactions', 'cost_bahan', 'cost_riwayat_harga', 'cost_recipes'];
+  for (const table of tables) {
+    try {
+      const columnsInfo = db.pragma(`table_info(${table})`) as any[];
+      const hasDeletedAt = columnsInfo.some(col => col.name === 'deleted_at');
+      if (!hasDeletedAt) {
+        db.prepare(`ALTER TABLE ${table} ADD COLUMN deleted_at DATETIME DEFAULT NULL`).run();
+        console.log(`✓ Added deleted_at to ${table}`);
+      }
+    } catch (error) {
+      console.error(`Error migrating soft deletes for ${table}:`, error);
     }
   }
 }

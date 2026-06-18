@@ -49,7 +49,13 @@ export const requireAuth = (req: AuthRequest, res: Response, next: NextFunction)
 
 export const requireRole = (roles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
-    // BYPASS ROLE CHECK FOR LOCAL DEV
+    if (!req.user || !roles.includes(req.user.role.toLowerCase())) {
+      return res.status(403).json({
+        success: false,
+        error: 'Forbidden',
+        message: 'Akses ditolak. Peran Anda tidak memiliki izin untuk fitur ini.'
+      });
+    }
     next();
   };
 };

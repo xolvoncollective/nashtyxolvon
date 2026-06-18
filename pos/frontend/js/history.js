@@ -42,6 +42,7 @@
               table: o.table_number || (o.order_type === 'dine' ? 'T??' : 'TAKE'),
               type: o.order_type,
               cashier: o.cashier_name || 'System',
+              date: d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'),
               time: String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'),
               method: o.payment_method,
               status: o.order_status === 'paid' || o.order_status === 'confirmed' ? 'done' : o.order_status,
@@ -82,7 +83,7 @@
       items.forEach(h => {
         const d = document.createElement('div');
         d.className = 'hcard' + (selTxn && selTxn.id === h.id ? ' active' : '') + (h.status === 'voided' || h.status === 'cancelled' ? ' voided' : '');
-        d.innerHTML = `<div class="hc-top"><div class="hc-no">${h.no}</div><div class="hc-st ${h.status}">${h.status === 'done' ? 'SELESAI' : h.status === 'voided' || h.status === 'cancelled' ? 'VOID' : 'TERBUKA'}</div></div><div class="hc-meta"><span>${h.time}</span><span>${h.type === 'take' ? 'Take Away' : 'Meja ' + h.table}</span><span>${h.cashier}</span><span>${h.method}</span></div><div class="hc-total">${fr(h.total)}</div>`;
+        d.innerHTML = `<div class="hc-top"><div class="hc-no">${h.no}</div><div class="hc-st ${h.status}">${h.status === 'done' ? 'SELESAI' : h.status === 'voided' || h.status === 'cancelled' ? 'VOID' : 'TERBUKA'}</div></div><div class="hc-meta"><span>${h.date} ${h.time} WIB</span><span>${h.type === 'take' ? 'Take Away' : 'Meja ' + h.table}</span><span>${h.cashier}</span><span>${h.method}</span></div><div class="hc-total">${fr(h.total)}</div>`;
         d.onclick = () => selHist(h); el.appendChild(d);
       });
 
@@ -100,7 +101,7 @@
     function selHist(h) {
       selTxn = h; renderHistUI();
       document.getElementById('hd-no').textContent = h.no;
-      document.getElementById('hd-meta').innerHTML = `<span>Hari ini · ${h.time}</span><span>${h.type === 'take' ? 'Take Away' : 'Meja ' + h.table}</span><span>Kasir: ${h.cashier}</span>${h.member ? `<span>Member: ${h.member}</span>` : ''}`;
+      document.getElementById('hd-meta').innerHTML = `<span>${h.date} ${h.time} WIB</span><span>${h.type === 'take' ? 'Take Away' : 'Meja ' + h.table}</span><span>Kasir: ${h.cashier}</span>${h.member ? `<span>Member: ${h.member}</span>` : ''}`;
       document.getElementById('hd-acts').style.display = 'flex';
       document.getElementById('btn-void-o').classList.toggle('off', h.status === 'voided');
       const rep = '- '.repeat(22);
@@ -123,7 +124,7 @@
     <div class="rdiv">${rep}</div>
     <div class="rc">Queue No: ${h.id + 10}</div>
     <div class="rdiv">${rep}</div>
-    <div class="rrow rsm"><span>Hari ini · ${h.time}</span><span></span></div>
+    <div class="rrow rsm"><span>${h.date} ${h.time} WIB</span><span></span></div>
     <div class="rrow rsm"><span>Receipt</span><span>${h.no.replace('SNY-', '')}</span></div>
     <div class="rrow rsm"><span>Kasir</span><span>${h.cashier}</span></div>
     ${h.member ? `<div class="rrow rsm"><span>Member</span><span>${h.member}</span></div>` : ''}

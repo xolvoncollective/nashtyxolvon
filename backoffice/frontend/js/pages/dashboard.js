@@ -1,5 +1,5 @@
 // DASHBOARD
-const frS = n => n >= 1e6 ? 'Rp ' + (n / 1e6).toFixed(1) + 'jt' : n >= 1e3 ? 'Rp ' + (n / 1e3).toFixed(0) + 'rb' : 'Rp ' + n;
+const frS = n => 'Rp ' + (n || 0).toLocaleString('id-ID');
 PAGES.dashboard = async () => {
   let kpi = { totalOrders: 0, netRevenue: 0, averageOrderValue: 0, growth: 0, topProducts: [], salesByType: [] };
   let chartData = [];
@@ -33,7 +33,10 @@ PAGES.dashboard = async () => {
   const growthVal = kpi.growth || 0;
 
   return `
-<div class="ph"><div class="ph-title">Selamat datang, Kasir</div><div class="ph-sub">${new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} · Outlet Aktif</div></div>
+<div class="ph" style="display:flex; justify-content:space-between; align-items:center;">
+  <div><div class="ph-title">Selamat datang, Kasir</div><div class="ph-sub">\${new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} · Outlet Aktif</div></div>
+  <button class="btn" style="padding:6px 12px;font-size:12px" onclick="nav('dashboard')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Refresh</button>
+</div>
 
 <div class="kpi-grid">
  <div class="kpi" style="--kc:var(--or)">

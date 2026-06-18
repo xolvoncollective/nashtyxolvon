@@ -131,7 +131,7 @@
     let memInput = '', memMode = 'npd';
     const VOID_PIN = '1234';
     const fr = n => 'Rp ' + n.toLocaleString('id-ID');
-    const frS = n => n >= 1e6 ? 'Rp ' + (n / 1e6).toFixed(1) + 'jt' : n >= 1e3 ? 'Rp ' + (n / 1e3).toFixed(0) + 'rb' : 'Rp ' + n;
+    const frS = n => 'Rp ' + n.toLocaleString('id-ID');
     const pad = n => String(n).padStart(2, '0');
     const MEMBERS = { '08123456789': { name: 'Ahmad Sudirman', phone: '0812-3456-789', seg: 'vip', v: 34, sp: 3240000 }, '08578765432': { name: 'Rina Kusuma', phone: '0857-8765-432', seg: 'loyal', v: 16, sp: 1120000 }, '08781234567': { name: 'Doni Prasetyo', phone: '0878-1234-567', seg: 'regular', v: 5, sp: 345000 } };
     const SEG = { vip: ['s-vip', '⭐ VIP'], loyal: ['s-loy', 'Loyal'], regular: ['s-reg', 'Reguler'], new: ['s-new', 'Baru'] };

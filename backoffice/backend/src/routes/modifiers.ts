@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { query, get, run } from '../db/database';
+import { insert, update, softDelete } from '../db/persistence';
 import crypto from 'crypto';
 
 const router = Router();
@@ -15,10 +16,10 @@ router.get('/', (req, res) => {
 
     const groups = query(`
       SELECT mg.*,
-        (SELECT COUNT(*) FROM modifier_options mo WHERE mo.group_id = mg.id AND mo.status = 'active') as option_count,
-        (SELECT COUNT(*) FROM product_modifiers pm WHERE pm.modifier_group_id = mg.id) as product_count
+        (SELECT COUNT(*) FROM modifier_options mo WHERE mo.group_id = mg.id AND mo.status = 'active' AND mo.deleted_at IS NULL) as option_count,
+        (SELECT COUNT(*) FROM product_modifiers pm JOIN products p ON pm.product_id = p.id WHERE pm.modifier_group_id = mg.id AND p.deleted_at IS NULL) as product_count
       FROM modifier_groups mg
-      WHERE mg.tenant_id = ? AND mg.status = 'active'
+      WHERE mg.tenant_id = ? AND mg.status = 'active' AND mg.deleted_at IS NULL
       ORDER BY mg.display_order, mg.name
     `, [tenantId]);
 
@@ -27,7 +28,7 @@ router.get('/', (req, res) => {
       group.options = query(`
         SELECT id, name, price_adjustment, display_order, status
         FROM modifier_options
-        WHERE group_id = ? AND status = 'active'
+        WHERE group_id = ? AND status = 'active' AND deleted_at IS NULL
         ORDER BY display_order, name
       `, [group.id]);
     }
@@ -50,19 +51,28 @@ router.post('/', (req, res) => {
 
     const groupId = crypto.randomUUID();
 
-    run(`
-      INSERT INTO modifier_groups (id, tenant_id, name, description, type, required, min_select, max_select)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `, [groupId, tenantId, name, description || null, type, required ? 1 : 0, minSelect || 0, maxSelect || 1]);
+    insert('modifier_groups', {
+      id: groupId,
+      tenant_id: tenantId,
+      name,
+      description: description || null,
+      type,
+      required: required ? 1 : 0,
+      min_select: minSelect || 0,
+      max_select: maxSelect || 1
+    });
 
     // Insert options if provided
     if (options && Array.isArray(options)) {
       for (let i = 0; i < options.length; i++) {
         const opt = options[i];
-        run(`
-          INSERT INTO modifier_options (id, group_id, name, price_adjustment, display_order)
-          VALUES (?, ?, ?, ?, ?)
-        `, [crypto.randomUUID(), groupId, opt.name, opt.priceAdjustment || 0, i + 1]);
+        insert('modifier_options', {
+          id: crypto.randomUUID(),
+          group_id: groupId,
+          name: opt.name,
+          price_adjustment: opt.priceAdjustment || 0,
+          display_order: i + 1
+        });
       }
     }
 
@@ -82,29 +92,24 @@ router.put('/:id', (req, res) => {
     const { id } = req.params;
     const { name, description, type, required, minSelect, maxSelect } = req.body;
 
-    const existing = get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
+    const existing = get('SELECT * FROM modifier_groups WHERE id = ? AND deleted_at IS NULL', [id]);
     if (!existing) {
       return res.status(404).json({ error: 'Modifier group not found' });
     }
 
-    const updates: string[] = [];
-    const params: any[] = [];
+    const updates: Record<string, any> = {};
 
-    if (name) { updates.push('name = ?'); params.push(name); }
-    if (description !== undefined) { updates.push('description = ?'); params.push(description); }
-    if (type) { updates.push('type = ?'); params.push(type); }
-    if (required !== undefined) { updates.push('required = ?'); params.push(required ? 1 : 0); }
-    if (minSelect !== undefined) { updates.push('min_select = ?'); params.push(minSelect); }
-    if (maxSelect !== undefined) { updates.push('max_select = ?'); params.push(maxSelect); }
+    if (name) updates['name'] = name;
+    if (description !== undefined) updates['description'] = description;
+    if (type) updates['type'] = type;
+    if (required !== undefined) updates['required'] = required ? 1 : 0;
+    if (minSelect !== undefined) updates['min_select'] = minSelect;
+    if (maxSelect !== undefined) updates['max_select'] = maxSelect;
 
-    updates.push('updated_at = ?');
-    params.push(new Date().toISOString());
-    params.push(id);
-
-    run(`UPDATE modifier_groups SET ${updates.join(', ')} WHERE id = ?`, params);
+    update('modifier_groups', id, updates);
 
     const group = get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
-    (group as any).options = query('SELECT * FROM modifier_options WHERE group_id = ? AND status = \'active\' ORDER BY display_order', [id]);
+    (group as any).options = query('SELECT * FROM modifier_options WHERE group_id = ? AND status = \'active\' AND deleted_at IS NULL ORDER BY display_order', [id]);
 
     res.json({ success: true, modifier: group });
   } catch (error: any) {
@@ -118,12 +123,13 @@ router.delete('/:id', (req, res) => {
   try {
     const { id } = req.params;
 
-    const existing = get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
+    const existing = get('SELECT * FROM modifier_groups WHERE id = ? AND deleted_at IS NULL', [id]);
     if (!existing) {
       return res.status(404).json({ error: 'Modifier group not found' });
     }
 
-    run('UPDATE modifier_groups SET status = ?, updated_at = ? WHERE id = ?', ['inactive', new Date().toISOString(), id]);
+    softDelete('modifier_groups', id);
+    run('UPDATE modifier_options SET deleted_at = CURRENT_TIMESTAMP WHERE group_id = ? AND deleted_at IS NULL', [id]);
 
     res.json({ success: true, message: 'Modifier group berhasil dihapus' });
   } catch (error: any) {
@@ -142,20 +148,23 @@ router.post('/:id/options', (req, res) => {
       return res.status(400).json({ error: 'name is required' });
     }
 
-    const existing = get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
+    const existing = get('SELECT * FROM modifier_groups WHERE id = ? AND deleted_at IS NULL', [id]);
     if (!existing) {
       return res.status(404).json({ error: 'Modifier group not found' });
     }
 
     // Get next display order
-    const lastOrder = get('SELECT MAX(display_order) as max_order FROM modifier_options WHERE group_id = ?', [id]);
+    const lastOrder = get('SELECT MAX(display_order) as max_order FROM modifier_options WHERE group_id = ? AND deleted_at IS NULL', [id]);
     const nextOrder = ((lastOrder as any)?.max_order || 0) + 1;
 
     const optionId = crypto.randomUUID();
-    run(`
-      INSERT INTO modifier_options (id, group_id, name, price_adjustment, display_order)
-      VALUES (?, ?, ?, ?, ?)
-    `, [optionId, id, name, priceAdjustment || 0, nextOrder]);
+    insert('modifier_options', {
+      id: optionId,
+      group_id: id,
+      name,
+      price_adjustment: priceAdjustment || 0,
+      display_order: nextOrder
+    });
 
     const option = get('SELECT * FROM modifier_options WHERE id = ?', [optionId]);
 
@@ -171,12 +180,12 @@ router.delete('/options/:optionId', (req, res) => {
   try {
     const { optionId } = req.params;
 
-    const existing = get('SELECT * FROM modifier_options WHERE id = ?', [optionId]);
+    const existing = get('SELECT * FROM modifier_options WHERE id = ? AND deleted_at IS NULL', [optionId]);
     if (!existing) {
       return res.status(404).json({ error: 'Modifier option not found' });
     }
 
-    run('UPDATE modifier_options SET status = ? WHERE id = ?', ['inactive', optionId]);
+    softDelete('modifier_options', optionId);
 
     res.json({ success: true, message: 'Modifier option berhasil dihapus' });
   } catch (error: any) {
@@ -190,7 +199,7 @@ router.get('/:id/products', (req, res) => {
   try {
     const { id } = req.params;
 
-    const existing = get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
+    const existing = get('SELECT * FROM modifier_groups WHERE id = ? AND deleted_at IS NULL', [id]);
     if (!existing) {
       return res.status(404).json({ error: 'Modifier group not found' });
     }
@@ -200,7 +209,7 @@ router.get('/:id/products', (req, res) => {
       FROM products p
       JOIN product_modifiers pm ON p.id = pm.product_id
       LEFT JOIN categories c ON p.category_id = c.id
-      WHERE pm.modifier_group_id = ?
+      WHERE pm.modifier_group_id = ? AND p.deleted_at IS NULL
       ORDER BY p.name
     `, [id]);
 
@@ -221,12 +230,12 @@ router.post('/:id/assign-product', (req, res) => {
       return res.status(400).json({ error: 'productId is required' });
     }
 
-    const existing = get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
+    const existing = get('SELECT * FROM modifier_groups WHERE id = ? AND deleted_at IS NULL', [id]);
     if (!existing) {
       return res.status(404).json({ error: 'Modifier group not found' });
     }
 
-    const product = get('SELECT * FROM products WHERE id = ?', [productId]);
+    const product = get('SELECT * FROM products WHERE id = ? AND deleted_at IS NULL', [productId]);
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }
@@ -241,10 +250,14 @@ router.post('/:id/assign-product', (req, res) => {
     const lastOrder = get('SELECT MAX(display_order) as max_order FROM product_modifiers WHERE product_id = ?', [productId]);
     const nextOrder = ((lastOrder as any)?.max_order || 0) + 1;
 
-    run('INSERT INTO product_modifiers (product_id, modifier_group_id, display_order) VALUES (?, ?, ?)', [productId, id, nextOrder]);
+    insert('product_modifiers', {
+      product_id: productId,
+      modifier_group_id: id,
+      display_order: nextOrder
+    });
 
     // Mark product as has_modifiers = 1
-    run('UPDATE products SET has_modifiers = 1, updated_at = ? WHERE id = ?', [new Date().toISOString(), productId]);
+    update('products', productId, { has_modifiers: 1 });
 
     res.json({ success: true, message: 'Product assigned to modifier group' });
   } catch (error: any) {
@@ -263,7 +276,7 @@ router.delete('/:id/unassign-product/:productId', (req, res) => {
     // If product has no more modifiers, set has_modifiers = 0
     const remaining = get('SELECT COUNT(*) as cnt FROM product_modifiers WHERE product_id = ?', [productId]);
     if ((remaining as any)?.cnt === 0) {
-      run('UPDATE products SET has_modifiers = 0, updated_at = ? WHERE id = ?', [new Date().toISOString(), productId]);
+      update('products', productId, { has_modifiers: 0 });
     }
 
     res.json({ success: true, message: 'Product unassigned from modifier group' });

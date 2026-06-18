@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import { get, query, run } from '../db/database';
+import { insert } from '../db/persistence';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+import { MemberService } from '../services/MemberService';
 
 const router = Router();
 
@@ -26,23 +28,8 @@ router.post('/auth/login', (req, res) => {
       // We will actually just auto-login for MVP if phone is provided.
     }
 
-    // Find member by phone
-    let member = get('SELECT * FROM members WHERE phone = ?', [phone]) as any;
-
-    if (!member) {
-      // Auto-register
-      const memberId = crypto.randomUUID();
-      // Assume a default tenant for demo
-      const tenant = get('SELECT id FROM tenants LIMIT 1') as any;
-      if (!tenant) return res.status(500).json({ error: 'Sistem belum dikonfigurasi (No tenant found)' });
-
-      run(`
-        INSERT INTO members (id, tenant_id, name, phone, pin_hash, points, segment)
-        VALUES (?, ?, ?, ?, ?, 0, 'new')
-      `, [memberId, tenant.id, name || 'Member Baru', phone, '1234']); // store plain PIN for demo
-
-      member = get('SELECT * FROM members WHERE id = ?', [memberId]);
-    }
+    // Find member by phone, register if new
+    const member = MemberService.validateOrRegisterMember(phone, name);
 
     // Generate JWT
     const token = jwt.sign(
@@ -90,7 +77,7 @@ const requireMemberAuth = (req: any, res: any, next: any) => {
 router.get('/profile', requireMemberAuth, (req: any, res) => {
   try {
     const memberId = req.member.id;
-    const member = get('SELECT * FROM members WHERE id = ?', [memberId]) as any;
+    const member = get('SELECT * FROM members WHERE id = ? AND deleted_at IS NULL', [memberId]) as any;
     
     if (!member) {
       return res.status(404).json({ error: 'Member tidak ditemukan' });

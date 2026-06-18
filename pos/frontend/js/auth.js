@@ -55,6 +55,11 @@
     }
     async function doLogin(staff) {
       currentUser = staff;
+      if (typeof API !== 'undefined' && API.session) {
+        API.session.user = staff;
+        API.session.outletId = staff.outletId || 'demo-outlet';
+        API.session.tenantId = staff.tenantId || 'demo-tenant';
+      }
       document.getElementById('login-screen').style.display = 'none';
       const shell = document.getElementById('app-shell');
       shell.style.display = 'flex';

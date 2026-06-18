@@ -366,3 +366,27 @@ tbody td.mono{font-family:var(--mo);font-size:12.5px}
 .pg-btn:hover{background:var(--sf2)}
 .pg-btn.act{background:var(--or);color:#fff;border-color:var(--or)}
 .pg-info{font-size:12px;color:var(--txt3);margin:0 6px}
+.tb-profile-wrapper { position: relative; display: inline-block; }
+.profile-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 40px;
+  background: var(--bg);
+  min-width: 150px;
+  box-shadow: 0 4px 12px var(--shadow);
+  border-radius: 8px;
+  z-index: 1000;
+  border: 1px solid var(--brd);
+  overflow: hidden;
+}
+.profile-dropdown.show { display: block; }
+.profile-dropdown a {
+  color: var(--txt);
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  font-size: 14px;
+}
+.profile-dropdown a:hover { background: var(--hover); }
+

@@ -95,8 +95,10 @@ async function fetchOrders() {
         }
       }
       
-      ORDERS = newOrders;
-      render();
+      if (JSON.stringify(ORDERS) !== JSON.stringify(newOrders)) {
+        ORDERS = newOrders;
+        render();
+      }
       
       if (hasNew) {
         playSound('new');
