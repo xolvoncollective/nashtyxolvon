@@ -268,52 +268,79 @@
         })
       };
 
+      function handleSuccess(orderNo, isOffline) {
+        var newId = HISTORY.length ? HISTORY[0].id + 1 : 1;
+        var now = new Date();
+        var hh = String(now.getHours()).padStart(2, '0');
+        var mm = String(now.getMinutes()).padStart(2, '0');
+        var PM_LABELS = { cash: 'Tunai', qris: 'QRIS', bca: 'BCA', debit: 'Debit', gofood: 'GoFood', grabfood: 'GrabFood', shopee: 'ShopeeFood', transfer: 'Transfer' };
+        HISTORY.unshift({
+          id: newId,
+          no: orderNo || ('SNY-' + String(newId + 186).padStart(4, '0')),
+          table: orderData.table_number || orderData.tableNumber,
+          type: orderType,
+          cashier: (typeof currentUser !== 'undefined' && currentUser) ? currentUser.name : 'Kasir',
+          time: hh + ':' + mm,
+          method: PM_LABELS[pmSel] || pmSel,
+          status: 'done',
+          sub: sub, disc: disc, tax: tax, svc: svc, tips: 0, total: grand,
+          member: (typeof curMember !== 'undefined') ? curMember : null, delivNote: delivNote,
+          items: cart.map(function(i) {
+             var mods = i.selectedOpts ? Object.values(i.selectedOpts).flat() : [];
+             if (i.addonNames) mods = mods.concat(i.addonNames.split(', ').map(a => '+' + a));
+             if (i.note) mods.push(i.note);
+             return { id: i.id, n: i.n, qty: i.qty, p: i.p, mods: mods };
+          }),
+          isOffline: isOffline
+        });
+
+        document.getElementById('pay-ov')?.remove();
+        showSuccess(grand, chg, delivNote, isOffline);
+      }
+
+      if (!navigator.onLine) {
+         if (typeof SyncManager !== 'undefined') {
+            const offlineId = await SyncManager.saveOrder(orderData);
+            handleSuccess(offlineId, true);
+         } else {
+            toast('Aplikasi dalam mode offline', 'err');
+            if (btn) { btn.innerHTML = 'Konfirmasi'; btn.disabled = false; }
+         }
+         return;
+      }
+
       try {
         const res = await API.orders.create(orderData);
         if (res.success) {
-          // Push to local mockup HISTORY so UI doesn't break instantly
-          // This is a hybrid approach to keep the UI snappy
-          var newId = HISTORY.length ? HISTORY[0].id + 1 : 1;
-          var now = new Date();
-          var hh = String(now.getHours()).padStart(2, '0');
-          var mm = String(now.getMinutes()).padStart(2, '0');
-          var PM_LABELS = { cash: 'Tunai', qris: 'QRIS', bca: 'BCA', debit: 'Debit', gofood: 'GoFood', grabfood: 'GrabFood', shopee: 'ShopeeFood', transfer: 'Transfer' };
-          HISTORY.unshift({
-            id: newId,
-            no: res.order ? res.order.order_number : ('SNY-' + String(newId + 186).padStart(4, '0')),
-            table: orderData.table_number,
-            type: orderType,
-            cashier: currentUser ? currentUser.name : 'Kasir',
-            time: hh + ':' + mm,
-            method: PM_LABELS[pmSel] || pmSel,
-            status: 'done',
-            sub: sub, disc: disc, tax: tax, svc: svc, tips: 0, total: grand,
-            member: curMember, delivNote: delivNote,
-            items: cart.map(function(i) {
-               var mods = i.selectedOpts ? Object.values(i.selectedOpts).flat() : [];
-               if (i.addonNames) mods = mods.concat(i.addonNames.split(', ').map(a => '+' + a));
-               if (i.note) mods.push(i.note);
-               return { id: i.id, n: i.n, qty: i.qty, p: i.p, mods: mods };
-            })
-          });
-
-          document.getElementById('pay-ov')?.remove();
-          showSuccess(grand, chg, delivNote);
+          handleSuccess(res.order ? res.order.order_number : null, false);
         } else {
           toast('Gagal: ' + res.error, 'err');
           if (btn) { btn.innerHTML = 'Konfirmasi'; btn.disabled = false; }
         }
       } catch (err) {
         console.error(err);
-        toast('Gagal memproses pesanan: ' + err.message, 'err');
-        if (btn) { btn.innerHTML = 'Konfirmasi'; btn.disabled = false; }
+        if (err.message.toLowerCase().includes('fetch') || err.message.toLowerCase().includes('network')) {
+           if (typeof SyncManager !== 'undefined') {
+              const offlineId = await SyncManager.saveOrder(orderData);
+              handleSuccess(offlineId, true);
+           } else {
+              toast('Gagal memproses pesanan (Jaringan Terputus)', 'err');
+              if (btn) { btn.innerHTML = 'Konfirmasi'; btn.disabled = false; }
+           }
+        } else {
+           toast('Gagal memproses pesanan: ' + err.message, 'err');
+           if (btn) { btn.innerHTML = 'Konfirmasi'; btn.disabled = false; }
+        }
       }
     }
 
 
-    function showSuccess(total, change, delivNote) {
+    function showSuccess(total, change, delivNote, isOffline = false) {
       const ov = document.createElement('div'); ov.className = 'ov'; ov.id = 'mo-ok';
-      ov.innerHTML = `<div class="mo smo"><div class="mo-b" style="padding:24px"><div class="sico"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="stitl">Pembayaran Berhasil!</div><div class="ssub">Pesanan dikirim ke dapur</div>${change > 0 ? `<div class="chg-box"><div class="chg-lbl">Kembalian</div><div class="chg-amt">${fr(change)}</div></div>` : `<div style="background:var(--orM);border:1px solid rgba(228,84,12,.18);border-radius:12px;padding:13px;margin-bottom:14px;text-align:center"><div style="font-size:9.5px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Total Dibayar</div><div style="font-size:24px;font-weight:900;color:var(--or);font-family:var(--mo)">${fr(total)}</div></div>`}<button class="btn-new" onclick="newOrder()">+ Order Baru</button></div></div>`;
+      const title = isOffline ? 'Tersimpan Lokal (Offline)' : 'Pembayaran Berhasil!';
+      const subtitle = isOffline ? 'Akan dikirim otomatis saat online' : 'Pesanan dikirim ke dapur';
+      const iconColor = isOffline ? '#F59E0B' : '#22C55E';
+      ov.innerHTML = `<div class="mo smo"><div class="mo-b" style="padding:24px"><div class="sico"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${isOffline ? '<path d="M10.58 10.58a2 2 0 0 0 2.83 2.83"/><path d="M15.54 15.54a5 5 0 0 0-7.07-7.07"/><path d="M20.49 20.49a9 9 0 0 0-12.73-12.73"/><line x1="2" y1="2" x2="22" y2="22"/>' : '<polyline points="20 6 9 17 4 12"/>'}</svg></div><div class="stitl" style="color:${iconColor}">${title}</div><div class="ssub">${subtitle}</div>${change > 0 ? `<div class="chg-box"><div class="chg-lbl">Kembalian</div><div class="chg-amt">${fr(change)}</div></div>` : `<div style="background:var(--orM);border:1px solid rgba(228,84,12,.18);border-radius:12px;padding:13px;margin-bottom:14px;text-align:center"><div style="font-size:9.5px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Total Dibayar</div><div style="font-size:24px;font-weight:900;color:var(--or);font-family:var(--mo)">${fr(total)}</div></div>`}<button class="btn-new" onclick="newOrder()">+ Order Baru</button></div></div>`;
       ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
       document.body.appendChild(ov);
     }

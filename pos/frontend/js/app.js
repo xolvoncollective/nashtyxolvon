@@ -284,6 +284,15 @@
     initLogin();
     fetchMenuData();
     
+    // Initialize Offline Sync Manager
+    if (typeof SyncManager !== 'undefined') {
+      SyncManager.init();
+      window.addEventListener('online', () => {
+        SyncManager.updateUI();
+        SyncManager.syncOrders();
+      });
+      window.addEventListener('offline', SyncManager.updateUI);
+    }
     // Refresh menu every 5 minutes (cache TTL)
     setInterval(() => {
       console.log('Auto-refreshing menu (5-minute interval)');
