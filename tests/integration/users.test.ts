@@ -147,7 +147,7 @@ describe('Users API Integration Tests', () => {
         .set('Authorization', `Bearer ${adminToken}`);
       
       const deletedUser = getRes.body.users.find((u: any) => u.id === testUserId);
-      expect(deletedUser.status).toBe('inactive'); // soft delete sets status to inactive
+      expect(deletedUser).toBeUndefined(); // soft delete hides user from list
     });
   });
 });

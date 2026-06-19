@@ -45,16 +45,16 @@ PAGES.dashboard = async () => {
  <div class="kpi-sub">${kpi.totalOrders || 0} transaksi</div>
  <div class="kpi-delta ${growthVal >= 0 ? 'delta-up' : 'delta-dn'}">${growthVal >= 0 ? '↑' : '↓'} ${Math.abs(growthVal)}% vs kemarin</div>
  </div>
- <div class="kpi" style="--kc:var(--gn)">
- <div class="kpi-lbl">Rata-rata Order</div>
- <div class="kpi-val">${frS(kpi.averageOrderValue || 0)}</div>
- <div class="kpi-sub">Per transaksi</div>
- <div class="kpi-delta delta-up"></div>
+ <div class="kpi" style="--kc:#EF4444">
+ <div class="kpi-lbl">Pengeluaran Hari Ini (Nashtycost)</div>
+ <div class="kpi-val">${frS(kpi.totalCosts || 0)}</div>
+ <div class="kpi-sub">Biaya operasional</div>
+ <div class="kpi-delta delta-dn"></div>
  </div>
- <div class="kpi" style="--kc:var(--bl)">
- <div class="kpi-lbl">Transaksi Hari Ini</div>
- <div class="kpi-val">${kpi.totalOrders || 0}</div>
- <div class="kpi-sub">Data Real-Time</div>
+ <div class="kpi" style="--kc:var(--gn)">
+ <div class="kpi-lbl">Laba Kotor Hari Ini (Gross Profit)</div>
+ <div class="kpi-val">${frS(kpi.grossProfit || 0)}</div>
+ <div class="kpi-sub">Pendapatan - Pengeluaran</div>
  <div class="kpi-delta delta-up"></div>
  </div>
 </div>

@@ -9,8 +9,7 @@ CREATE TABLE IF NOT EXISTS tenants (
   plan TEXT DEFAULT 'starter' CHECK(plan IN ('starter', 'pro', 'enterprise')),
   status TEXT DEFAULT 'active' CHECK(status IN ('active', 'suspended', 'cancelled')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  deleted_at DATETIME DEFAULT NULL
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Outlets (Stores/Locations)
@@ -24,7 +23,6 @@ CREATE TABLE IF NOT EXISTS outlets (
   status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  deleted_at DATETIME DEFAULT NULL,
   FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
   UNIQUE(tenant_id, slug)
 );
@@ -44,7 +42,6 @@ CREATE TABLE IF NOT EXISTS users (
   status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive', 'deleted')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  deleted_at DATETIME DEFAULT NULL,
   FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
   FOREIGN KEY (outlet_id) REFERENCES outlets(id) ON DELETE SET NULL
 );
@@ -63,7 +60,6 @@ CREATE TABLE IF NOT EXISTS members (
   status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  deleted_at DATETIME DEFAULT NULL,
   FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
   UNIQUE(tenant_id, phone)
 );
@@ -81,7 +77,6 @@ CREATE TABLE IF NOT EXISTS categories (
   status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  deleted_at DATETIME DEFAULT NULL,
   FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
   UNIQUE(tenant_id, slug)
 );
@@ -106,7 +101,6 @@ CREATE TABLE IF NOT EXISTS products (
   status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive', 'soldout')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  deleted_at DATETIME DEFAULT NULL,
   FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
   FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
   UNIQUE(tenant_id, slug)
@@ -126,7 +120,6 @@ CREATE TABLE IF NOT EXISTS modifier_groups (
   status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  deleted_at DATETIME DEFAULT NULL,
   FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
 );
 
@@ -139,7 +132,6 @@ CREATE TABLE IF NOT EXISTS modifier_options (
   display_order INTEGER DEFAULT 0,
   status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  deleted_at DATETIME DEFAULT NULL,
   FOREIGN KEY (group_id) REFERENCES modifier_groups(id) ON DELETE CASCADE
 );
 
@@ -197,7 +189,6 @@ CREATE TABLE IF NOT EXISTS orders (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   completed_at DATETIME,
-  deleted_at DATETIME DEFAULT NULL,
   FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
   FOREIGN KEY (outlet_id) REFERENCES outlets(id) ON DELETE CASCADE,
   FOREIGN KEY (shift_id) REFERENCES shifts(id) ON DELETE SET NULL,
@@ -244,7 +235,6 @@ CREATE TABLE IF NOT EXISTS payment_methods (
   status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  deleted_at DATETIME DEFAULT NULL,
   FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
 );
 
@@ -274,7 +264,6 @@ CREATE TABLE IF NOT EXISTS settings (
   type TEXT DEFAULT 'string' CHECK(type IN ('string', 'number', 'boolean', 'json')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  deleted_at DATETIME DEFAULT NULL,
   FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
   FOREIGN KEY (outlet_id) REFERENCES outlets(id) ON DELETE CASCADE,
   UNIQUE(tenant_id, outlet_id, key)
@@ -305,90 +294,17 @@ CREATE TABLE IF NOT EXISTS stations (
   FOREIGN KEY (outlet_id) REFERENCES outlets(id) ON DELETE CASCADE
 );
 
--- Cost Management: Bahan
-CREATE TABLE IF NOT EXISTS cost_bahan (
+-- Nashtycosts (Operational Costs)
+CREATE TABLE IF NOT EXISTS nashtycosts (
   id TEXT PRIMARY KEY,
   tenant_id TEXT NOT NULL,
-  nama TEXT NOT NULL,
-  kategori TEXT,
-  harga_beli REAL DEFAULT 0,
-  satuan TEXT,
-  yield_pct REAL DEFAULT 1,
-  stok REAL DEFAULT 0,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  deleted_at DATETIME DEFAULT NULL
-);
-
--- Cost Management: Riwayat Harga
-CREATE TABLE IF NOT EXISTS cost_riwayat_harga (
-  id TEXT PRIMARY KEY,
-  tenant_id TEXT NOT NULL,
-  bahan_id TEXT NOT NULL,
-  bahan_nama TEXT,
-  harga_lama REAL DEFAULT 0,
-  harga_baru REAL DEFAULT 0,
-  delta REAL DEFAULT 0,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  deleted_at DATETIME DEFAULT NULL
-);
-
--- Cost Management: Recipes
-CREATE TABLE IF NOT EXISTS cost_recipes (
-  id TEXT PRIMARY KEY,
-  tenant_id TEXT NOT NULL,
-  nama TEXT NOT NULL,
-  kategori TEXT,
-  status TEXT DEFAULT 'rnd',
-  hpp_total REAL DEFAULT 0,
-  harga_jual REAL DEFAULT 0,
-  food_cost_pct REAL DEFAULT 0,
-  margin REAL DEFAULT 0,
-  iterasi INTEGER DEFAULT 1,
-  chef_penanggung TEXT,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  deleted_at DATETIME DEFAULT NULL
-);
-
--- CRM Management: Customers
-CREATE TABLE IF NOT EXISTS crm_customers (
-  id TEXT PRIMARY KEY,
-  tenant_id TEXT NOT NULL,
-  name TEXT NOT NULL,
-  phone TEXT,
-  email TEXT,
-  points INTEGER DEFAULT 0,
-  total_spent REAL DEFAULT 0,
-  visit_count INTEGER DEFAULT 0,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  deleted_at DATETIME DEFAULT NULL
-);
-
--- CRM Management: Rewards
-CREATE TABLE IF NOT EXISTS crm_rewards (
-  id TEXT PRIMARY KEY,
-  tenant_id TEXT NOT NULL,
-  title TEXT NOT NULL,
-  points_required INTEGER DEFAULT 0,
-  description TEXT,
-  is_active INTEGER DEFAULT 1,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  deleted_at DATETIME DEFAULT NULL
-);
-
--- CRM Management: Point Transactions
-CREATE TABLE IF NOT EXISTS crm_point_transactions (
-  id TEXT PRIMARY KEY,
-  tenant_id TEXT NOT NULL,
-  customer_id TEXT NOT NULL,
-  points INTEGER DEFAULT 0,
-  type TEXT DEFAULT 'earn' CHECK(type IN ('earn', 'redeem')),
+  outlet_id TEXT,
+  amount REAL NOT NULL,
+  category TEXT NOT NULL CHECK(category IN ('bahan-baku', 'operasional', 'gaji', 'utilitas', 'sewa', 'lainnya')),
   description TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  deleted_at DATETIME DEFAULT NULL,
-  FOREIGN KEY (customer_id) REFERENCES crm_customers(id) ON DELETE CASCADE
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+  FOREIGN KEY (outlet_id) REFERENCES outlets(id) ON DELETE SET NULL
 );
 
 -- Indexes for performance
@@ -411,3 +327,6 @@ CREATE INDEX IF NOT EXISTS idx_shifts_user ON shifts(user_id);
 CREATE INDEX IF NOT EXISTS idx_activity_logs_tenant ON activity_logs(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_payments_order ON payments(order_id);
 CREATE INDEX IF NOT EXISTS idx_stations_outlet ON stations(outlet_id);
+CREATE INDEX IF NOT EXISTS idx_nashtycosts_tenant ON nashtycosts(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_nashtycosts_outlet ON nashtycosts(outlet_id);
+CREATE INDEX IF NOT EXISTS idx_nashtycosts_created ON nashtycosts(created_at);

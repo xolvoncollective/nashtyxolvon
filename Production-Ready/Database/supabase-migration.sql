@@ -14,7 +14,7 @@ DO $$ BEGIN
     END IF;
     
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'status_type') THEN
-        CREATE TYPE status_type AS ENUM ('active', 'inactive', 'suspended', 'cancelled');
+        CREATE TYPE status_type AS ENUM ('active', 'inactive', 'suspended', 'cancelled', 'deleted');
     END IF;
     
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'role_type') THEN
@@ -322,6 +322,19 @@ CREATE TABLE IF NOT EXISTS stations (
   FOREIGN KEY (outlet_id) REFERENCES outlets(id) ON DELETE CASCADE
 );
 
+-- Nashtycosts (Operational Costs)
+CREATE TABLE IF NOT EXISTS nashtycosts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tenant_id UUID NOT NULL,
+  outlet_id UUID,
+  amount DECIMAL(10,2) NOT NULL,
+  category VARCHAR(50) NOT NULL CHECK(category IN ('bahan-baku', 'operasional', 'gaji', 'utilitas', 'sewa', 'lainnya')),
+  description TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+  FOREIGN KEY (outlet_id) REFERENCES outlets(id) ON DELETE SET NULL
+);
+
 -- Insert demo data
 INSERT INTO tenants (id, name, slug, plan, status) VALUES
 ('00000000-0000-0000-0000-000000000001', 'Demo Tenant', 'demo-tenant', 'pro', 'active')
@@ -357,8 +370,10 @@ CREATE INDEX IF NOT EXISTS idx_order_items_kitchen ON order_items(kitchen_status
 CREATE INDEX IF NOT EXISTS idx_shifts_outlet ON shifts(outlet_id);
 CREATE INDEX IF NOT EXISTS idx_shifts_user ON shifts(user_id);
 CREATE INDEX IF NOT EXISTS idx_activity_logs_tenant ON activity_logs(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_payments_order ON payments(order_id);
 CREATE INDEX IF NOT EXISTS idx_stations_outlet ON stations(outlet_id);
+CREATE INDEX IF NOT EXISTS idx_nashtycosts_tenant ON nashtycosts(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_nashtycosts_outlet ON nashtycosts(outlet_id);
+CREATE INDEX IF NOT EXISTS idx_nashtycosts_created ON nashtycosts(created_at);
 
 -- Enable Row Level Security (RLS) for Supabase Auth integration
 ALTER TABLE tenants ENABLE ROW LEVEL SECURITY;
@@ -378,6 +393,7 @@ ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE stations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE nashtycosts ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies (tenant-based isolation)
 CREATE POLICY tenant_isolation ON tenants
@@ -393,6 +409,9 @@ CREATE POLICY tenant_isolation_categories ON categories
   USING (tenant_id IN (SELECT id FROM tenants));
 
 CREATE POLICY tenant_isolation_products ON products
+  USING (tenant_id IN (SELECT id FROM tenants));
+
+CREATE POLICY tenant_isolation_nashtycosts ON nashtycosts
   USING (tenant_id IN (SELECT id FROM tenants));
 
 -- Function to automatically update updated_at timestamp
@@ -461,6 +480,7 @@ COMMENT ON TABLE order_items IS 'Individual items in an order';
 COMMENT ON TABLE shifts IS 'Staff shifts for cash management';
 COMMENT ON TABLE activity_logs IS 'Audit trail for system activities';
 COMMENT ON TABLE settings IS 'Configuration settings per tenant/outlet';
+COMMENT ON TABLE nashtycosts IS 'Operational costs per tenant/outlet';
 
 -- Grant necessary permissions (for Supabase service role)
 GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres;

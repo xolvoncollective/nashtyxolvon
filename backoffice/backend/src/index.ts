@@ -26,7 +26,6 @@ import activityLogsRoutes from './routes/activity-logs';
 import membersRoutes from './routes/members';
 import kdsRoutes from './routes/kds';
 import costsRoutes from './routes/costs';
-import crmRoutes from './routes/crm';
 import { requireAuth } from './middleware/auth';
 import { requestLoggingMiddleware } from './middleware/logging';
 import xss from 'xss';
@@ -80,20 +79,6 @@ app.use('/kds', express.static(path.join(__dirname, '../../../kds/frontend')));
 
 // Backoffice frontend
 app.use('/backoffice', express.static(path.join(__dirname, '../../../backoffice/frontend')));
-
-// Set cookie for CRM app
-app.use('/crm', (req, res, next) => {
-  res.cookie('nashty_app', 'crm', { path: '/' });
-  next();
-});
-app.use('/crm', express.static(path.join(__dirname, '../../../crm/dist')));
-
-// Set cookie for Cost app
-app.use('/cost', (req, res, next) => {
-  res.cookie('nashty_app', 'cost', { path: '/' });
-  next();
-});
-app.use('/cost', express.static(path.join(__dirname, '../../../cost/dist')));
 
 // Serve root static files (includes index.html launcher)
 app.use(express.static(path.join(__dirname, '../../../')));
@@ -227,35 +212,13 @@ app.use('/api/reports', requireAuth, reportsRoutes);
 
 // API Routes — CRM / Members
 app.use('/api/members', membersRoutes);
-app.use('/api/crm', crmRoutes);
-
-// API Routes — Cost
-app.use('/api/costs', costsRoutes);
 
 // API Routes — Outlets, Settings & Logs (AUTH BYPASSED IN DEV MODE)
 app.use('/api/outlets', requireAuth, outletsRoutes);
 app.use('/api/settings', requireAuth, settingsRoutes);
 app.use('/api/kds', requireAuth, kdsRoutes);
 app.use('/api/activity-logs', requireAuth, activityLogsRoutes);
-
-// SPA Catch-all Routes for CRM and Cost
-const appRoutesList = [
-  '/dashboard', '/customers', '/customers/*', '/transactions', '/analytics', '/analytics/*', 
-  '/rewards', '/redemption-history', '/reviews', '/bahan', '/bahan/*', '/recipes', 
-  '/recipes/*', '/riwayat-harga', '/menu', '/recipe', '/rnd', '/riwayat', '/settings'
-];
-
-app.get(appRoutesList, (req, res) => {
-  const cookies = req.headers.cookie || '';
-  const match = cookies.split('; ').find(row => row.startsWith('nashty_app='));
-  const appName = match ? match.split('=')[1] : 'crm'; // Default to crm
-  
-  if (appName === 'cost') {
-    res.sendFile(path.join(__dirname, '../../../cost/dist/index.html'));
-  } else {
-    res.sendFile(path.join(__dirname, '../../../crm/dist/index.html'));
-  }
-});
+app.use('/api/costs', requireAuth, costsRoutes);
 
 // Error handler (Task 21 - Requirement 9.5, 9.6, 19.5)
 // Returns appropriate error messages based on environment mode

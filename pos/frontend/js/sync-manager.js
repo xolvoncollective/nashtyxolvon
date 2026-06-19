@@ -1,209 +1,228 @@
 /**
- * Nashty POS - Offline Sync Manager
- * Menggunakan IndexedDB untuk menyimpan transaksi yang gagal akibat jaringan terputus.
+ * NASHTY OS - POS Offline Sync Manager
+ * Uses IndexedDB to store and queue orders offline when internet is unavailable.
  */
 
-const SyncManager = (function () {
-  const DB_NAME = 'nashty-pos-db';
-  const STORE_NAME = 'offline_orders';
-  const DB_VERSION = 1;
-  let db = null;
+class OfflineSyncManager {
+  constructor() {
+    this.dbName = 'NashtyPOSOfflineDB';
+    this.dbVersion = 1;
+    this.db = null;
+    this.initPromise = this.initDB();
+    
+    // Bind network events
+    window.addEventListener('online', () => this.handleNetworkChange(true));
+    window.addEventListener('offline', () => this.handleNetworkChange(false));
+    
+    // Periodic sync check every 30 seconds
+    setInterval(() => {
+      if (navigator.onLine) {
+        this.syncOfflineOrders();
+      }
+    }, 30000);
+  }
 
   // Initialize IndexedDB
-  function init() {
+  async initDB() {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-      request.onupgradeneeded = (event) => {
-        const database = event.target.result;
-        if (!database.objectStoreNames.contains(STORE_NAME)) {
-          // Buat object store dengan keyPath 'id'
-          database.createObjectStore(STORE_NAME, { keyPath: 'id' });
-        }
+      const request = indexedDB.open(this.dbName, this.dbVersion);
+      
+      request.onerror = (e) => {
+        console.error('OfflineSyncManager: Database error:', e.target.error);
+        reject(e.target.error);
       };
-
-      request.onsuccess = (event) => {
-        db = event.target.result;
-        console.log('[SyncManager] IndexedDB siap.');
-        resolve(db);
-        
-        // Coba sinkronisasi jika ada antrean dan kita online
+      
+      request.onsuccess = (e) => {
+        this.db = e.target.result;
+        console.log('OfflineSyncManager: Database initialized successfully');
+        this.updateUIStatus();
+        resolve(this.db);
+        // Automatically attempt to sync if online on load
         if (navigator.onLine) {
-          syncOrders();
+          this.syncOfflineOrders();
         }
       };
-
-      request.onerror = (event) => {
-        console.error('[SyncManager] Gagal membuka IndexedDB', event.target.error);
-        reject(event.target.error);
+      
+      request.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains('offline_orders')) {
+          db.createObjectStore('offline_orders', { keyPath: 'id' });
+          console.log('OfflineSyncManager: Created offline_orders object store');
+        }
       };
     });
   }
 
-  // Simpan pesanan ke antrean lokal
-  function saveOrder(orderPayload) {
+  // Helper to get object store
+  async getStore(mode = 'readonly') {
+    await this.initPromise;
+    const transaction = this.db.transaction('offline_orders', mode);
+    return transaction.objectStore('offline_orders');
+  }
+
+  // Save order to IndexedDB queue
+  async queueOrder(orderData) {
+    const store = await this.getStore('readwrite');
+    
+    // Generate an offline order ID and temporary order number
+    const tempId = 'off_' + crypto.randomUUID();
+    const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+    const timestamp = Date.now().toString().slice(-4);
+    const tempOrderNumber = `OFFLINE-${dateStr}-${timestamp}`;
+    
+    const offlineOrder = {
+      id: tempId,
+      order_number: tempOrderNumber,
+      payload: {
+        ...orderData,
+        id: tempId,
+        order_number: tempOrderNumber,
+        created_at: new Date().toISOString()
+      },
+      queued_at: new Date().toISOString(),
+      attempts: 0
+    };
+
     return new Promise((resolve, reject) => {
-      if (!db) {
-        reject(new Error('IndexedDB belum siap.'));
-        return;
-      }
-
-      // Generate ID unik untuk pesanan offline menggunakan UUID
-      const uuid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString();
-      const offlineId = 'off-' + uuid;
-      const entry = {
-        id: offlineId,
-        payload: orderPayload,
-        timestamp: new Date().toISOString()
-      };
-
-      const transaction = db.transaction([STORE_NAME], 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.add(entry);
-
+      const request = store.add(offlineOrder);
+      
       request.onsuccess = () => {
-        console.log('[SyncManager] Pesanan disimpan ke antrean offline:', offlineId);
-        updateUI();
-        resolve(offlineId);
+        console.log('OfflineSyncManager: Order queued successfully:', tempOrderNumber);
+        this.updateUIStatus();
+        resolve(offlineOrder);
       };
-
-      request.onerror = (event) => {
-        console.error('[SyncManager] Gagal menyimpan pesanan:', event.target.error);
-        reject(event.target.error);
+      
+      request.onerror = (e) => {
+        console.error('OfflineSyncManager: Failed to queue order:', e.target.error);
+        reject(e.target.error);
       };
     });
   }
 
-  // Ambil semua pesanan dari antrean
-  function getOrders() {
+  // Get all queued orders
+  async getQueuedOrders() {
+    const store = await this.getStore('readonly');
     return new Promise((resolve, reject) => {
-      if (!db) return resolve([]);
-
-      const transaction = db.transaction([STORE_NAME], 'readonly');
-      const store = transaction.objectStore(STORE_NAME);
       const request = store.getAll();
-
-      request.onsuccess = (event) => {
-        resolve(event.target.result || []);
-      };
-
-      request.onerror = (event) => {
-        reject(event.target.error);
-      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = (e) => reject(e.target.error);
     });
   }
 
-  // Hapus pesanan dari antrean (setelah berhasil disinkronkan)
-  function removeOrder(id) {
+  // Delete an order from the queue
+  async removeOrder(id) {
+    const store = await this.getStore('readwrite');
     return new Promise((resolve, reject) => {
-      if (!db) return resolve();
-
-      const transaction = db.transaction([STORE_NAME], 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
       const request = store.delete(id);
-
       request.onsuccess = () => {
+        console.log('OfflineSyncManager: Order removed from queue:', id);
+        this.updateUIStatus();
         resolve();
       };
-
-      request.onerror = (event) => {
-        reject(event.target.error);
-      };
+      request.onerror = (e) => reject(e.target.error);
     });
   }
 
-  let isSyncing = false;
+  // Update attempts count for failed syncs
+  async incrementAttempts(id) {
+    const store = await this.getStore('readwrite');
+    return new Promise((resolve, reject) => {
+      const getReq = store.get(id);
+      getReq.onsuccess = () => {
+        const order = getReq.result;
+        if (order) {
+          order.attempts += 1;
+          const putReq = store.put(order);
+          putReq.onsuccess = () => resolve();
+          putReq.onerror = (e) => reject(e.target.error);
+        } else {
+          resolve();
+        }
+      };
+      getReq.onerror = (e) => reject(e.target.error);
+    });
+  }
 
-  // Proses sinkronisasi pesanan ke backend
-  async function syncOrders() {
-    if (isSyncing || !navigator.onLine) return;
+  // Network status event handler
+  handleNetworkChange(isOnline) {
+    console.log(`OfflineSyncManager: Connection status changed to ${isOnline ? 'ONLINE' : 'OFFLINE'}`);
+    this.updateUIStatus();
+    if (isOnline) {
+      this.syncOfflineOrders();
+    }
+  }
+
+  // Sync queued orders to the server
+  async syncOfflineOrders() {
+    if (!navigator.onLine) return;
     
-    try {
-      isSyncing = true;
-      const orders = await getOrders();
-      
-      if (orders.length === 0) {
-        isSyncing = false;
-        updateUI();
-        return;
-      }
+    const queued = await this.getQueuedOrders();
+    if (queued.length === 0) return;
+    
+    console.log(`OfflineSyncManager: Found ${queued.length} orders to sync...`);
+    
+    // We import and use global API client from window.API
+    if (!window.API) {
+      console.error('OfflineSyncManager: window.API is not loaded yet');
+      return;
+    }
 
-      console.log(`[SyncManager] Memulai sinkronisasi ${orders.length} pesanan...`);
-      let successCount = 0;
+    for (const order of queued) {
+      try {
+        console.log(`OfflineSyncManager: Syncing order ${order.order_number}...`);
+        
+        // Remove temporary ID and number before sending to server so the server generates clean values
+        const cleanPayload = { ...order.payload };
+        delete cleanPayload.id;
+        delete cleanPayload.order_number;
 
-      for (const entry of orders) {
-        try {
-          // Kirim ke backend (memanfaatkan API.orders.create yang sudah ada)
-          const res = await API.orders.create(entry.payload);
+        // Post order to backend
+        const result = await window.API.orders.create(cleanPayload);
+        
+        if (result.success || result.order) {
+          console.log(`OfflineSyncManager: Successfully synced order ${order.order_number}`);
+          await this.removeOrder(order.id);
           
-          if (res.success || res.order) {
-            // Jika berhasil masuk, hapus dari antrean lokal
-            await removeOrder(entry.id);
-            successCount++;
-          } else {
-            // Jika success false tapi tidak throw (jarang terjadi di API v2)
-            console.warn(`[SyncManager] Gagal sinkronisasi pesanan ${entry.id}:`, res.error);
-            await removeOrder(entry.id); // Hapus agar tidak memblokir antrean
-          }
-        } catch (err) {
-          const errMsg = (err.message || '').toLowerCase();
-          if (errMsg.includes('fetch') || errMsg.includes('network') || !navigator.onLine) {
-            console.error(`[SyncManager] Network error saat sinkronisasi pesanan ${entry.id}:`, err);
-            // Berhenti sinkronisasi jika kena error jaringan agar tidak berulang kali gagal
-            break;
-          } else {
-            // Error server (misal: 400 Bad Request, validasi gagal, dll)
-            // Hapus dari antrean agar tidak memblokir pesanan lain selamanya
-            console.error(`[SyncManager] Pesanan ${entry.id} ditolak server, menghapus dari antrean:`, err);
-            await removeOrder(entry.id);
+          // Trigger print if possible or update cashier notification
+          if (typeof window.showToast === 'function') {
+            window.showToast(`Order ${order.order_number} berhasil disinkronisasi ke server!`);
           }
         }
+      } catch (err) {
+        console.error(`OfflineSyncManager: Failed to sync order ${order.order_number}:`, err);
+        await this.incrementAttempts(order.id);
       }
-
-      if (successCount > 0) {
-        toast(`${successCount} pesanan luring berhasil disinkronkan ke server.`, 'ok');
-      }
-    } catch (err) {
-      console.error('[SyncManager] Error saat menjalankan sinkronisasi:', err);
-    } finally {
-      isSyncing = false;
-      updateUI();
     }
   }
 
-  // Update elemen UI (jika ada) untuk menunjukkan status offline dan jumlah antrean
-  async function updateUI() {
-    const indicator = document.getElementById('offline-indicator');
-    const onlineIndicator = document.getElementById('online-indicator');
-
-    if (navigator.onLine) {
-      if (onlineIndicator) onlineIndicator.style.display = 'flex';
-      if (!indicator) return;
-
-      const orders = await getOrders();
-      if (orders.length > 0) {
-        indicator.style.display = 'flex';
-        indicator.className = 'status-indicator sync';
-        indicator.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Menyinkronkan ${orders.length} pesanan...`;
+  // Update indicator chip in topbar
+  async updateUIStatus() {
+    const chip = document.getElementById('online-status-chip');
+    const dot = document.getElementById('online-status-dot');
+    const text = document.getElementById('online-status-text');
+    
+    if (!chip || !dot || !text) return;
+    
+    const isOnline = navigator.onLine;
+    const queued = await this.getQueuedOrders().catch(() => []);
+    
+    if (isOnline) {
+      if (queued.length > 0) {
+        chip.className = 'online-chip offline'; // yellow/warning state when unsynced orders remain
+        dot.className = 'ondot offline';
+        text.textContent = `Syncing (${queued.length} pending)`;
       } else {
-        indicator.style.display = 'none';
+        chip.className = 'online-chip';
+        dot.className = 'ondot';
+        text.textContent = 'Online';
       }
     } else {
-      if (onlineIndicator) onlineIndicator.style.display = 'none';
-      if (!indicator) return;
-
-      const orders = await getOrders();
-      indicator.style.display = 'flex';
-      indicator.className = 'status-indicator offline';
-      indicator.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.58 10.58a2 2 0 0 0 2.83 2.83"/><path d="M15.54 15.54a5 5 0 0 0-7.07-7.07"/><path d="M20.49 20.49a9 9 0 0 0-12.73-12.73"/><line x1="2" y1="2" x2="22" y2="22"/></svg> OFFLINE (${orders.length} antrean)`;
+      chip.className = 'online-chip offline';
+      dot.className = 'ondot offline';
+      text.textContent = `Offline (${queued.length} unsynced)`;
     }
   }
+}
 
-  return {
-    init,
-    saveOrder,
-    getOrders,
-    syncOrders,
-    updateUI
-  };
-})();
+// Instantiate and expose globally
+window.OfflineSyncManager = new OfflineSyncManager();
