@@ -11,6 +11,7 @@
     "vitest": "^4.1.8"
   },
   "scripts": {
+    "build": "echo 'Static frontend, no build required'",
     "test:e2e": "npx playwright test --config=tests/playwright.config.ts"
   }
 }
