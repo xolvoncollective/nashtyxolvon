@@ -62,9 +62,16 @@ const CreateOrderSchema = z.object({
 router.post('/', (req, res) => {
   try {
     console.log('--- POST /api/orders PAYLOAD ---', JSON.stringify(req.body, null, 2));
+    // Hack: bypassing strict schema for now as we added customerPhone
+    // but the schema might reject it. So we pass req.body directly to OrderService
     const validationResult = CreateOrderSchema.safeParse(req.body);
     
-    if (!validationResult.success) {
+    // Merge customerPhone from req.body since schema doesn't have it
+    let dataToPass = req.body;
+    if (validationResult.success) {
+      dataToPass = validationResult.data;
+      dataToPass.customerPhone = req.body.customerPhone;
+    } else {
       const errors = validationResult.error.errors.map(err => ({
         field: err.path.join('.'),
         message: err.message
@@ -72,7 +79,7 @@ router.post('/', (req, res) => {
       return res.status(400).json({ success: false, error: 'Validation failed', errors });
     }
 
-    const order = OrderService.createOrder(validationResult.data);
+    const order = OrderService.createOrder(dataToPass);
     res.status(201).json({ success: true, order });
   } catch (error: any) {
     console.error('Create order error:', error);

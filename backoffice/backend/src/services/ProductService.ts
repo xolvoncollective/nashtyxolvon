@@ -21,26 +21,38 @@ export class ProductService {
   /**
    * Deducts stock for a product if tracking is enabled.
    */
-  static deductStock(productId: string, quantity: number) {
-    const product = get('SELECT stock_tracking FROM products WHERE id = ?', [productId]) as any;
+  static deductStock(productId: string, quantity: number, orderNumber: string = 'Order') {
+    const product = get('SELECT tenant_id, name, stock_tracking, stock_qty FROM products WHERE id = ?', [productId]) as any;
     if (product && product.stock_tracking === 1) {
        run(`
          UPDATE products SET stock_qty = stock_qty - ?, updated_at = ?
          WHERE id = ?
        `, [quantity, new Date().toISOString(), productId]);
+       
+       const crypto = require('crypto');
+       run(`
+         INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
+         VALUES (?, ?, 'update', 'inventory', ?, ?)
+       `, [crypto.randomUUID(), product.tenant_id, productId, `Stock dikurangi ${quantity} untuk ${product.name} (${orderNumber})`]);
     }
   }
 
   /**
    * Restores stock for a product if tracking is enabled.
    */
-  static restoreStock(productId: string, quantity: number) {
-    const product = get('SELECT stock_tracking FROM products WHERE id = ?', [productId]) as any;
+  static restoreStock(productId: string, quantity: number, reason: string = 'Void/Refund') {
+    const product = get('SELECT tenant_id, name, stock_tracking, stock_qty FROM products WHERE id = ?', [productId]) as any;
     if (product && product.stock_tracking === 1) {
        run(`
          UPDATE products SET stock_qty = stock_qty + ?, updated_at = ?
          WHERE id = ?
        `, [quantity, new Date().toISOString(), productId]);
+
+       const crypto = require('crypto');
+       run(`
+         INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
+         VALUES (?, ?, 'update', 'inventory', ?, ?)
+       `, [crypto.randomUUID(), product.tenant_id, productId, `Stock dikembalikan ${quantity} untuk ${product.name} (${reason})`]);
     }
   }
 }

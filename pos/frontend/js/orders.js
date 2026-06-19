@@ -211,6 +211,8 @@
       const orderData = {
         orderType: orderType,
         tableNumber: document.getElementById('tbl-no')?.value || (orderType === 'dine' ? 'T01' : 'TAKE'),
+        customerName: curMember || 'Guest',
+        customerPhone: (typeof curMemberPhone !== 'undefined' ? curMemberPhone : null),
         paymentMethod: pmSel,
         subtotal: sub,
         discount: disc,
@@ -409,17 +411,19 @@
       const c = MEMBERS[clean] || MEMBERS[clean.slice(0, 11)];
       if (c) {
         const [sc, sl] = SEG[c.seg] || SEG.new;
-        res.innerHTML = `<div class="mem-result-card"><div class="mem-res-h"><div class="mem-av">${c.name[0]}</div><div><div class="mem-nm">${c.name}</div><div class="mem-ph">${c.phone}</div><span class="segb ${sc}">${sl}</span></div></div><div class="mem-stats"><div class="mem-stat"><div class="mem-stat-lbl">Kunjungan</div><div class="mem-stat-val">${c.v}×</div></div><div class="mem-stat"><div class="mem-stat-lbl">Total Belanja</div><div class="mem-stat-val">${frS(c.sp)}</div></div></div><button class="btn-pick" onclick="pickMem('${c.name}','found')">✓ Pilih Member Ini</button></div>`;
+        res.innerHTML = `<div class="mem-result-card"><div class="mem-res-h"><div class="mem-av">${c.name[0]}</div><div><div class="mem-nm">${c.name}</div><div class="mem-ph">${c.phone}</div><span class="segb ${sc}">${sl}</span></div></div><div class="mem-stats"><div class="mem-stat"><div class="mem-stat-lbl">Kunjungan</div><div class="mem-stat-val">${c.v}×</div></div><div class="mem-stat"><div class="mem-stat-lbl">Total Belanja</div><div class="mem-stat-val">${frS(c.sp)}</div></div></div><button class="btn-pick" onclick="pickMem('${c.name}','found','${c.phone}')">✓ Pilih Member Ini</button></div>`;
       } else if (clean.length >= 7) {
         res.innerHTML = `<div style="text-align:center;padding:12px;color:var(--txt3);font-size:12px">Tidak ditemukan untuk nomor <strong style="color:var(--txt)">${clean}</strong></div>`;
       }
     }
-    function pickMem(name, type) {
+    function pickMem(name, type, phone) {
       curMember = name;
+      curMemberPhone = phone || (type === 'new' ? memInput : null);
+      if (type === 'new' && !curMemberPhone) curMemberPhone = document.getElementById('mem-text-inp')?.value || '';
       const lbl = document.getElementById('mem-lbl'), pill = document.getElementById('mem-pill');
       if (name && type === 'found') { lbl.textContent = name.split(' ')[0]; pill.classList.add('on'); }
       else if (type === 'new') { lbl.textContent = 'Baru'; pill.classList.add('on'); toast('Pelanggan akan didaftarkan saat checkout', 'info'); }
-      else { lbl.textContent = 'Member'; pill.classList.remove('on'); }
+      else { lbl.textContent = 'Member'; pill.classList.remove('on'); curMemberPhone = null; }
       document.getElementById('mo-mem')?.remove();
     }
 

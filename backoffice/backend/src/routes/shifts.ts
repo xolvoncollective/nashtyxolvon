@@ -31,10 +31,16 @@ router.post('/start', (req, res) => {
     `, [shiftId, outletId, userId, startCash || 0]);
 
     const shift = get(`
-      SELECT s.*, u.name as user_name, o.name as outlet_name
+      SELECT s.*, u.name as user_name, o.name as outlet_name, u.tenant_id
       FROM shifts s LEFT JOIN users u ON s.user_id = u.id LEFT JOIN outlets o ON s.outlet_id = o.id
       WHERE s.id = ?
-    `, [shiftId]);
+    `, [shiftId]) as any;
+
+    // Log activity
+    run(`
+      INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description)
+      VALUES (?, ?, ?, 'create', 'shift', ?, ?)
+    `, [crypto.randomUUID(), shift.tenant_id, userId, shiftId, `Shift started with cash Rp ${(startCash || 0).toLocaleString()}`]);
 
     res.status(201).json({ success: true, shift });
   } catch (error: any) {
@@ -90,10 +96,16 @@ router.post('/:id/end', (req, res) => {
     `, [endCash, expectedCash, variance, notes, new Date().toISOString(), id]);
 
     const updatedShift = get(`
-      SELECT s.*, u.name as user_name, o.name as outlet_name
+      SELECT s.*, u.name as user_name, o.name as outlet_name, u.tenant_id
       FROM shifts s LEFT JOIN users u ON s.user_id = u.id LEFT JOIN outlets o ON s.outlet_id = o.id
       WHERE s.id = ?
-    `, [id]);
+    `, [id]) as any;
+
+    // Log activity
+    run(`
+      INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description)
+      VALUES (?, ?, ?, 'update', 'shift', ?, ?)
+    `, [crypto.randomUUID(), updatedShift.tenant_id, shift.user_id, id, `Shift ended. Expected: Rp ${expectedCash.toLocaleString()}, Actual: Rp ${endCash.toLocaleString()}, Variance: Rp ${variance.toLocaleString()}`]);
 
     res.json({ success: true, shift: updatedShift });
   } catch (error: any) {

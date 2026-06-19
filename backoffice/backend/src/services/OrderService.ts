@@ -151,7 +151,9 @@ export class OrderService {
     run(`UPDATE orders SET ${updates.join(', ')} WHERE id = ?`, params);
 
     // CRM Integration: Award Points
-    if (orderStatus === 'completed' && currentOrder.order_status !== 'completed' && currentOrder.customer_phone) {
+    const isNowCompleted = (orderStatus === 'completed' || kitchenStatus === 'served' || kitchenStatus === 'ready');
+    const wasCompleted = (currentOrder.order_status === 'completed' || currentOrder.kitchen_status === 'served' || currentOrder.kitchen_status === 'ready');
+    if (isNowCompleted && !wasCompleted && currentOrder.customer_phone) {
       try {
         const member = require('./MemberService').MemberService.validateOrRegisterMember(currentOrder.tenant_id, currentOrder.customer_phone, currentOrder.customer_name);
         const pointsToAward = Math.floor(currentOrder.total / 1000); // 1 point per Rp 1000
@@ -204,7 +206,7 @@ export class OrderService {
     // Wave 2: Inventory Restoration
     const items = query('SELECT product_id, quantity FROM order_items WHERE order_id = ?', [id]) as any[];
     for (const item of items) {
-      ProductService.restoreStock(item.product_id, item.quantity);
+      ProductService.restoreStock(item.product_id, item.quantity, `Void: ${order.order_number}`);
     }
 
     run(`

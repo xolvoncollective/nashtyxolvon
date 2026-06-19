@@ -11,17 +11,21 @@
       (m.opts || []).forEach((g, gi) => {
         optsHtml += '<div style="margin-bottom:14px">'
           + '<div style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">'
-          + '<span>' + g.label + '</span>'
+          + '<span>' + (g.name || g.label || 'UNDEFINED') + '</span>'
           + '<span style="font-size:9px;padding:2px 8px;border-radius:8px;background:var(--blL);color:var(--bl)">' + (!g.multi ? 'Pilih 1' : 'Multi-pilih') + '</span>'
           + '</div>';
-        (g.choices || []).forEach(ch => {
-          const chName = ch;
-          const sel = curOpts[g.label] && (Array.isArray(curOpts[g.label]) ? curOpts[g.label].includes(chName) : curOpts[g.label] === chName);
+        (g.items || g.choices || []).forEach((ch, idx) => {
+          const chName = ch.n || ch;
+          const chPrice = ch.p || 0;
+          const sel = curOpts[g.name] && (Array.isArray(curOpts[g.name]) ? curOpts[g.name].includes(chName) : curOpts[g.name] === chName);
           const t = !g.multi ? 'radio' : 'checkbox';
-          optsHtml += '<label class="opts-choice' + (sel ? ' sel' : '') + '" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--sf2);border:1px solid ' + (sel ? 'rgba(228,84,12,.4)' : 'var(--brd)') + ';border-radius:9px;cursor:pointer;margin-bottom:5px;transition:all .1s">'
-            + '<input type="' + t + '" name="og-' + menuId + '-' + gi + '" value="' + chName + '" ' + (sel ? 'checked' : '')
+          optsHtml += '<label class="opts-choice' + (sel ? ' sel' : '') + '" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--sf2);border:1px solid ' + (sel ? 'rgba(228,84,12,.4)' : 'var(--brd)') + ';border-radius:9px;cursor:pointer;margin-bottom:5px;transition:all .1s">'
+            + '<div style="display:flex;align-items:center;gap:10px">'
+            + '<input type="' + t + '" name="og-' + menuId + '-' + gi + '" value="' + chName + '" ' + (sel ? 'checked' : '') + ' data-price="' + chPrice + '"'
             + ' style="width:16px;height:16px;accent-color:var(--or);cursor:pointer">'
             + '<span style="font-size:13px;font-weight:600;color:var(--txt)">' + chName + '</span>'
+            + '</div>'
+            + (chPrice > 0 ? '<span style="font-size:12px;font-weight:700;color:var(--or);font-family:var(--mo)">+' + fr(chPrice) + '</span>' : '')
             + '</label>';
         });
         optsHtml += '</div>';
@@ -103,6 +107,9 @@
       document.querySelectorAll('#mo-opts .ao-sel').forEach(el => {
         addonTotal += parseInt(el.getAttribute('data-price') || '0');
       });
+      document.querySelectorAll('#mo-opts .opts-choice.sel input').forEach(el => {
+        addonTotal += parseInt(el.getAttribute('data-price') || '0');
+      });
       const grand = m.p + addonTotal;
       const tv = document.getElementById('opts-total-val');
       const cb = document.getElementById('opts-confirm-btn');
@@ -114,10 +121,14 @@
     function confirmOpts(menuId) {
       const m = MENU.find(x => x.id === menuId); if (!m) return;
       const selectedOpts = {};
+      let modifierPrice = 0;
       (m.opts || []).forEach((g, gi) => {
         const inputs = [...document.querySelectorAll('#mo-opts input[name="og-' + menuId + '-' + gi + '"]')];
-        const checked = inputs.filter(i => i.checked).map(i => i.value);
-        if (checked.length) selectedOpts[g.label] = g.type === 'single' ? checked[0] : checked;
+        const checked = inputs.filter(i => i.checked);
+        if (checked.length) {
+          selectedOpts[g.name || g.label] = !g.multi ? checked[0].value : checked.map(i => i.value);
+          checked.forEach(i => modifierPrice += parseInt(i.getAttribute('data-price') || '0'));
+        }
       });
       // Collect selected addons
       const selectedAddons = [];
@@ -130,9 +141,9 @@
         }
       });
       const addonNames = selectedAddons.map(a => a.n).join(', ');
-      const finalPrice = m.p + addonPrice;
+      const finalPrice = m.p + addonPrice + modifierPrice;
       const cartKey = menuId + '_' + Date.now();
-      cart.push({ ...m, qty: 1, p: finalPrice, selectedOpts, note: '', cartKey, addonPrice, addonNames });
+      cart.push({ ...m, qty: 1, p: finalPrice, selectedOpts, note: '', cartKey, addonPrice: addonPrice + modifierPrice, addonNames });
       document.getElementById('mo-opts')?.remove();
       renderCart(); renderMenu(document.getElementById('msearch').value);
     }
