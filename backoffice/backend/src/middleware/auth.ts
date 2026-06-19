@@ -34,9 +34,12 @@ export const requireAuth = (req: AuthRequest, res: Response, next: NextFunction)
       }
     }
     
+    // Check for X-User-Id header for activity log tracking in dev mode
+    const xUserId = req.headers['x-user-id'] as string | undefined;
+    
     // Fallback default user for development
     req.user = {
-      id: 'admin',
+      id: xUserId || 'admin',
       tenantId: 'demo-tenant',
       outletId: 'demo-outlet',
       role: 'admin'

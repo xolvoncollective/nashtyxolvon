@@ -84,10 +84,11 @@
       else { h += '<div class="ldt-row ldt-3"><div class="ldt-cell dim" style="grid-column:1/-1;text-align:left;padding:16px 0">Belum ada transaksi</div></div>'; }
       h += '<div class="ldt-row ldt-3 total-row"><div class="ldt-cell b">Total Semua Menu</div><div class="ldt-cell b">' + tItems.toLocaleString('id-ID') + '</div><div class="ldt-cell or">' + fr(tPRev) + '</div></div></div></div>';
       h += '<div><div class="lap-section-lbl">Refund &amp; Petty Cash</div><div class="lap-sum-table">';
-      h += lR('Saldo Petty Cash Awal', 'Rp 500.000', 0, 0, 0, '');
+      const startCash = API.session._shiftStartCash || 0;
+      h += lR('Saldo Petty Cash Awal', startCash > 0 ? frS(startCash) : '(Belum ada shift)', 0, 0, 0, '');
       if (REFUNDS.length) { REFUNDS.forEach(function (r) { h += lR('Refund — ' + r.no + ' (' + r.reason + ')', fr(r.amt), 0, 0, 0, 'rd'); }); }
       else { h += lR('Belum ada refund hari ini', 'Rp 0', 0, 0, 0, 'dim'); }
-      h += lR('Saldo Petty Cash Akhir', fr(Math.max(0, ps)), 1, 1, 0, '');
+      h += lR('Saldo Petty Cash Akhir', startCash > 0 ? fr(Math.max(0, startCash - tRefund)) : '—', 1, 1, 0, '');
       h += lR('Total Refund Hari Ini', fr(tRefund), 0, 0, tRefund > 0, tRefund > 0 ? 'rd' : '');
       h += '</div></div>';
       h += '</div>';

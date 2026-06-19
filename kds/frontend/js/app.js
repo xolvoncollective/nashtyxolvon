@@ -40,7 +40,8 @@ async function fetchOrders() {
   }
   
   try {
-    const data = await API.orders.getAll({ status: 'confirmed', kitchenStatus: 'pending' });
+    // Fetch orders with paid status that need kitchen attention
+    const data = await API.orders.getAll({ status: 'paid', kitchenStatus: 'pending' });
     if (data && data.orders) {
       const newOrders = data.orders.map(o => {
         const oData = {

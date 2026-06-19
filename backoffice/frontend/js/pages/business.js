@@ -231,10 +231,10 @@ function renderSalesTab(){
   var rows=[
     ['Gross Sales', fr(gSales).replace('Rp ',''),false,false],
     ['Diskon', fr(tRefund).replace('Rp ',''),false,true],
-    ['Net Sales', fr(nSales - tax - sc).replace('Rp ',''),true,false],
+    ['Net Sales', fr(nSales).replace('Rp ',''),true,false],
     ['Pajak', fr(tax).replace('Rp ',''),false,false],
     ['Service Charge', fr(sc).replace('Rp ',''),false,false],
-    ['Total Collected', fr(nSales).replace('Rp ',''),true,false],
+    ['Total Collected', fr(nSales + tax + sc).replace('Rp ',''),true,false],
   ];
   
   var rowsHtml='';

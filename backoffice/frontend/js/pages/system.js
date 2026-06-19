@@ -75,9 +75,8 @@ PAGES.settings = async () => {
   }
 
   return `
-<div class="ph"><div class="ph-title">Pengaturan Sistem</div><div class="ph-sub">Konfigurasi branding dan integrasi</div></div>
-<div class="two-equal">
- <div class="card">
+<div class="ph"><div class="ph-title">Pengaturan Sistem</div><div class="ph-sub">Konfigurasi branding outlet</div></div>
+<div class="card">
  <div class="card-h"><div class="card-t">Branding</div></div>
  <div class="card-b" style="display:flex;flex-direction:column;gap:14px">
  <div class="fld"><label>Nama Brand</label><input id="brandName" value="${settings.brandName}"></div>
@@ -91,28 +90,6 @@ PAGES.settings = async () => {
  </div>
  </div>
  <button class="btn btn-primary" onclick="window.saveBranding()" style="justify-content:center">Simpan Branding</button>
- </div>
- </div>
- <div class="card">
- <div class="card-h"><div class="card-t">Integrasi</div></div>
- <div class="card-b" style="display:flex;flex-direction:column;gap:12px">
- ${[
- ['WhatsApp API (Fonnte)','Untuk broadcast dan notifikasi otomatis',' Terhubung','badge-green'],
- ['QRIS Payment Gateway','Agregator QRIS nasional',' Belum diatur','badge-yellow'],
- ['NashtyPeople CRM','nashtypeople.pages.dev — Loyalty & member',' Terhubung','badge-green'],
- ['NashLoop WA Broadcast','Broadcast WhatsApp otomatis',' Terhubung','badge-green'],
- ].map(([n,d,s,bc])=>`
- <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--sf2);border:1px solid var(--brd);border-radius:10px">
- <div>
- <div style="font-size:13px;font-weight:600">${n}</div>
- <div style="font-size:11.5px;color:var(--txt3);margin-top:1px">${d}</div>
- </div>
- <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
- <span class="badge ${bc}">${s}</span>
- <button class="btn btn-sm" onclick="toast('Integrasi ${n} akan segera hadir')">Kelola</button>
- </div>
- </div>`).join('')}
- </div>
  </div>
 </div>`;
 };

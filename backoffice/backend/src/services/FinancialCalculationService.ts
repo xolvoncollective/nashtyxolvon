@@ -22,7 +22,8 @@ export class FinancialCalculationService {
         COALESCE(SUM(CASE WHEN payment_status = 'paid' AND order_status != 'cancelled' THEN discount ELSE 0 END), 0) as total_discount,
         COALESCE(SUM(CASE WHEN payment_status = 'paid' AND order_status != 'cancelled' THEN tax ELSE 0 END), 0) as total_tax,
         COALESCE(SUM(CASE WHEN payment_status = 'paid' AND order_status != 'cancelled' THEN service_charge ELSE 0 END), 0) as total_sc,
-        COALESCE(SUM(CASE WHEN payment_status = 'paid' AND order_status != 'cancelled' THEN total + COALESCE((SELECT SUM(amount) FROM payments p WHERE p.order_id = orders.id AND amount < 0), 0) ELSE 0 END), 0) as net_sales,
+        COALESCE(SUM(CASE WHEN payment_status = 'paid' AND order_status != 'cancelled' THEN (subtotal - discount) ELSE 0 END), 0) as net_sales,
+        COALESCE(SUM(CASE WHEN payment_status = 'paid' AND order_status != 'cancelled' THEN total ELSE 0 END), 0) as total_collected,
         COALESCE(AVG(CASE WHEN payment_status = 'paid' AND order_status != 'cancelled' THEN total ELSE NULL END), 0) as avg_order_value
       FROM orders WHERE shift_id = ?
     `, [shiftId]);
@@ -63,7 +64,8 @@ export class FinancialCalculationService {
         COALESCE(SUM(o.discount), 0) as total_discount,
         COALESCE(SUM(o.tax), 0) as total_tax,
         COALESCE(SUM(o.service_charge), 0) as total_sc,
-        COALESCE(SUM(o.total + COALESCE((SELECT SUM(amount) FROM payments p WHERE p.order_id = o.id AND amount < 0), 0)), 0) as net_sales,
+        COALESCE(SUM(o.subtotal - o.discount), 0) as net_sales,
+        COALESCE(SUM(o.total), 0) as total_collected,
         COALESCE(AVG(o.total), 0) as avg_order_value
       FROM orders o
       ${params[0]}

@@ -47,6 +47,11 @@ const API = {
         headers['Authorization'] = `Bearer ${API.session.adminToken}`;
       }
 
+      // Inject current user ID for activity log tracking
+      if (API.session.user && API.session.user.id) {
+        headers['X-User-Id'] = API.session.user.id;
+      }
+
       const response = await fetch(`${API_BASE}${endpoint}`, {
         headers,
         ...options

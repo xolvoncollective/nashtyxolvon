@@ -43,7 +43,7 @@
     function calcT() {
       const sub = cart.reduce((s, i) => s + i.p * i.qty, 0);
       const disc = Math.min(discount, sub); const base = sub - disc;
-      const tax = Math.round(base * .11); const svc = Math.round(base * .05);
+      const tax = base * .11; const svc = base * .05;
       return { sub, disc, base, tax, svc, grand: base + tax + svc };
     }
     function renderCart() {

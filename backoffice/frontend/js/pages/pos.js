@@ -17,10 +17,10 @@ PAGES['pos-general'] = async () => {
       rounding: document.getElementById('rounding').value
     };
     try {
-      await API.request('/settings/' + API.session.outletId, { method: 'POST', body: JSON.stringify({ settings: s }) });
+      await API.request('/settings/' + API.session.outletId, { method: 'PUT', body: JSON.stringify({ settings: s }) });
       toast('Pengaturan disimpan', 'ok');
     } catch (e) {
-      toast('Gagal menyimpan', 'err');
+      toast('Gagal menyimpan: ' + (e.message || 'Unknown error'), 'err');
     }
   };
 
@@ -77,10 +77,10 @@ PAGES['pos-payment'] = async () => {
   window.togglePayment = async (name, checked) => {
     settings.paymentMethods[name] = checked;
     try {
-      await API.request('/settings/' + API.session.outletId, { method: 'POST', body: JSON.stringify({ settings: { paymentMethods: JSON.stringify(settings.paymentMethods) } }) });
+      await API.request('/settings/' + API.session.outletId, { method: 'PUT', body: JSON.stringify({ settings: { paymentMethods: JSON.stringify(settings.paymentMethods) } }) });
       toast(name + ' ' + (checked ? 'diaktifkan' : 'dinonaktifkan'), 'ok');
     } catch (e) {
-      toast('Gagal menyimpan', 'err');
+      toast('Gagal menyimpan: ' + (e.message || 'Unknown error'), 'err');
     }
   };
 
@@ -143,11 +143,11 @@ PAGES['pos-receipt'] = async () => {
       receiptWa: document.getElementById('receiptWa').checked
     };
     try {
-      await API.request('/settings/' + API.session.outletId, { method: 'POST', body: JSON.stringify({ settings: s }) });
+      await API.request('/settings/' + API.session.outletId, { method: 'PUT', body: JSON.stringify({ settings: s }) });
       toast('Pengaturan struk disimpan', 'ok');
       PAGES['pos-receipt']().then(h=>document.getElementById('page-area').innerHTML=h);
     } catch (e) {
-      toast('Gagal menyimpan', 'err');
+      toast('Gagal menyimpan: ' + (e.message || 'Unknown error'), 'err');
     }
   };
 
