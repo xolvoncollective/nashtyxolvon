@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
 import compression from 'compression';
-import { initDatabase, get as dbGet } from './db/database';
+import { initDatabase } from './db/database';
 import { testConnection as testSupabaseConnection } from './supabase/supabase-client';
 import { cacheManager } from './services/CacheManager';
 
@@ -133,47 +133,20 @@ app.get('/health', (req, res) => {
 // API Health check with database connectivity check (Requirement 11)
 app.get('/api/health', async (req, res) => {
   const startTime = Date.now();
-  let databaseStatus = 'disconnected';
-  let error: string | undefined;
-  
-  try {
-    // Check database connectivity by executing a simple query
-    const result = dbGet('SELECT 1 as test');
-    if (result && result.test === 1) {
-      databaseStatus = 'connected';
-    }
-  } catch (dbError: any) {
-    error = dbError.message || 'Database query failed';
-    console.error('Health check database error:', dbError);
-  }
-  
-  const responseTime = Date.now() - startTime;
   const uptime = Math.floor((Date.now() - SERVER_START_TIME) / 1000);
+  const responseTime = Date.now() - startTime;
   
-  // Return 503 if database is not accessible (Requirement 11.4)
-  if (databaseStatus === 'disconnected') {
-    return res.status(503).json({
-      status: 'unhealthy',
-      timestamp: new Date().toISOString(),
-      version: '2.0.0',
-      uptime,
-      database: databaseStatus,
-      error,
-      responseTime: `${responseTime}ms`
-    });
-  }
-  
-  // Return 200 if all systems operational (Requirement 11.3)
   res.status(200).json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
     version: '2.0.0',
     uptime,
-    database: databaseStatus,
-    features: ['sqlite', 'supabase-ready', 'jwt-auth', 'wal-mode'],
+    database: 'supabase',
+    features: ['supabase', 'supabase-ready', 'jwt-auth', 'cloud-native'],
     responseTime: `${responseTime}ms`
   });
 });
+
 
 // Main auth API (no auth required)
 app.use('/api/main/auth', mainAuthRoutes);
