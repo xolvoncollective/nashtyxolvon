@@ -120,27 +120,13 @@ console.log('✅ CacheManager initialized with periodic cleanup (every 5 minutes
 // Make cache manager accessible through app.locals for route handlers
 app.locals.cacheManager = cacheManager;
 
-// Test Supabase connection on startup
-const initializeSupabase = async () => {
-  console.log('🔌 Testing Supabase connection...');
-  const supabaseConnected = await testSupabaseConnection();
-  
-  if (supabaseConnected) {
-    console.log('✅ Supabase connected successfully');
-  } else {
-    console.log('⚠️  Supabase connection failed, falling back to local SQLite');
-  }
-};
-
-initializeSupabase();
-
 // Health check (legacy endpoint for backward compatibility)
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
     version: '2.0',
-    features: ['sqlite', 'supabase-ready', 'jwt-auth']
+    features: ['supabase', 'jwt-auth', 'cloud-native']
   });
 });
 

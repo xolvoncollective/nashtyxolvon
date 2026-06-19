@@ -643,4 +643,309 @@ describe('FinancialCalculationService - Test Infrastructure', () => {
       expect((paidOrders[0] as any).id).toBe('order-paid');
     });
   });
+
+  describe('Bug Exploration: Missing COGS Handling', () => {
+    /**
+     * EXPLORATORY TEST 1.5: Missing COGS Bug
+     * 
+     * This test demonstrates the bug where products with NULL cost data 
+     * produce false profit calculations instead of returning NULL.
+     * 
+     * Bug: COALESCE(p.cost, 0) treats missing cost as zero, creating 
+     * misleading 100% profit margins.
+     * 
+     * Expected counterexample: Product with price=50000, cost=NULL, quantity=10
+     * - Current buggy behavior: profit = 500,000 (treats cost as 0)
+     * - Expected correct behavior: profit = NULL (cannot calculate)
+     */
+    it('EXPLORATION: should demonstrate false profit when cost is NULL (missing COGS bug)', () => {
+      // Setup test data
+      const tenant = createTestTenant('tenant-cogs-bug');
+      const outlet = createTestOutlet(tenant.id, 'outlet-cogs-bug');
+      const user = createTestUser(tenant.id, outlet.id, 'user-cogs-bug');
+      const category = createTestCategory(tenant.id, 'category-cogs-bug', 'Test Category');
+      
+      // Create product WITHOUT cost data (NULL cost - not set yet)
+      const productWithoutCost = createTestProduct(tenant.id, category.id, {
+        id: 'product-no-cost',
+        name: 'New Menu Item (No Cost)',
+        price: 50000,
+        cost: null  // This is the key: cost data is missing
+      });
+      
+      // Create product WITH valid cost data (edge case - should still work)
+      const productWithCost = createTestProduct(tenant.id, category.id, {
+        id: 'product-with-cost',
+        name: 'Established Menu Item',
+        price: 50000,
+        cost: 30000  // Valid cost data
+      });
+      
+      // Create orders for both products
+      const orderNoCost = createTestOrder(tenant.id, outlet.id, user.id, {
+        id: 'order-no-cost',
+        subtotal: 500000,
+        total: 500000,
+        paymentStatus: 'paid',
+        orderStatus: 'completed'
+      });
+      
+      const orderWithCost = createTestOrder(tenant.id, outlet.id, user.id, {
+        id: 'order-with-cost',
+        subtotal: 500000,
+        total: 500000,
+        paymentStatus: 'paid',
+        orderStatus: 'completed'
+      });
+      
+      // Create order items
+      createTestOrderItem(orderNoCost.id, productWithoutCost.id, productWithoutCost.name, {
+        quantity: 10,
+        unitPrice: 50000,
+        subtotal: 500000
+      });
+      
+      createTestOrderItem(orderWithCost.id, productWithCost.id, productWithCost.name, {
+        quantity: 10,
+        unitPrice: 50000,
+        subtotal: 500000
+      });
+      
+      // Build where clause for product performance report
+      const whereClause = `
+        WHERE o.tenant_id = ? 
+        AND o.payment_status = 'paid' 
+        AND o.order_status != 'cancelled'
+      `;
+      
+      // Call getProductPerformanceReport - this is where the bug manifests
+      const performanceReport = FinancialCalculationService.getProductPerformanceReport(
+        tenant.id,
+        [whereClause, [tenant.id]],
+        50
+      ) as any[];
+      
+      // Find the products in the report
+      const noCostProduct = performanceReport.find(p => p.product_id === 'product-no-cost');
+      const withCostProduct = performanceReport.find(p => p.product_id === 'product-with-cost');
+      
+      // Verify both products exist in report
+      expect(noCostProduct).toBeDefined();
+      expect(withCostProduct).toBeDefined();
+      
+      // **BUG DEMONSTRATION 1: Product without cost shows FALSE profit**
+      // Expected bug behavior: profit = 500,000 (treats cost as 0)
+      // This is WRONG because we cannot calculate profit without cost data
+      console.log('Product without cost - estimated_profit:', noCostProduct?.estimated_profit);
+      console.log('Product without cost - cost field:', noCostProduct?.cost);
+      
+      expect(noCostProduct.estimated_profit).toBe(500000);  // Bug: shows full revenue as profit
+      expect(noCostProduct.cost).toBe(0);  // Cost is stored as 0 (DEFAULT 0 in schema)
+      // **This is the counterexample that proves the bug exists**
+      // The schema has DEFAULT 0, so NULL becomes 0 in the database
+      // Combined with COALESCE(p.cost, 0) in queries, missing cost data is treated as zero cost
+      // Real profit calculation: should be NULL/N/A when cost data is not set, not 500,000
+      
+      // **EDGE CASE: Product with valid cost should calculate correctly**
+      // Expected: profit = 500,000 - (30,000 * 10) = 200,000 (40% margin)
+      console.log('Product with cost - estimated_profit:', withCostProduct?.estimated_profit);
+      console.log('Product with cost - cost field:', withCostProduct?.cost);
+      
+      expect(withCostProduct.estimated_profit).toBe(200000);  // Correct: 40% margin
+      expect(withCostProduct.cost).toBe(30000);
+      
+      // **BUG DEMONSTRATION 2: Menu Engineering report also affected**
+      const menuEngineeringReport = FinancialCalculationService.getMenuEngineeringReport(
+        tenant.id,
+        [whereClause, [tenant.id]]
+      ) as any;
+      
+      const noCostInMenu = menuEngineeringReport.products.find((p: any) => p.product_id === 'product-no-cost');
+      const withCostInMenu = menuEngineeringReport.products.find((p: any) => p.product_id === 'product-with-cost');
+      
+      // Bug: profit_margin shows 50,000 (price - 0) instead of NULL
+      console.log('Menu Engineering - Product without cost - profit_margin:', noCostInMenu?.profit_margin);
+      expect(noCostInMenu.profit_margin).toBe(50000);  // Bug: false 100% margin
+      
+      // Edge case: Product with cost shows correct margin
+      console.log('Menu Engineering - Product with cost - profit_margin:', withCostInMenu?.profit_margin);
+      expect(withCostInMenu.profit_margin).toBe(20000);  // Correct: 40% margin (20k profit on 50k price)
+      
+      // **BUG DOCUMENTATION**
+      // Counterexamples found:
+      // 1. Product Performance Report: estimated_profit = 500,000 when should be NULL or "N/A"
+      // 2. Menu Engineering Report: profit_margin = 50,000 when should be NULL or "N/A"
+      // 
+      // Root cause: TWO-PART BUG
+      // Part 1: Schema has `cost REAL DEFAULT 0` which converts NULL to 0 on insert
+      // Part 2: COALESCE(p.cost, 0) in SQL queries further treats missing cost as zero
+      // 
+      // Combined effect: Products without cost data (cost not set yet) are stored as 0,
+      // then treated as zero cost, showing 100% profit margin and distorting reports
+      //
+      // Impact: Products without cost data appear highly profitable, distorting
+      // menu engineering classification and business decisions
+      //
+      // Expected fix: 
+      // - Remove DEFAULT 0 from schema (allow NULL)
+      // - Use CASE WHEN p.cost IS NOT NULL THEN ... ELSE NULL END in queries
+      // - This will propagate NULL through profit calculations
+      // - Frontend should display NULL profits as "N/A" or "No Cost Data"
+    });
+
+    it('EXPLORATION: should demonstrate menu engineering classification affected by false profit margins', () => {
+      // Setup
+      const tenant = createTestTenant('tenant-menu-eng-bug');
+      const outlet = createTestOutlet(tenant.id, 'outlet-menu-eng-bug');
+      const user = createTestUser(tenant.id, outlet.id, 'user-menu-eng-bug');
+      const category = createTestCategory(tenant.id, 'category-menu-eng-bug', 'Menu Category');
+      
+      // Create 4 products with different characteristics
+      // 1. High sales, no cost data (should be "unknown", but likely classified as "star" due to bug)
+      const popularNoCost = createTestProduct(tenant.id, category.id, {
+        id: 'popular-no-cost',
+        name: 'Popular Item (No Cost)',
+        price: 100000,
+        cost: null
+      });
+      
+      // 2. High sales, high profit (true star)
+      const trueStar = createTestProduct(tenant.id, category.id, {
+        id: 'true-star',
+        name: 'True Star Item',
+        price: 100000,
+        cost: 40000
+      });
+      
+      // 3. Low sales, high profit (puzzle)
+      const puzzle = createTestProduct(tenant.id, category.id, {
+        id: 'puzzle-item',
+        name: 'Puzzle Item',
+        price: 100000,
+        cost: 40000
+      });
+      
+      // 4. Low sales, low profit (dog)
+      const dog = createTestProduct(tenant.id, category.id, {
+        id: 'dog-item',
+        name: 'Dog Item',
+        price: 100000,
+        cost: 80000
+      });
+      
+      // Create orders to establish sales patterns
+      // Popular items: 100 units sold
+      const orderPopularNoCost = createTestOrder(tenant.id, outlet.id, user.id, {
+        id: 'order-popular-no-cost',
+        subtotal: 10000000,
+        total: 10000000,
+        paymentStatus: 'paid',
+        orderStatus: 'completed'
+      });
+      
+      const orderTrueStar = createTestOrder(tenant.id, outlet.id, user.id, {
+        id: 'order-true-star',
+        subtotal: 10000000,
+        total: 10000000,
+        paymentStatus: 'paid',
+        orderStatus: 'completed'
+      });
+      
+      // Unpopular items: 10 units sold
+      const orderPuzzle = createTestOrder(tenant.id, outlet.id, user.id, {
+        id: 'order-puzzle',
+        subtotal: 1000000,
+        total: 1000000,
+        paymentStatus: 'paid',
+        orderStatus: 'completed'
+      });
+      
+      const orderDog = createTestOrder(tenant.id, outlet.id, user.id, {
+        id: 'order-dog',
+        subtotal: 1000000,
+        total: 1000000,
+        paymentStatus: 'paid',
+        orderStatus: 'completed'
+      });
+      
+      // Create order items
+      createTestOrderItem(orderPopularNoCost.id, popularNoCost.id, popularNoCost.name, {
+        quantity: 100,
+        unitPrice: 100000,
+        subtotal: 10000000
+      });
+      
+      createTestOrderItem(orderTrueStar.id, trueStar.id, trueStar.name, {
+        quantity: 100,
+        unitPrice: 100000,
+        subtotal: 10000000
+      });
+      
+      createTestOrderItem(orderPuzzle.id, puzzle.id, puzzle.name, {
+        quantity: 10,
+        unitPrice: 100000,
+        subtotal: 1000000
+      });
+      
+      createTestOrderItem(orderDog.id, dog.id, dog.name, {
+        quantity: 10,
+        unitPrice: 100000,
+        subtotal: 1000000
+      });
+      
+      // Get menu engineering report
+      const whereClause = `
+        WHERE o.tenant_id = ? 
+        AND o.payment_status = 'paid' 
+        AND o.order_status != 'cancelled'
+      `;
+      
+      const menuReport = FinancialCalculationService.getMenuEngineeringReport(
+        tenant.id,
+        [whereClause, [tenant.id]]
+      ) as any;
+      
+      // Find classifications
+      const popularNoCostClass = menuReport.products.find((p: any) => p.product_id === 'popular-no-cost');
+      const trueStarClass = menuReport.products.find((p: any) => p.product_id === 'true-star');
+      const puzzleClass = menuReport.products.find((p: any) => p.product_id === 'puzzle-item');
+      const dogClass = menuReport.products.find((p: any) => p.product_id === 'dog-item');
+      
+      // Log classifications for debugging
+      console.log('Menu Engineering Classifications:');
+      console.log('Popular No Cost:', popularNoCostClass?.classification, '- profit_margin:', popularNoCostClass?.profit_margin);
+      console.log('True Star:', trueStarClass?.classification, '- profit_margin:', trueStarClass?.profit_margin);
+      console.log('Puzzle:', puzzleClass?.classification, '- profit_margin:', puzzleClass?.profit_margin);
+      console.log('Dog:', dogClass?.classification, '- profit_margin:', dogClass?.profit_margin);
+      console.log('Average profit margin:', menuReport.averages.avgProfitMargin);
+      
+      // **BUG DEMONSTRATION: Product without cost affects classification**
+      // Bug: popularNoCost has profit_margin = 100,000 (price - 0)
+      // This inflates the average profit margin calculation
+      expect(popularNoCostClass.profit_margin).toBe(100000);  // Bug: false margin
+      
+      // Because the average is inflated, it affects classification of ALL products
+      // The average should be: (60000 + 60000 + 20000) / 3 = 46,666 (excluding NULL)
+      // But the bug makes it: (100000 + 60000 + 60000 + 20000) / 4 = 60,000
+      
+      // This means products that should be "high profitability" become "low profitability"
+      // affecting business decisions about menu optimization
+      
+      // **EXPECTED BEHAVIOR AFTER FIX:**
+      // - popularNoCost should have classification = "unknown" or be excluded
+      // - Average profit should be calculated only from products with cost data
+      // - True star, puzzle, and dog classifications should be unaffected
+      
+      // For now, we document that the bug exists by showing the false classification
+      expect(popularNoCostClass.classification).toBeDefined();  // Will be classified (incorrectly)
+      expect(trueStarClass.classification).toBe('star');  // High popularity, high profit
+      expect(puzzleClass.classification).toBe('puzzle');  // Low popularity, high profit
+      expect(dogClass.classification).toBe('dog');  // Low popularity, low profit
+      
+      // Summary count should include the falsely classified product
+      const totalClassified = menuReport.summary.stars + menuReport.summary.plowhorses + 
+                             menuReport.summary.puzzles + menuReport.summary.dogs;
+      expect(totalClassified).toBe(4);  // Bug: all 4 products classified including the one without cost
+    });
+  });
 });
