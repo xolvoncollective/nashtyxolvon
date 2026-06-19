@@ -1,11 +1,11 @@
-import { query } from '../db/database';
+﻿import { query } from '../db/database';
 
 export class SettingsService {
   /**
    * Resolves settings for an outlet, falling back to tenant settings.
    */
-  static resolveSettings(tenantId: string, outletId: string | null) {
-    const settings = query(`
+  static async resolveSettings(tenantId: string, outletId: string | null) {
+    const settings = await query(`
       SELECT key, value, type FROM settings
       WHERE (tenant_id = ? AND outlet_id = ?) OR (tenant_id = ? AND outlet_id IS NULL)
     `, [tenantId, outletId, tenantId]) as any[];
@@ -27,8 +27,8 @@ export class SettingsService {
     return settingsMap;
   }
 
-  static getTaxAndServiceChargeRate(tenantId: string, outletId: string | null) {
-    const settingsMap = this.resolveSettings(tenantId, outletId);
+  static async getTaxAndServiceChargeRate(tenantId: string, outletId: string | null) {
+    const settingsMap = await this.resolveSettings(tenantId, outletId);
     const taxRate = settingsMap.tax_enabled !== false ? (settingsMap.tax_rate || 11) : 0;
     const scRate = settingsMap.service_charge_enabled ? (settingsMap.service_charge_rate || 0) : 0;
     return { taxRate, scRate };

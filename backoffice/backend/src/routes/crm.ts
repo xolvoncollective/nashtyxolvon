@@ -1,4 +1,4 @@
-import express from 'express';
+﻿import express from 'express';
 import db from '../db/database';
 import { nanoid } from 'nanoid';
 import { MemberService } from '../services/MemberService';
@@ -7,14 +7,14 @@ const router = express.Router();
 
 // --- CUSTOMERS ---
 
-router.get('/customers', (req, res) => {
+router.get('/customers', async (req, res) => {
   const tenantId = req.query.tenantId;
   if (!tenantId) return res.status(400).json({ error: 'tenantId is required' });
   const list = db.query('SELECT * FROM crm_customers WHERE tenant_id = ? AND deleted_at IS NULL ORDER BY created_at DESC', [tenantId]);
   res.json({ success: true, list });
 });
 
-router.post('/customers', (req, res) => {
+router.post('/customers', async (req, res) => {
   const { tenantId, name, phone, email, points, total_spent, visit_count } = req.body;
   if (!tenantId || !name) return res.status(400).json({ error: 'tenantId and name are required' });
   const id = nanoid();
@@ -24,7 +24,7 @@ router.post('/customers', (req, res) => {
   res.json({ success: true, message: 'Customer added', id });
 });
 
-router.put('/customers/:id', (req, res) => {
+router.put('/customers/:id', async (req, res) => {
   const { tenantId, name, phone, email, points, total_spent, visit_count } = req.body;
   const { id } = req.params;
   db.run(`UPDATE crm_customers SET 
@@ -40,7 +40,7 @@ router.put('/customers/:id', (req, res) => {
   res.json({ success: true, message: 'Customer updated' });
 });
 
-router.delete('/customers/:id', (req, res) => {
+router.delete('/customers/:id', async (req, res) => {
   const tId = req.query.tenantId || req.body?.tenantId;
   db.run('UPDATE crm_customers SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND tenant_id = ?', [req.params.id, tId]);
   res.json({ success: true, message: 'Customer deleted' });
@@ -49,14 +49,14 @@ router.delete('/customers/:id', (req, res) => {
 
 // --- REWARDS ---
 
-router.get('/rewards', (req, res) => {
+router.get('/rewards', async (req, res) => {
   const tenantId = req.query.tenantId;
   if (!tenantId) return res.status(400).json({ error: 'tenantId is required' });
   const list = db.query('SELECT * FROM crm_rewards WHERE tenant_id = ? AND deleted_at IS NULL ORDER BY created_at DESC', [tenantId]);
   res.json({ success: true, list });
 });
 
-router.post('/rewards', (req, res) => {
+router.post('/rewards', async (req, res) => {
   const { tenantId, title, points_required, description, is_active } = req.body;
   if (!tenantId || !title) return res.status(400).json({ error: 'tenantId and title are required' });
   const id = nanoid();
@@ -66,7 +66,7 @@ router.post('/rewards', (req, res) => {
   res.json({ success: true, message: 'Reward added', id });
 });
 
-router.put('/rewards/:id', (req, res) => {
+router.put('/rewards/:id', async (req, res) => {
   const { tenantId, title, points_required, description, is_active } = req.body;
   const { id } = req.params;
   db.run(`UPDATE crm_rewards SET 
@@ -79,7 +79,7 @@ router.put('/rewards/:id', (req, res) => {
   res.json({ success: true, message: 'Reward updated' });
 });
 
-router.delete('/rewards/:id', (req, res) => {
+router.delete('/rewards/:id', async (req, res) => {
   const tId = req.query.tenantId || req.body?.tenantId;
   db.run('UPDATE crm_rewards SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND tenant_id = ?', [req.params.id, tId]);
   res.json({ success: true, message: 'Reward deleted' });
@@ -88,7 +88,7 @@ router.delete('/rewards/:id', (req, res) => {
 
 // --- POINT TRANSACTIONS ---
 
-router.get('/point-transactions', (req, res) => {
+router.get('/point-transactions', async (req, res) => {
   const { tenantId, customerId } = req.query;
   if (!tenantId) return res.status(400).json({ error: 'tenantId is required' });
   
@@ -102,7 +102,7 @@ router.get('/point-transactions', (req, res) => {
   res.json({ success: true, list });
 });
 
-router.post('/point-transactions', (req, res) => {
+router.post('/point-transactions', async (req, res) => {
   const { tenantId, customerId, points, type, description } = req.body;
   if (!tenantId || !customerId) return res.status(400).json({ error: 'tenantId and customerId are required' });
   

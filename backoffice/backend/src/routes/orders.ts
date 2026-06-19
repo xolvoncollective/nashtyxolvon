@@ -1,4 +1,4 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { query, get, run, transaction } from '../db/database';
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
@@ -58,7 +58,7 @@ const CreateOrderSchema = z.object({
 // Helper removed, using inline sequence generator in route
 
 // POST /api/orders — Create new order with validation
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   try {
     console.log('--- POST /api/orders PAYLOAD ---', JSON.stringify(req.body, null, 2));
     // Validate request body against Zod schema
@@ -132,7 +132,7 @@ router.post('/', (req, res) => {
     const baseAmount = calculatedSubtotal - validDiscount;
 
     // Fetch tax and service charge config
-    const settings = query(`
+    const settings = await query(`
       SELECT key, value, type FROM settings
       WHERE (tenant_id = ? AND outlet_id = ?) OR (tenant_id = ? AND outlet_id IS NULL)
     `, [tenantId, outletId, tenantId]) as any[];
@@ -302,7 +302,7 @@ router.post('/', (req, res) => {
       WHERE o.id = ?
     `, [orderId]);
 
-    const orderItems = query('SELECT * FROM order_items WHERE order_id = ?', [orderId]);
+    const orderItems = await query('SELECT * FROM order_items WHERE order_id = ?', [orderId]);
 
     for (const item of orderItems as any[]) {
       item.modifiers = query('SELECT * FROM order_item_modifiers WHERE order_item_id = ?', [item.id]);
@@ -318,7 +318,7 @@ router.post('/', (req, res) => {
 });
 
 // GET /api/orders — Get orders (for history and KDS)
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const { tenantId, outletId, status, kitchenStatus, limit = 50, offset = 0, dateFrom, dateTo } = req.query;
 
@@ -343,11 +343,11 @@ router.get('/', (req, res) => {
     sql += ` ORDER BY o.created_at DESC LIMIT ? OFFSET ?`;
     params.push(Number(limit), Number(offset));
 
-    const orders = query(sql, params);
+    const orders = await query(sql, params);
 
     // Get items for each order
     for (const order of orders as any[]) {
-      order.items = query(`
+      order.items = await query(`
         SELECT oi.id, oi.product_id, oi.product_name as name, oi.quantity,
                oi.unit_price, oi.subtotal, oi.notes, oi.kitchen_status as item_status,
                (SELECT GROUP_CONCAT(modifier_option_name, ', ')
@@ -367,7 +367,7 @@ router.get('/', (req, res) => {
 });
 
 // GET /api/orders/:id — Get order by ID
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -382,7 +382,7 @@ router.get('/:id', (req, res) => {
     }
 
     // Get items
-    const items = query('SELECT * FROM order_items WHERE order_id = ?', [id]);
+    const items = await query('SELECT * FROM order_items WHERE order_id = ?', [id]);
     for (const item of items as any[]) {
       item.modifiers = query('SELECT * FROM order_item_modifiers WHERE order_item_id = ?', [item.id]);
     }
@@ -399,7 +399,7 @@ router.get('/:id', (req, res) => {
 });
 
 // PATCH /api/orders/:id/status — Update order status
-router.patch('/:id/status', (req, res) => {
+router.patch('/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
     const { orderStatus, kitchenStatus } = req.body;
@@ -468,7 +468,7 @@ router.put('/:id/void', async (req, res) => {
     }
 
     // Verify Manager PIN
-    const managers = query('SELECT * FROM users WHERE tenant_id = ? AND role IN (\'manager\', \'owner\')', [order.tenant_id]) as any[];
+    const managers = await query('SELECT * FROM users WHERE tenant_id = ? AND role IN (\'manager\', \'owner\')', [order.tenant_id]) as any[];
     let validManager = null;
     
     for (const mgr of managers) {
@@ -506,11 +506,11 @@ router.put('/:id/void', async (req, res) => {
 });
 
 // Route 25: GET /api/orders/shift/:shiftId — Orders per shift
-router.get('/shift/:shiftId', (req, res) => {
+router.get('/shift/:shiftId', async (req, res) => {
   try {
     const { shiftId } = req.params;
 
-    const orders = query(`
+    const orders = await query(`
       SELECT o.*, u.name as cashier_name
       FROM orders o
       LEFT JOIN users u ON o.user_id = u.id
@@ -520,7 +520,7 @@ router.get('/shift/:shiftId', (req, res) => {
 
     // Get items for each order
     for (const order of orders as any[]) {
-      order.items = query(`
+      order.items = await query(`
         SELECT oi.product_name, oi.quantity, oi.unit_price, oi.subtotal
         FROM order_items oi WHERE oi.order_id = ?
       `, [order.id]);
@@ -534,7 +534,7 @@ router.get('/shift/:shiftId', (req, res) => {
 });
 
 // Route 26: GET /api/orders/config/:outletId — POS config
-router.get('/config/:outletId', (req, res) => {
+router.get('/config/:outletId', async (req, res) => {
   try {
     const { outletId } = req.params;
 
@@ -544,7 +544,7 @@ router.get('/config/:outletId', (req, res) => {
     }
 
     // Get settings
-    const settings = query(`
+    const settings = await query(`
       SELECT key, value, type FROM settings
       WHERE (tenant_id = ? AND outlet_id = ?) OR (tenant_id = ? AND outlet_id IS NULL)
       ORDER BY key
@@ -587,7 +587,7 @@ router.get('/config/:outletId', (req, res) => {
 });
 
 // Route 27: PATCH /api/orders/:id/items/:itemId/status — Update per-item KDS status
-router.patch('/:id/items/:itemId/status', (req, res) => {
+router.patch('/:id/items/:itemId/status', async (req, res) => {
   try {
     const { id, itemId } = req.params;
     const { status } = req.body;
@@ -627,7 +627,7 @@ router.patch('/:id/items/:itemId/status', (req, res) => {
 });
 
 // Route 28: GET /api/orders/kitchen/queue — Optimized KDS queue
-router.get('/kitchen/queue', (req, res) => {
+router.get('/kitchen/queue', async (req, res) => {
   try {
     const { tenantId, outletId, stationId } = req.query;
 
@@ -650,11 +650,11 @@ router.get('/kitchen/queue', (req, res) => {
 
     sql += ' ORDER BY o.created_at ASC';
 
-    const orders = query(sql, params);
+    const orders = await query(sql, params);
 
     // Get pending items for each order
     for (const order of orders as any[]) {
-      order.items = query(`
+      order.items = await query(`
         SELECT oi.id, oi.product_name as name, oi.quantity, oi.notes,
                oi.kitchen_status as item_status,
                (SELECT GROUP_CONCAT(modifier_option_name, ', ')
@@ -679,7 +679,7 @@ router.get('/kitchen/queue', (req, res) => {
 });
 
 // Route 29: GET /api/orders/kitchen/stats — Kitchen stats
-router.get('/kitchen/stats', (req, res) => {
+router.get('/kitchen/stats', async (req, res) => {
   try {
     const { tenantId, outletId } = req.query;
 
@@ -745,7 +745,7 @@ router.get('/kitchen/stats', (req, res) => {
 });
 
 // Route 30: GET /api/orders/kitchen/completed — Completed orders today
-router.get('/kitchen/completed', (req, res) => {
+router.get('/kitchen/completed', async (req, res) => {
   try {
     const { tenantId, outletId, limit = 20 } = req.query;
 
@@ -770,7 +770,7 @@ router.get('/kitchen/completed', (req, res) => {
     sql += ' ORDER BY o.completed_at DESC LIMIT ?';
     params.push(Number(limit));
 
-    const orders = query(sql, params);
+    const orders = await query(sql, params);
 
     res.json({ success: true, orders });
   } catch (error: any) {
@@ -780,7 +780,7 @@ router.get('/kitchen/completed', (req, res) => {
 });
 
 // Route 31: POST /api/orders/:id/refund — Refund order
-router.post('/:id/refund', (req, res) => {
+router.post('/:id/refund', async (req, res) => {
   try {
     const { id } = req.params;
     const { reason, refundAmount, refundBy } = req.body;
@@ -883,7 +883,7 @@ function logKitchenStatusUpdate(orderId: string) {
 }
 
 // POST /api/orders/payment-failed — Log failed static QRIS/manual EDC payments
-router.post('/payment-failed', (req, res) => {
+router.post('/payment-failed', async (req, res) => {
   try {
     const { tenantId, userId, paymentMethod, amount, error } = req.body;
     if (!tenantId) {

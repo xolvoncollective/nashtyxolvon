@@ -1,11 +1,11 @@
-import { get, query } from '../db/database';
+﻿import { get, query } from '../db/database';
 
 export class FinancialCalculationService {
   /**
    * Summarizes shift data including gross, net, tax, discount, etc.
    */
-  static getShiftSummary(shiftId: string) {
-    const shift = get(`
+  static async getShiftSummary(shiftId: string) {
+    const shift = await get(`
       SELECT s.*, u.name as user_name, o.name as outlet_name
       FROM shifts s LEFT JOIN users u ON s.user_id = u.id LEFT JOIN outlets o ON s.outlet_id = o.id
       WHERE s.id = ?
@@ -13,7 +13,7 @@ export class FinancialCalculationService {
 
     if (!shift) return null;
 
-    const orderSummary = get(`
+    const orderSummary = await get(`
       SELECT
         COUNT(*) as total_orders,
         COUNT(CASE WHEN payment_status = 'paid' AND order_status != 'cancelled' THEN 1 END) as completed_orders,
@@ -28,7 +28,7 @@ export class FinancialCalculationService {
       FROM orders WHERE shift_id = ?
     `, [shiftId]);
 
-    const paymentBreakdown = query(`
+    const paymentBreakdown = await query(`
       SELECT payment_method, COUNT(*) as count, COALESCE(SUM(total), 0) as total_amount
       FROM orders
       WHERE shift_id = ? AND payment_status = 'paid' AND order_status != 'cancelled'
@@ -36,7 +36,7 @@ export class FinancialCalculationService {
       ORDER BY total_amount DESC
     `, [shiftId]);
 
-    const orderTypeBreakdown = query(`
+    const orderTypeBreakdown = await query(`
       SELECT order_type, COUNT(*) as count, COALESCE(SUM(total), 0) as total_amount
       FROM orders
       WHERE shift_id = ? AND payment_status = 'paid' AND order_status != 'cancelled'
@@ -44,7 +44,7 @@ export class FinancialCalculationService {
       ORDER BY total_amount DESC
     `, [shiftId]);
 
-    const topProducts = query(`
+    const topProducts = await query(`
       SELECT oi.product_name, SUM(oi.quantity) as total_qty, SUM(oi.subtotal) as total_sales
       FROM order_items oi
       JOIN orders o ON oi.order_id = o.id
@@ -56,8 +56,8 @@ export class FinancialCalculationService {
     return { shift, summary: orderSummary, paymentBreakdown, orderTypeBreakdown, topProducts };
   }
 
-  static getSalesSummary(tenantId: string, params: any[]) {
-    return get(`
+  static async getSalesSummary(tenantId: string, params: any[]) {
+    return await get(`
       SELECT 
         COUNT(*) as total_orders,
         COALESCE(SUM(o.subtotal), 0) as gross_sales,
@@ -72,8 +72,8 @@ export class FinancialCalculationService {
     `, params[1]);
   }
 
-  static getSalesBreakdown(tenantId: string, params: any[]) {
-     return query(`
+  static async getSalesBreakdown(tenantId: string, params: any[]) {
+     return await query(`
       SELECT 
         DATE(o.created_at, 'localtime') as date,
         COUNT(*) as order_count,
@@ -91,8 +91,8 @@ export class FinancialCalculationService {
     `, params[1]);
   }
 
-  static getSalesByOrderType(tenantId: string, params: any[]) {
-     return query(`
+  static async getSalesByOrderType(tenantId: string, params: any[]) {
+     return await query(`
       SELECT 
         o.order_type,
         COUNT(*) as order_count,
@@ -104,9 +104,9 @@ export class FinancialCalculationService {
     `, params[1]);
   }
 
-  static getDashboardKpi(tenantId: string, params: any[], yesterdayParams: any[]) {
-    const todaySales = this.getSalesSummary(tenantId, params) as any;
-    const yesterdaySales = this.getSalesSummary(tenantId, yesterdayParams) as any;
+  static async getDashboardKpi(tenantId: string, params: any[], yesterdayParams: any[]) {
+    const todaySales = await this.getSalesSummary(tenantId, params) as any;
+    const yesterdaySales = await this.getSalesSummary(tenantId, yesterdayParams) as any;
     
     const todayTotal = todaySales?.net_sales || 0;
     const yesterdayTotal = yesterdaySales?.net_sales || 0;
@@ -124,8 +124,8 @@ export class FinancialCalculationService {
     };
   }
 
-  static getTopProducts(tenantId: string, params: any[], limit: number = 10) {
-    return query(`
+  static async getTopProducts(tenantId: string, params: any[], limit: number = 10) {
+    return await query(`
       SELECT 
         oi.product_id,
         oi.product_name as name,
@@ -141,8 +141,8 @@ export class FinancialCalculationService {
     `, params[1]);
   }
 
-  static getWeeklyChart(tenantId: string, params: any[]) {
-    const weeklyData = query(`
+  static async getWeeklyChart(tenantId: string, params: any[]) {
+    const weeklyData = await query(`
       SELECT 
         DATE(o.created_at, 'localtime') as date,
         strftime('%w', o.created_at, 'localtime') as day_of_week,
@@ -175,8 +175,8 @@ export class FinancialCalculationService {
     return result;
   }
 
-  static getPaymentDistribution(tenantId: string, params: any[]) {
-    const distribution = query(`
+  static async getPaymentDistribution(tenantId: string, params: any[]) {
+    const distribution = await query(`
       SELECT 
         o.payment_method as method,
         COUNT(*) as count,
@@ -195,8 +195,8 @@ export class FinancialCalculationService {
     }));
   }
 
-  static getHourlySales(tenantId: string, params: any[]) {
-    const hourlyData = query(`
+  static async getHourlySales(tenantId: string, params: any[]) {
+    const hourlyData = await query(`
       SELECT 
         CAST(strftime('%H', o.created_at, 'localtime') AS INTEGER) as hour,
         COUNT(*) as order_count,
@@ -220,8 +220,8 @@ export class FinancialCalculationService {
     return result;
   }
 
-  static getProductPerformanceReport(tenantId: string, params: any[], limit: number = 50) {
-    return query(`
+  static async getProductPerformanceReport(tenantId: string, params: any[], limit: number = 50) {
+    return await query(`
       SELECT 
         oi.product_id,
         oi.product_name,
@@ -244,8 +244,8 @@ export class FinancialCalculationService {
     `, params[1]);
   }
 
-  static getCashierPerformanceReport(tenantId: string, outletId?: string) {
-    return query(`
+  static async getCashierPerformanceReport(tenantId: string, outletId?: string) {
+    return await query(`
       SELECT 
         u.id,
         u.name,
@@ -264,8 +264,8 @@ export class FinancialCalculationService {
     `, outletId ? [tenantId, outletId] : [tenantId]);
   }
 
-  static getMenuEngineeringReport(tenantId: string, params: any[]) {
-    const products = query(`
+  static async getMenuEngineeringReport(tenantId: string, params: any[]) {
+    const products = await query(`
       SELECT 
         oi.product_id,
         oi.product_name,

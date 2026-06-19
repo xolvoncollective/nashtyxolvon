@@ -1,4 +1,4 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import db from '../db/database';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -55,8 +55,8 @@ router.post('/login', async (req, res) => {
     }
 
     const users = outletId 
-      ? db.prepare(query).all(outletId)
-      : db.prepare(query).all();
+      ? await db.prepare(query).all(outletId)
+      : await db.prepare(query).all();
 
     // Check PIN against all active users
     for (const user of users as any[]) {
@@ -106,7 +106,7 @@ router.post('/login', async (req, res) => {
 });
 
 // Get available staff for PIN selection
-router.get('/staff', (req, res) => {
+router.get('/staff', async (req, res) => {
   try {
     const { outletId } = req.query;
 
@@ -123,8 +123,8 @@ router.get('/staff', (req, res) => {
     query += ` ORDER BY role, name`;
 
     const staff = outletId
-      ? db.prepare(query).all(outletId)
-      : db.prepare(query).all();
+      ? await db.prepare(query).all(outletId)
+      : await db.prepare(query).all();
 
     res.json({ staff });
   } catch (error: any) {
@@ -156,8 +156,8 @@ router.post('/verify-manager-pin', async (req, res) => {
     }
 
     const managers = outletId
-      ? db.prepare(query).all(outletId)
-      : db.prepare(query).all();
+      ? await db.prepare(query).all(outletId)
+      : await db.prepare(query).all();
 
     // Check PIN against managers
     for (const manager of managers as any[]) {
@@ -187,7 +187,7 @@ router.post('/verify-manager-pin', async (req, res) => {
 });
 
 // Route 2: GET /api/auth/outlets — List all active outlets
-router.get('/outlets', (req, res) => {
+router.get('/outlets', async (req, res) => {
   try {
     const { tenantId } = req.query;
 
@@ -206,8 +206,8 @@ router.get('/outlets', (req, res) => {
     query += ` ORDER BY name`;
 
     const outlets = params.length > 0
-      ? db.prepare(query).all(...params)
-      : db.prepare(query).all();
+      ? await db.prepare(query).all(...params)
+      : await db.prepare(query).all();
 
     res.json({ success: true, outlets });
   } catch (error: any) {

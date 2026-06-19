@@ -4,7 +4,7 @@ import { query, get, run } from '../db/database';
 const router = Router();
 
 // GET /api/kds/analytics — Get KDS KPI metrics for a tenant/outlet for today
-router.get('/analytics', (req, res) => {
+router.get('/analytics', async (req, res) => {
   try {
     const { tenantId, outletId } = req.query;
 
@@ -31,7 +31,7 @@ router.get('/analytics', (req, res) => {
       FROM orders
       WHERE tenant_id = ? AND created_at >= ? ${outletFilter} AND kitchen_status IN ('ready', 'served')
     `;
-    const completedOrders = query(completedOrdersQuery, params) as any[];
+    const completedOrders = await query(completedOrdersQuery, params) as any[];
 
     // Calculate Average Prep Time
     let totalSeconds = 0;
@@ -44,7 +44,7 @@ router.get('/analytics', (req, res) => {
     const avgPrepTimeSeconds = completedOrders.length > 0 ? totalSeconds / completedOrders.length : 0;
     
     // Total Orders Today
-    const totalOrders = get(`
+    const totalOrders = await get(`
       SELECT COUNT(*) as count 
       FROM orders 
       WHERE tenant_id = ? AND created_at >= ? ${outletFilter}
@@ -62,11 +62,11 @@ router.get('/analytics', (req, res) => {
         AND o.completed_at IS NOT NULL
         AND (julianday(o.completed_at) - julianday(o.created_at)) * 24 * 60 > p.production_time
     `;
-    const overSlaItemsCount = (query(overSlaItemsQuery, params) as any[]).length;
-    const totalItemsCount = (query(`SELECT oi.id FROM order_items oi JOIN orders o ON oi.order_id = o.id WHERE o.tenant_id = ? AND o.created_at >= ? ${outletFilter}`, params) as any[]).length;
+    const overSlaItemsCount = (await query(overSlaItemsQuery, params) as any[]).length;
+    const totalItemsCount = (await query(`SELECT oi.id FROM order_items oi JOIN orders o ON oi.order_id = o.id WHERE o.tenant_id = ? AND o.created_at >= ? ${outletFilter}`, params) as any[]).length;
 
     // Fastest products
-    const productStats = query(`
+    const productStats = await query(`
       SELECT p.name, 
              AVG((julianday(o.completed_at) - julianday(o.created_at)) * 24 * 60) as avg_prep_minutes,
              COUNT(oi.id) as orders_count,
@@ -101,7 +101,7 @@ router.get('/analytics', (req, res) => {
 });
 
 // PUT /api/kds/production-time/category/:categoryId — Bulk update production time for category
-router.put('/production-time/category/:categoryId', (req, res) => {
+router.put('/production-time/category/:categoryId', async (req, res) => {
   try {
     const { categoryId } = req.params;
     const { timeMinutes } = req.body;
@@ -111,7 +111,7 @@ router.put('/production-time/category/:categoryId', (req, res) => {
     }
 
     // Just update all products in the category
-    run('UPDATE products SET production_time = ?, updated_at = ? WHERE category_id = ?', [
+    await run('UPDATE products SET production_time = ?, updated_at = ? WHERE category_id = ?', [
       timeMinutes,
       new Date().toISOString(),
       categoryId

@@ -1,10 +1,10 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { query } from '../db/database';
 
 const router = Router();
 
 // Route 50: GET /api/activity-logs — Activity logs with filters
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const { tenantId, userId, entityType, action, dateFrom, dateTo, page = 1, limit = 50 } = req.query;
 
@@ -45,7 +45,7 @@ router.get('/', (req, res) => {
     }
 
     // Get total count
-    const countResult = query(`
+    const countResult = await query(`
       SELECT COUNT(*) as total FROM activity_logs al ${whereClause}
     `, params);
     const total = (countResult[0] as any)?.total || 0;
@@ -53,7 +53,7 @@ router.get('/', (req, res) => {
     // Get paginated results
     params.push(Number(limit), Number(offset));
 
-    const logs = query(`
+    const logs = await query(`
       SELECT al.*, u.name as user_name, u.role as user_role
       FROM activity_logs al
       LEFT JOIN users u ON al.user_id = u.id

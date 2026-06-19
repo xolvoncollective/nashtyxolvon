@@ -1,10 +1,10 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { query, get } from '../db/database';
 
 const router = Router();
 
 // GET /api/dashboard/kpi — Dashboard KPIs
-router.get('/kpi', (req, res) => {
+router.get('/kpi', async (req, res) => {
   try {
     const { tenantId, outletId, dateFrom, dateTo } = req.query;
 
@@ -48,7 +48,7 @@ router.get('/kpi', (req, res) => {
     `, params) as any;
 
     // Top products
-    const topProducts = query(`
+    const topProducts = await query(`
       SELECT 
         oi.product_name,
         SUM(oi.quantity) as total_qty,
@@ -62,7 +62,7 @@ router.get('/kpi', (req, res) => {
     `, params);
 
     // Sales by order type
-    const salesByType = query(`
+    const salesByType = await query(`
       SELECT 
         order_type,
         COUNT(*) as order_count,
@@ -143,7 +143,7 @@ router.get('/kpi', (req, res) => {
 });
 
 // GET /api/dashboard/recent-orders — Recent orders
-router.get('/recent-orders', (req, res) => {
+router.get('/recent-orders', async (req, res) => {
   try {
     const { tenantId, outletId, limit = 10 } = req.query;
 
@@ -169,7 +169,7 @@ router.get('/recent-orders', (req, res) => {
     sql += ' ORDER BY o.created_at DESC LIMIT ?';
     params.push(Number(limit));
 
-    const orders = query(sql, params);
+    const orders = await query(sql, params);
 
     res.json({ success: true, orders });
   } catch (error: any) {
@@ -179,7 +179,7 @@ router.get('/recent-orders', (req, res) => {
 });
 
 // Route 37: GET /api/dashboard/weekly-chart — 7-day revenue chart
-router.get('/weekly-chart', (req, res) => {
+router.get('/weekly-chart', async (req, res) => {
   try {
     const { tenantId, outletId } = req.query;
 
@@ -195,7 +195,7 @@ router.get('/weekly-chart', (req, res) => {
       params.push(outletId);
     }
 
-    const weeklyData = query(`
+    const weeklyData = await query(`
       SELECT 
         DATE(o.created_at, 'localtime') as date,
         strftime('%w', o.created_at, 'localtime') as day_of_week,
@@ -235,7 +235,7 @@ router.get('/weekly-chart', (req, res) => {
 });
 
 // Route 38: GET /api/dashboard/payment-distribution — Payment method distribution
-router.get('/payment-distribution', (req, res) => {
+router.get('/payment-distribution', async (req, res) => {
   try {
     const { tenantId, outletId, dateFrom, dateTo } = req.query;
 
@@ -255,7 +255,7 @@ router.get('/payment-distribution', (req, res) => {
       whereClause += ' AND DATE(o.created_at) = DATE("now")';
     }
 
-    const distribution = query(`
+    const distribution = await query(`
       SELECT 
         o.payment_method as method,
         COUNT(*) as count,
@@ -281,7 +281,7 @@ router.get('/payment-distribution', (req, res) => {
 });
 
 // Route 39: GET /api/dashboard/top-products — Top 10 products
-router.get('/top-products', (req, res) => {
+router.get('/top-products', async (req, res) => {
   try {
     const { tenantId, outletId, period = 'today' } = req.query;
 
@@ -306,7 +306,7 @@ router.get('/top-products', (req, res) => {
         break;
     }
 
-    const products = query(`
+    const products = await query(`
       SELECT 
         oi.product_name as name,
         oi.product_id,
@@ -329,7 +329,7 @@ router.get('/top-products', (req, res) => {
 });
 
 // Route 40: GET /api/dashboard/hourly-sales — Hourly sales heatmap
-router.get('/hourly-sales', (req, res) => {
+router.get('/hourly-sales', async (req, res) => {
   try {
     const { tenantId, outletId, date } = req.query;
 
@@ -347,7 +347,7 @@ router.get('/hourly-sales', (req, res) => {
       params.push(outletId);
     }
 
-    const hourlyData = query(`
+    const hourlyData = await query(`
       SELECT 
         CAST(strftime('%H', o.created_at, 'localtime') AS INTEGER) as hour,
         COUNT(*) as order_count,

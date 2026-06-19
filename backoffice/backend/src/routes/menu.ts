@@ -1,4 +1,4 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { query, get, run } from '../db/database';
 import { cacheManager } from '../services/CacheManager';
 import { z } from 'zod';
@@ -23,7 +23,7 @@ interface MenuTree {
 
 // Route 17: GET /api/menu/outlet/:outletId — Full menu tree for POS with caching
 // Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 10.2, 10.3, 10.4, 10.5, 10.6, 12.2, 12.4, 16.1
-router.get('/outlet/:outletId', (req, res) => {
+router.get('/outlet/:outletId', async (req, res) => {
   const startTime = Date.now();
   
   try {
@@ -72,7 +72,7 @@ router.get('/outlet/:outletId', (req, res) => {
     // Filter all data by tenant_id for multi-outlet isolation (Requirement 12.2, 12.4)
     
     // Get all active categories
-    const categories = query(`
+    const categories = await query(`
       SELECT id, name, slug, description, icon, color, display_order, status
       FROM categories
       WHERE tenant_id = ? AND status = 'active'
@@ -80,7 +80,7 @@ router.get('/outlet/:outletId', (req, res) => {
     `, [tenantId]);
 
     // Get all products (including sold out for POS to show as disabled)
-    const items = query(`
+    const items = await query(`
       SELECT p.id, p.name, p.slug, p.description, p.price, p.cost, p.image_url,
              p.category_id, p.is_favorite, p.has_modifiers, p.stock_tracking,
              p.stock_qty, p.production_time, p.status
@@ -90,7 +90,7 @@ router.get('/outlet/:outletId', (req, res) => {
     `, [tenantId]);
 
     // Get all modifier groups for the tenant
-    const modifierGroups = query(`
+    const modifierGroups = await query(`
       SELECT mg.id, mg.name, mg.description, mg.type, mg.required,
              mg.min_select, mg.max_select, mg.display_order
       FROM modifier_groups mg
@@ -100,7 +100,7 @@ router.get('/outlet/:outletId', (req, res) => {
 
     // Get modifier options for each group
     for (const group of modifierGroups as any[]) {
-      group.options = query(`
+      group.options = await query(`
         SELECT id, name, price_adjustment, display_order
         FROM modifier_options
         WHERE group_id = ? AND status = 'active'
@@ -111,7 +111,7 @@ router.get('/outlet/:outletId', (req, res) => {
     // Map modifier groups to products that have modifiers
     for (const item of items as any[]) {
       if (item.has_modifiers) {
-        item.modifier_groups = query(`
+        item.modifier_groups = await query(`
           SELECT mg.id, mg.name, mg.description, mg.type, mg.required,
                  mg.min_select, mg.max_select
           FROM modifier_groups mg
@@ -121,7 +121,7 @@ router.get('/outlet/:outletId', (req, res) => {
         `, [item.id]);
 
         for (const group of item.modifier_groups) {
-          group.options = query(`
+          group.options = await query(`
             SELECT id, name, price_adjustment, display_order
             FROM modifier_options
             WHERE group_id = ? AND status = 'active'
@@ -134,7 +134,7 @@ router.get('/outlet/:outletId', (req, res) => {
     }
 
     // Get kitchen stations for the outlet (Requirement 5.7)
-    const stations = query(`
+    const stations = await query(`
       SELECT id, name, display_order, status
       FROM stations
       WHERE outlet_id = ? AND status = 'active'
@@ -207,7 +207,7 @@ const CreateMenuItemSchema = z.object({
 
 // Route 18: POST /api/menu/items — Create menu item
 // Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 14.5
-router.post('/items', (req, res) => {
+router.post('/items', async (req, res) => {
   const startTime = Date.now();
   
   try {
@@ -257,7 +257,7 @@ router.post('/items', (req, res) => {
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
     // Insert item into menu_items (products) table (Requirement 6.3)
-    run(`
+    await run(`
       INSERT INTO products (
         id, tenant_id, category_id, name, slug, description, 
         price, cost, sku, image_url, is_favorite, has_modifiers, 
@@ -331,7 +331,7 @@ const UpdateMenuItemSchema = z.object({
 
 // Route 19: PATCH /api/menu/items/:id — Update menu item
 // Requirements: 6.6, 6.7, 6.8, 14.5
-router.patch('/items/:id', (req, res) => {
+router.patch('/items/:id', async (req, res) => {
   const startTime = Date.now();
   
   try {
@@ -452,7 +452,7 @@ router.patch('/items/:id', (req, res) => {
     `;
     updateValues.push(itemId);
 
-    run(updateQuery, updateValues);
+    await run(updateQuery, updateValues);
 
     // Invalidate all menu caches across outlets since products are tenant-wide
     // (Requirement 6.8, 7.3)

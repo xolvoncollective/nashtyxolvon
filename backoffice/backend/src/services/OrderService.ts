@@ -7,7 +7,7 @@ import { logOrderCreation, logOrderStatusUpdate } from '../middleware/logging';
 
 export class OrderService {
   
-  static createOrder(data: any) {
+  static async createOrder(data: any) {
     const {
       tenantId, outletId, shiftId = null, userId,
       orderType, tableNumber = null, customerName = null, customerPhone = null, items,
@@ -15,7 +15,7 @@ export class OrderService {
     } = data;
 
     // Generate sequential order number
-    const seqResult = get(`
+    const seqResult = await get(`
       SELECT COUNT(*) as count FROM orders 
       WHERE outlet_id = ? AND DATE(created_at, 'localtime') = DATE('now', 'localtime')
     `, [outletId]) as any;
@@ -43,7 +43,7 @@ export class OrderService {
     const validDiscount = Math.min(discount, calculatedSubtotal);
     const baseAmount = calculatedSubtotal - validDiscount;
 
-    const { taxRate, scRate } = SettingsService.getTaxAndServiceChargeRate(tenantId, outletId);
+    const { taxRate, scRate } = await SettingsService.getTaxAndServiceChargeRate(tenantId, outletId);
     const calculatedTax = Math.round(baseAmount * (taxRate / 100));
     const calculatedServiceCharge = Math.round(baseAmount * (scRate / 100));
     const calculatedTotal = baseAmount + calculatedTax + calculatedServiceCharge;
@@ -60,8 +60,8 @@ export class OrderService {
     };
     const mappedOrderType = orderTypeMap[orderType] || orderType;
 
-    const doTransaction = transaction(() => {
-      run(`
+    const doTransaction = transaction(async () => {
+      await run(`
         INSERT INTO orders (
           id, tenant_id, outlet_id, shift_id, user_id, order_number,
           order_type, table_number, customer_name, customer_phone, subtotal, discount, tax, service_charge,
@@ -75,7 +75,7 @@ export class OrderService {
 
       for (const item of items) {
         const itemId = crypto.randomUUID();
-        run(`
+        await run(`
           INSERT INTO order_items (
             id, order_id, product_id, product_name, quantity, unit_price, subtotal, notes
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -83,7 +83,7 @@ export class OrderService {
 
         if (item.modifiers && item.modifiers.length > 0) {
           for (const mod of item.modifiers) {
-            run(`
+            await run(`
               INSERT INTO order_item_modifiers (
                 id, order_item_id, modifier_group_id, modifier_group_name,
                 modifier_option_id, modifier_option_name, price_adjustment
@@ -97,7 +97,7 @@ export class OrderService {
 
       if (payments && Array.isArray(payments)) {
         for (const payment of payments) {
-          run(`
+          await run(`
             INSERT INTO payments (id, order_id, method, amount, change_amount, platform_ref)
             VALUES (?, ?, ?, ?, ?, ?)
           `, [crypto.randomUUID(), orderId, payment.method, payment.amount, payment.change || 0, payment.platformRef || null]);
@@ -105,26 +105,26 @@ export class OrderService {
       }
     });
 
-    doTransaction();
+    await doTransaction();
     logOrderCreation(orderNumber, orderId, calculatedTotal);
 
-    const order = get(`
+    const order = await get(`
       SELECT o.*, u.name as cashier_name
       FROM orders o LEFT JOIN users u ON o.user_id = u.id
       WHERE o.id = ?
     `, [orderId]);
 
-    const orderItems = query('SELECT * FROM order_items WHERE order_id = ?', [orderId]);
+    const orderItems = await query('SELECT * FROM order_items WHERE order_id = ?', [orderId]);
     for (const item of orderItems as any[]) {
-      item.modifiers = query('SELECT * FROM order_item_modifiers WHERE order_item_id = ?', [item.id]);
+      item.modifiers = await query('SELECT * FROM order_item_modifiers WHERE order_item_id = ?', [item.id]);
     }
     (order as any).items = orderItems;
 
     return order;
   }
 
-  static updateOrderStatus(id: string, orderStatus?: string, kitchenStatus?: string) {
-    const currentOrder = get('SELECT * FROM orders WHERE id = ?', [id]) as any;
+  static async updateOrderStatus(id: string, orderStatus?: string, kitchenStatus?: string) {
+    const currentOrder = await get('SELECT * FROM orders WHERE id = ?', [id]) as any;
     if (!currentOrder) throw new Error('Order not found');
 
     const updates: string[] = [];
@@ -148,7 +148,7 @@ export class OrderService {
     params.push(new Date().toISOString());
     params.push(id);
 
-    run(`UPDATE orders SET ${updates.join(', ')} WHERE id = ?`, params);
+    await run(`UPDATE orders SET ${updates.join(', ')} WHERE id = ?`, params);
 
     // CRM Integration: Award Points
     const isNowCompleted = (orderStatus === 'completed' || kitchenStatus === 'served' || kitchenStatus === 'ready');
@@ -177,11 +177,11 @@ export class OrderService {
   }
 
   static async voidOrder(id: string, reason: string, voidBy: string, managerPin: string) {
-    const order = get('SELECT * FROM orders WHERE id = ?', [id]) as any;
+    const order = await get('SELECT * FROM orders WHERE id = ?', [id]) as any;
     if (!order) throw new Error('Order not found');
     if (order.order_status === 'cancelled') throw new Error('Order sudah di-void sebelumnya');
 
-    const managers = query('SELECT * FROM users WHERE tenant_id = ? AND role IN (\'manager\', \'owner\')', [order.tenant_id]) as any[];
+    const managers = await query('SELECT * FROM users WHERE tenant_id = ? AND role IN (\'manager\', \'owner\')', [order.tenant_id]) as any[];
     let validManager = null;
     
     for (const mgr of managers) {
@@ -193,7 +193,7 @@ export class OrderService {
 
     if (!validManager) throw new Error('PIN tidak valid atau Anda tidak memiliki akses Manager');
 
-    run(`
+    await run(`
       UPDATE orders SET
         order_status = 'cancelled',
         kitchen_status = 'served',
@@ -204,12 +204,12 @@ export class OrderService {
     `, [`VOID: ${reason} (by: ${voidBy || 'Manager'})`, new Date().toISOString(), id]);
 
     // Wave 2: Inventory Restoration
-    const items = query('SELECT product_id, quantity FROM order_items WHERE order_id = ?', [id]) as any[];
+    const items = await query('SELECT product_id, quantity FROM order_items WHERE order_id = ?', [id]) as any[];
     for (const item of items) {
       ProductService.restoreStock(item.product_id, item.quantity, `Void: ${order.order_number}`);
     }
 
-    run(`
+    await run(`
       INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description)
       VALUES (?, ?, ?, 'void', 'order', ?, ?)
     `, [crypto.randomUUID(), order.tenant_id, voidBy || null, id, `Void order ${order.order_number} — ${reason} (Rp ${order.total.toLocaleString()})`]);
@@ -217,26 +217,26 @@ export class OrderService {
     return order;
   }
 
-  static refundOrder(id: string, reason: string, refundAmount: number, refundBy: string) {
-    const order = get('SELECT * FROM orders WHERE id = ?', [id]) as any;
+  static async refundOrder(id: string, reason: string, refundAmount: number, refundBy: string) {
+    const order = await get('SELECT * FROM orders WHERE id = ?', [id]) as any;
     if (!order) throw new Error('Order not found');
 
     const amount = refundAmount || order.total;
 
-    run(`
+    await run(`
       UPDATE orders SET
         notes = COALESCE(notes || ' | ', '') || ?,
         updated_at = ?
       WHERE id = ?
     `, [`REFUND: Rp ${amount.toLocaleString()} — ${reason} (by: ${refundBy || 'Manager'})`, new Date().toISOString(), id]);
 
-    run(`
+    await run(`
       INSERT INTO payments (id, order_id, method, amount, change_amount, platform_ref)
       VALUES (?, ?, ?, ?, ?, ?)
     `, [crypto.randomUUID(), id, order.payment_method || 'tunai', -Math.abs(amount), 0, 'REFUND']);
 
     if (amount >= order.total) {
-      run(`UPDATE orders SET order_status = 'cancelled', payment_status = 'cancelled' WHERE id = ?`, [id]);
+      await run(`UPDATE orders SET order_status = 'cancelled', payment_status = 'cancelled' WHERE id = ?`, [id]);
     }
 
     // Wave 3: Point Reversal
@@ -258,7 +258,7 @@ export class OrderService {
       }
     }
 
-    run(`
+    await run(`
       INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description)
       VALUES (?, ?, ?, 'refund', 'order', ?, ?)
     `, [crypto.randomUUID(), order.tenant_id, refundBy || null, id, `Refund order ${order.order_number} — Rp ${amount.toLocaleString()} — ${reason}`]);
@@ -266,27 +266,27 @@ export class OrderService {
     return { order, amount };
   }
 
-  static updateOrderItemStatus(id: string, itemId: string, status: string) {
+  static async updateOrderItemStatus(id: string, itemId: string, status: string) {
     if (!['pending', 'preparing', 'ready', 'served'].includes(status)) {
       throw new Error('Invalid item status');
     }
 
     // Update item status
-    run('UPDATE order_items SET kitchen_status = ? WHERE id = ? AND order_id = ?', [status, itemId, id]);
+    await run('UPDATE order_items SET kitchen_status = ? WHERE id = ? AND order_id = ?', [status, itemId, id]);
 
     // Check if all items are ready/served — auto-update order kitchen_status
-    const pendingItems = query(`
+    const pendingItems = await query(`
       SELECT COUNT(*) as count FROM order_items
       WHERE order_id = ? AND kitchen_status IN ('pending', 'preparing')
     `, [id]);
 
     if ((pendingItems[0] as any).count === 0) {
       // All items are ready or served -> delegate to the main updateOrderStatus to ensure logging
-      this.updateOrderStatus(id, 'ready', 'ready');
+      await this.updateOrderStatus(id, 'ready', 'ready');
     }
   }
 
-  static getKitchenQueue(tenantId: string, outletId?: string, stationId?: string) {
+  static async getKitchenQueue(tenantId: string, outletId?: string, stationId?: string) {
     let sql = `
       SELECT o.id, o.order_number, o.order_type, o.table_number,
              o.kitchen_status, o.order_status, o.created_at, o.notes,
@@ -302,11 +302,11 @@ export class OrderService {
 
     sql += ' ORDER BY o.created_at ASC';
 
-    const orders = query(sql, params) as any[];
+    const orders = await query(sql, params) as any[];
 
     // Get pending items for each order
     for (const order of orders) {
-      order.items = query(`
+      order.items = await query(`
         SELECT oi.id, oi.product_name as name, oi.quantity, oi.notes,
                oi.kitchen_status as item_status,
                p.production_time,
@@ -328,7 +328,7 @@ export class OrderService {
     return { orders: activeOrders, total: activeOrders.length };
   }
 
-  static getKitchenStats(tenantId: string, outletId?: string) {
+  static async getKitchenStats(tenantId: string, outletId?: string) {
     let whereClause = 'WHERE o.tenant_id = ?';
     const params: any[] = [tenantId];
 
@@ -337,7 +337,7 @@ export class OrderService {
       params.push(outletId);
     }
 
-    const todayStats = get(`
+    const todayStats = await get(`
       SELECT
         COUNT(CASE WHEN o.kitchen_status IN ('pending', 'preparing') AND o.order_status != 'cancelled' THEN 1 END) as active_orders,
         COUNT(CASE WHEN o.kitchen_status = 'ready' AND DATE(o.created_at, 'localtime') = DATE('now', 'localtime') THEN 1 END) as completed_today,
@@ -349,7 +349,7 @@ export class OrderService {
       ${whereClause}
     `, params) as any;
 
-    const avgTime = get(`
+    const avgTime = await get(`
       SELECT AVG(
         (julianday(o.completed_at) - julianday(o.created_at)) * 24 * 60
       ) as avg_minutes
@@ -359,7 +359,7 @@ export class OrderService {
         AND DATE(o.created_at, 'localtime') = DATE('now', 'localtime')
     `, params) as any;
 
-    const itemStats = get(`
+    const itemStats = await get(`
       SELECT COUNT(oi.id) as total_items
       FROM order_items oi
       JOIN orders o ON oi.order_id = o.id
@@ -376,7 +376,7 @@ export class OrderService {
     };
   }
 
-  static getCompletedOrders(tenantId: string, outletId?: string, limit: number = 20) {
+  static async getCompletedOrders(tenantId: string, outletId?: string, limit: number = 20) {
     let sql = `
       SELECT o.id, o.order_number, o.order_type, o.table_number,
              o.kitchen_status, o.created_at, o.completed_at,
@@ -394,11 +394,11 @@ export class OrderService {
     sql += ' ORDER BY o.completed_at DESC LIMIT ?';
     params.push(Number(limit));
 
-    return query(sql, params);
+    return await query(sql, params);
   }
 
-  static getOrdersByShift(shiftId: string) {
-    const orders = query(`
+  static async getOrdersByShift(shiftId: string) {
+    const orders = await query(`
       SELECT o.*, u.name as cashier_name
       FROM orders o
       LEFT JOIN users u ON o.user_id = u.id
@@ -407,7 +407,7 @@ export class OrderService {
     `, [shiftId]) as any[];
 
     for (const order of orders) {
-      order.items = query(`
+      order.items = await query(`
         SELECT oi.product_name, oi.quantity, oi.unit_price, oi.subtotal
         FROM order_items oi WHERE oi.order_id = ?
       `, [order.id]);

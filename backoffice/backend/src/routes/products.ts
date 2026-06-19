@@ -1,4 +1,4 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { query, get, run } from '../db/database';
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
@@ -36,7 +36,7 @@ const UpdateProductSchema = z.object({
 }).strict();
 
 // GET /api/products — Get all products with filters
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const { tenantId, categoryId, search, status = 'active' } = req.query;
 
@@ -71,7 +71,7 @@ router.get('/', (req, res) => {
 
     sql += ` ORDER BY p.is_favorite DESC, p.name`;
 
-    const products = query(sql, params);
+    const products = await query(sql, params);
 
     res.json({ products });
   } catch (error: any) {
@@ -81,7 +81,7 @@ router.get('/', (req, res) => {
 });
 
 // GET /api/products/:id — Get product by ID with modifiers
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -98,7 +98,7 @@ router.get('/:id', (req, res) => {
 
     // Get modifiers if product has them
     if ((product as any).has_modifiers) {
-      (product as any).modifiers = query(`
+      (product as any).modifiers = await query(`
         SELECT mg.*, pm.display_order as pm_order
         FROM modifier_groups mg
         JOIN product_modifiers pm ON mg.id = pm.modifier_group_id
@@ -107,7 +107,7 @@ router.get('/:id', (req, res) => {
       `, [id]);
 
       for (const modifier of (product as any).modifiers as any[]) {
-        modifier.options = query(`
+        modifier.options = await query(`
           SELECT * FROM modifier_options
           WHERE group_id = ? AND status = 'active'
           ORDER BY display_order, name
@@ -123,7 +123,7 @@ router.get('/:id', (req, res) => {
 });
 
 // PATCH /api/products/:id/favorite — Toggle favorite
-router.patch('/:id/favorite', (req, res) => {
+router.patch('/:id/favorite', async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -134,7 +134,7 @@ router.patch('/:id/favorite', (req, res) => {
     }
 
     const newValue = product.is_favorite ? 0 : 1;
-    run('UPDATE products SET is_favorite = ? WHERE id = ?', [newValue, id]);
+    await run('UPDATE products SET is_favorite = ? WHERE id = ?', [newValue, id]);
 
     res.json({ success: true, is_favorite: newValue });
   } catch (error: any) {
@@ -144,7 +144,7 @@ router.patch('/:id/favorite', (req, res) => {
 });
 
 // Route 12: POST /api/products — Create product
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   try {
     console.log('[INFO] POST /api/products - Creating product');
 
@@ -172,7 +172,7 @@ router.post('/', (req, res) => {
     const productId = randomUUID();
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
-    run(`
+    await run(`
       INSERT INTO products (id, tenant_id, category_id, name, slug, description, price, cost, image_url, has_modifiers, production_time, status, stock_tracking, stock_qty)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)
     `, [productId, tenantId, categoryId, name, slug, description || null, price, cost, imageUrl || null, hasModifiers ? 1 : 0, productionTime, stockTracking ? 1 : 0, stockQty]);
@@ -180,7 +180,7 @@ router.post('/', (req, res) => {
     // Link modifier groups if provided
     if (modifierGroupIds && modifierGroupIds.length > 0) {
       for (let i = 0; i < modifierGroupIds.length; i++) {
-        run(`
+        await run(`
           INSERT INTO product_modifiers (product_id, modifier_group_id, display_order)
           VALUES (?, ?, ?)
         `, [productId, modifierGroupIds[i], i + 1]);
@@ -191,7 +191,7 @@ router.post('/', (req, res) => {
 
     // Log activity (Requirement 14.5)
     console.log(`[INFO] Product created - product_id: ${productId}, name: "${name}", price: ${price}`);
-    run(`
+    await run(`
       INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
       VALUES (?, ?, 'create', 'product', ?, ?)
     `, [randomUUID(), tenantId, productId, `Produk "${name}" ditambahkan (Rp ${price.toLocaleString()})`]);
@@ -207,7 +207,7 @@ router.post('/', (req, res) => {
 });
 
 // Route 13: PUT /api/products/:id — Update product
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -266,13 +266,13 @@ router.put('/:id', (req, res) => {
     params.push(new Date().toISOString());
     params.push(id);
 
-    run(`UPDATE products SET ${updates.join(', ')} WHERE id = ?`, params);
+    await run(`UPDATE products SET ${updates.join(', ')} WHERE id = ?`, params);
 
     // Update modifier group links if provided
     if (modifierGroupIds && Array.isArray(modifierGroupIds)) {
-      run('DELETE FROM product_modifiers WHERE product_id = ?', [id]);
+      await run('DELETE FROM product_modifiers WHERE product_id = ?', [id]);
       for (let i = 0; i < modifierGroupIds.length; i++) {
-        run(`
+        await run(`
           INSERT INTO product_modifiers (product_id, modifier_group_id, display_order)
           VALUES (?, ?, ?)
         `, [id, modifierGroupIds[i], i + 1]);
@@ -283,7 +283,7 @@ router.put('/:id', (req, res) => {
 
     // Log activity (Requirement 14.5)
     console.log(`[INFO] Product updated - product_id: ${id}, name: "${(existing as any).name}"`);
-    run(`
+    await run(`
       INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
       VALUES (?, ?, 'update', 'product', ?, ?)
     `, [randomUUID(), (existing as any).tenant_id, id, `Produk "${(existing as any).name}" diperbarui`]);
@@ -299,7 +299,7 @@ router.put('/:id', (req, res) => {
 });
 
 // Route 14: PATCH /api/products/:id/status — Update product status
-router.patch('/:id/status', (req, res) => {
+router.patch('/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -313,12 +313,12 @@ router.patch('/:id/status', (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    run('UPDATE products SET status = ?, updated_at = ? WHERE id = ?', [status, new Date().toISOString(), id]);
+    await run('UPDATE products SET status = ?, updated_at = ? WHERE id = ?', [status, new Date().toISOString(), id]);
 
     const statusLabels: Record<string, string> = { active: 'diaktifkan', inactive: 'dinonaktifkan', soldout: 'ditandai habis' };
 
     // Log activity
-    run(`
+    await run(`
       INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
       VALUES (?, ?, 'update', 'product', ?, ?)
     `, [randomUUID(), (existing as any).tenant_id, id, `Produk "${(existing as any).name}" ${statusLabels[status]}`]);
@@ -331,7 +331,7 @@ router.patch('/:id/status', (req, res) => {
 });
 
 // Route 15: DELETE /api/products/:id — Delete product (soft)
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -340,7 +340,7 @@ router.delete('/:id', (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    run('UPDATE products SET status = ?, updated_at = ? WHERE id = ?', ['inactive', new Date().toISOString(), id]);
+    await run('UPDATE products SET status = ?, updated_at = ? WHERE id = ?', ['inactive', new Date().toISOString(), id]);
 
     res.json({ success: true, message: 'Produk berhasil dihapus' });
   } catch (error: any) {
@@ -350,7 +350,7 @@ router.delete('/:id', (req, res) => {
 });
 
 // Route 16: POST /api/products/:id/duplicate — Duplicate product
-router.post('/:id/duplicate', (req, res) => {
+router.post('/:id/duplicate', async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -363,15 +363,15 @@ router.post('/:id/duplicate', (req, res) => {
     const newName = `${original.name} (Copy)`;
     const newSlug = `${original.slug}-copy-${Date.now()}`;
 
-    run(`
+    await run(`
       INSERT INTO products (id, tenant_id, category_id, name, slug, description, price, cost, image_url, has_modifiers, production_time, status)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')
     `, [newId, original.tenant_id, original.category_id, newName, newSlug, original.description, original.price, original.cost, original.image_url, original.has_modifiers, original.production_time]);
 
     // Copy modifier links
-    const modLinks = query('SELECT * FROM product_modifiers WHERE product_id = ?', [id]);
+    const modLinks = await query('SELECT * FROM product_modifiers WHERE product_id = ?', [id]);
     for (const link of modLinks as any[]) {
-      run(`
+      await run(`
         INSERT INTO product_modifiers (product_id, modifier_group_id, display_order)
         VALUES (?, ?, ?)
       `, [newId, link.modifier_group_id, link.display_order]);

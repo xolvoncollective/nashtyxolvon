@@ -1,11 +1,11 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { query, get, run } from '../db/database';
 import { randomUUID } from 'crypto';
 
 const router = Router();
 
 // POST /api/shifts/start — Start shift
-router.post('/start', (req, res) => {
+router.post('/start', async (req, res) => {
   try {
     const { outletId, userId, startCash } = req.body;
 
@@ -24,7 +24,7 @@ router.post('/start', (req, res) => {
 
     const shiftId = randomUUID();
 
-    run(`
+    await run(`
       INSERT INTO shifts (id, outlet_id, user_id, start_cash, status) VALUES (?, ?, ?, ?, 'open')
     `, [shiftId, outletId, userId, startCash || 0]);
 
@@ -42,7 +42,7 @@ router.post('/start', (req, res) => {
 });
 
 // POST /api/shifts/:id/end — End shift
-router.post('/:id/end', (req, res) => {
+router.post('/:id/end', async (req, res) => {
   try {
     const { id } = req.params;
     const { endCash, notes } = req.body;
@@ -81,7 +81,7 @@ router.post('/:id/end', (req, res) => {
     const expectedCash = shift.start_cash + result.total_sales;
     const variance = endCash - expectedCash;
 
-    run(`
+    await run(`
       UPDATE shifts SET end_cash = ?, expected_cash = ?, variance = ?, notes = ?,
         ended_at = ?, status = 'closed'
       WHERE id = ?
@@ -101,7 +101,7 @@ router.post('/:id/end', (req, res) => {
 });
 
 // GET /api/shifts/active — Get active shift for user
-router.get('/active', (req, res) => {
+router.get('/active', async (req, res) => {
   try {
     const { userId } = req.query;
     if (!userId) return res.status(400).json({ error: 'userId required' });
@@ -120,7 +120,7 @@ router.get('/active', (req, res) => {
 });
 
 // GET /api/shifts — Shift history
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const { outletId, userId, limit = 20 } = req.query;
 
@@ -139,7 +139,7 @@ router.get('/', (req, res) => {
     sql += ' ORDER BY s.started_at DESC LIMIT ?';
     params.push(Number(limit));
 
-    const shifts = query(sql, params);
+    const shifts = await query(sql, params);
 
     res.json({ shifts });
   } catch (error: any) {
@@ -149,7 +149,7 @@ router.get('/', (req, res) => {
 });
 
 // Route 32: GET /api/shifts/:id/summary — Shift summary with payment breakdown
-router.get('/:id/summary', (req, res) => {
+router.get('/:id/summary', async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -177,7 +177,7 @@ router.get('/:id/summary', (req, res) => {
     `, [id]);
 
     // Payment method breakdown
-    const paymentBreakdown = query(`
+    const paymentBreakdown = await query(`
       SELECT payment_method, COUNT(*) as count, COALESCE(SUM(total), 0) as total_amount
       FROM orders
       WHERE shift_id = ? AND payment_status = 'paid' AND order_status != 'cancelled'
@@ -186,7 +186,7 @@ router.get('/:id/summary', (req, res) => {
     `, [id]);
 
     // Order type breakdown
-    const orderTypeBreakdown = query(`
+    const orderTypeBreakdown = await query(`
       SELECT order_type, COUNT(*) as count, COALESCE(SUM(total), 0) as total_amount
       FROM orders
       WHERE shift_id = ? AND payment_status = 'paid' AND order_status != 'cancelled'
@@ -195,7 +195,7 @@ router.get('/:id/summary', (req, res) => {
     `, [id]);
 
     // Top products
-    const topProducts = query(`
+    const topProducts = await query(`
       SELECT oi.product_name, SUM(oi.quantity) as total_qty, SUM(oi.subtotal) as total_sales
       FROM order_items oi
       JOIN orders o ON oi.order_id = o.id
@@ -221,11 +221,11 @@ router.get('/:id/summary', (req, res) => {
 });
 
 // Route 33: GET /api/shifts/:id/orders — Orders in shift
-router.get('/:id/orders', (req, res) => {
+router.get('/:id/orders', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const orders = query(`
+    const orders = await query(`
       SELECT o.id, o.order_number, o.order_type, o.table_number,
              o.subtotal, o.discount, o.tax, o.service_charge, o.total,
              o.payment_method, o.payment_status, o.order_status,
@@ -243,11 +243,11 @@ router.get('/:id/orders', (req, res) => {
 });
 
 // Route 34: GET /api/shifts/active/:outletId — Active shift by outlet
-router.get('/active/:outletId', (req, res) => {
+router.get('/active/:outletId', async (req, res) => {
   try {
     const { outletId } = req.params;
 
-    const shifts = query(`
+    const shifts = await query(`
       SELECT s.*, u.name as user_name
       FROM shifts s LEFT JOIN users u ON s.user_id = u.id
       WHERE s.outlet_id = ? AND s.status = 'open'
@@ -262,12 +262,12 @@ router.get('/active/:outletId', (req, res) => {
 });
 
 // Route 35: GET /api/shifts/:id/payment-breakdown — Payment method breakdown
-router.get('/:id/payment-breakdown', (req, res) => {
+router.get('/:id/payment-breakdown', async (req, res) => {
   try {
     const { id } = req.params;
 
     // Try payments table first, fallback to orders.payment_method
-    let breakdown = query(`
+    let breakdown = await query(`
       SELECT p.method, COUNT(*) as count, COALESCE(SUM(p.amount), 0) as total_amount
       FROM payments p
       JOIN orders o ON p.order_id = o.id
@@ -277,7 +277,7 @@ router.get('/:id/payment-breakdown', (req, res) => {
 
     // Fallback to orders table if no payments records
     if (breakdown.length === 0) {
-      breakdown = query(`
+      breakdown = await query(`
         SELECT payment_method as method, COUNT(*) as count, COALESCE(SUM(total), 0) as total_amount
         FROM orders
         WHERE shift_id = ? AND payment_status = 'paid' AND order_status != 'cancelled'
@@ -305,7 +305,7 @@ router.get('/:id/payment-breakdown', (req, res) => {
 });
 
 // Route 36: GET /api/shifts/report/daily — Daily shift report
-router.get('/report/daily', (req, res) => {
+router.get('/report/daily', async (req, res) => {
   try {
     const { outletId, date } = req.query;
 
@@ -315,7 +315,7 @@ router.get('/report/daily', (req, res) => {
 
     const targetDate = date || new Date().toISOString().split('T')[0];
 
-    const shifts = query(`
+    const shifts = await query(`
       SELECT s.*, u.name as user_name,
         (SELECT COUNT(*) FROM orders WHERE shift_id = s.id AND payment_status = 'paid' AND order_status != 'cancelled') as order_count,
         (SELECT COALESCE(SUM(total), 0) FROM orders WHERE shift_id = s.id AND payment_status = 'paid' AND order_status != 'cancelled') as total_sales,

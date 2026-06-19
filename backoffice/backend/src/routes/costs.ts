@@ -1,11 +1,11 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { query, get, run } from '../db/database';
 import { randomUUID } from 'crypto';
 
 const router = Router();
 
 // GET /api/costs — List costs
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const { tenantId, outletId, category, dateFrom, dateTo } = req.query;
     if (!tenantId) {
@@ -32,7 +32,7 @@ router.get('/', (req, res) => {
       params.push(dateTo);
     }
 
-    const costs = query(`
+    const costs = await query(`
       SELECT c.*, o.name as outlet_name
       FROM nashtycosts c
       LEFT JOIN outlets o ON c.outlet_id = o.id
@@ -48,7 +48,7 @@ router.get('/', (req, res) => {
 });
 
 // POST /api/costs — Create cost
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { tenantId, outletId, amount, category, description } = req.body;
     if (!tenantId || amount === undefined || !category) {
@@ -61,7 +61,7 @@ router.post('/', (req, res) => {
     }
 
     const costId = randomUUID();
-    run(`
+    await run(`
       INSERT INTO nashtycosts (id, tenant_id, outlet_id, amount, category, description)
       VALUES (?, ?, ?, ?, ?, ?)
     `, [costId, tenantId, outletId || null, Number(amount), category, description || null]);
@@ -69,7 +69,7 @@ router.post('/', (req, res) => {
     const cost = get('SELECT * FROM nashtycosts WHERE id = ?', [costId]);
 
     // Log activity
-    run(`
+    await run(`
       INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
       VALUES (?, ?, 'create_cost', 'cost', ?, ?)
     `, [randomUUID(), tenantId, costId, `Biaya ${category} sebesar Rp ${Number(amount).toLocaleString('id-ID')} ditambahkan`]);
@@ -82,7 +82,7 @@ router.post('/', (req, res) => {
 });
 
 // PUT /api/costs/:id — Update cost
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { amount, category, description, outletId } = req.body;
@@ -109,7 +109,7 @@ router.put('/:id', (req, res) => {
 
     if (updates.length > 0) {
       params.push(id);
-      run(`UPDATE nashtycosts SET ${updates.join(', ')} WHERE id = ?`, params);
+      await run(`UPDATE nashtycosts SET ${updates.join(', ')} WHERE id = ?`, params);
     }
 
     const cost = get('SELECT * FROM nashtycosts WHERE id = ?', [id]);
@@ -122,7 +122,7 @@ router.put('/:id', (req, res) => {
 });
 
 // DELETE /api/costs/:id — Delete cost
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const existing = get('SELECT * FROM nashtycosts WHERE id = ?', [id]) as any;
@@ -130,10 +130,10 @@ router.delete('/:id', (req, res) => {
       return res.status(404).json({ error: 'Cost not found' });
     }
 
-    run('DELETE FROM nashtycosts WHERE id = ?', [id]);
+    await run('DELETE FROM nashtycosts WHERE id = ?', [id]);
 
     // Log activity
-    run(`
+    await run(`
       INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
       VALUES (?, ?, 'delete_cost', 'cost', ?, ?)
     `, [randomUUID(), existing.tenant_id, id, `Biaya ${existing.category} sebesar Rp ${Number(existing.amount).toLocaleString('id-ID')} dihapus`]);

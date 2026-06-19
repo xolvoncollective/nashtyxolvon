@@ -1,4 +1,4 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import db, { query, get, run } from '../db/database';
 import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
@@ -23,7 +23,7 @@ router.post('/', async (req, res) => {
     const pinHash = await bcrypt.hash(pin, 10);
     const userId = randomUUID();
 
-    run(`
+    await run(`
       INSERT INTO users (id, tenant_id, outlet_id, name, email, phone, role, pin, status)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
     `, [userId, tenantId, outletId || null, name, email || null, phone || null, role, pinHash]);
@@ -31,7 +31,7 @@ router.post('/', async (req, res) => {
     const user = get('SELECT id, name, email, phone, role, outlet_id, status, created_at FROM users WHERE id = ?', [userId]);
 
     // Log activity
-    run(`
+    await run(`
       INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description)
       VALUES (?, ?, ?, 'create', 'user', ?, ?)
     `, [randomUUID(), tenantId, null, userId, `User ${name} (${role}) ditambahkan`]);
@@ -74,7 +74,7 @@ router.put('/:id', async (req, res) => {
     params.push(id);
 
     if (updates.length > 1) {
-      run(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
+      await run(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
     }
 
     const user = get('SELECT id, name, email, phone, role, outlet_id, status, created_at FROM users WHERE id = ?', [id]);
@@ -87,7 +87,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Route 5: PATCH /api/users/:id/status — Activate/deactivate user
-router.patch('/:id/status', (req, res) => {
+router.patch('/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -101,7 +101,7 @@ router.patch('/:id/status', (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    run('UPDATE users SET status = ?, updated_at = ? WHERE id = ?', [status, new Date().toISOString(), id]);
+    await run('UPDATE users SET status = ?, updated_at = ? WHERE id = ?', [status, new Date().toISOString(), id]);
 
     res.json({ success: true, message: `User ${status === 'active' ? 'diaktifkan' : 'dinonaktifkan'}` });
   } catch (error: any) {
@@ -111,7 +111,7 @@ router.patch('/:id/status', (req, res) => {
 });
 
 // Route 6: DELETE /api/users/:id — Soft delete user
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -121,7 +121,7 @@ router.delete('/:id', (req, res) => {
     }
 
     // Soft delete by setting status to deleted
-    run('UPDATE users SET status = ?, updated_at = ? WHERE id = ?', ['deleted', new Date().toISOString(), id]);
+    await run('UPDATE users SET status = ?, updated_at = ? WHERE id = ?', ['deleted', new Date().toISOString(), id]);
 
     res.json({ success: true, message: 'User berhasil dihapus' });
   } catch (error: any) {
@@ -131,7 +131,7 @@ router.delete('/:id', (req, res) => {
 });
 
 // GET /api/users — List users with filters
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const { tenantId, outletId, role, status } = req.query;
 
@@ -154,7 +154,7 @@ router.get('/', (req, res) => {
 
     sql += ' ORDER BY u.role, u.name';
 
-    const users = query(sql, params);
+    const users = await query(sql, params);
 
     res.json({ success: true, users });
   } catch (error: any) {

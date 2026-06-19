@@ -1,4 +1,4 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { 
   validateAdminCredentials, 
   createAdminSessionToken, 
@@ -8,7 +8,7 @@ import {
 const router = Router();
 
 // Health check endpoint
-router.get('/health', (req, res) => {
+router.get('/health', async (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
@@ -110,7 +110,7 @@ router.post('/validate', async (req, res) => {
 });
 
 // Logout endpoint
-router.post('/logout', (req, res) => {
+router.post('/logout', async (req, res) => {
   // In a stateless JWT system, logout is handled client-side
   // We just return success
   res.json({
@@ -120,7 +120,7 @@ router.post('/logout', (req, res) => {
 });
 
 // Get available apps endpoint
-router.get('/apps', (req, res) => {
+router.get('/apps', async (req, res) => {
   const apps = [
     {
       id: 'pos',

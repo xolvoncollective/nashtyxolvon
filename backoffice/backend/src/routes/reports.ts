@@ -1,11 +1,11 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { query, get, run } from '../db/database';
 
 
 const router = Router();
 
 // Route 41: GET /api/reports/sales — Sales report
-router.get('/sales', (req, res) => {
+router.get('/sales', async (req, res) => {
   try {
     const { tenantId, outletId, dateFrom, dateTo } = req.query;
 
@@ -32,7 +32,7 @@ router.get('/sales', (req, res) => {
     }
 
     // Daily breakdown
-    const dailySales = query(`
+    const dailySales = await query(`
       SELECT 
         DATE(o.created_at, 'localtime') as date,
         COUNT(*) as order_count,
@@ -64,7 +64,7 @@ router.get('/sales', (req, res) => {
     `, params);
 
     // By order type
-    const byOrderType = query(`
+    const byOrderType = await query(`
       SELECT 
         o.order_type,
         COUNT(*) as order_count,
@@ -83,7 +83,7 @@ router.get('/sales', (req, res) => {
 });
 
 // Route 42: GET /api/reports/products — Product performance report
-router.get('/products', (req, res) => {
+router.get('/products', async (req, res) => {
   try {
     const { tenantId, outletId, dateFrom, dateTo, limit = 50 } = req.query;
 
@@ -109,7 +109,7 @@ router.get('/products', (req, res) => {
 
     params.push(Number(limit));
 
-    const products = query(`
+    const products = await query(`
       SELECT 
         oi.product_id,
         oi.product_name,
@@ -139,7 +139,7 @@ router.get('/products', (req, res) => {
 });
 
 // Route 43: GET /api/reports/cashiers — Cashier performance report
-router.get('/cashiers', (req, res) => {
+router.get('/cashiers', async (req, res) => {
   try {
     const { tenantId, outletId, dateFrom, dateTo } = req.query;
 
@@ -163,7 +163,7 @@ router.get('/cashiers', (req, res) => {
       params.push(dateTo);
     }
 
-    const cashiers = query(`
+    const cashiers = await query(`
       SELECT 
         u.id,
         u.name,
@@ -189,7 +189,7 @@ router.get('/cashiers', (req, res) => {
 });
 
 // Route 44: GET /api/reports/menu-engineering — Menu engineering analysis (BCG Matrix)
-router.get('/menu-engineering', (req, res) => {
+router.get('/menu-engineering', async (req, res) => {
   try {
     const { tenantId, outletId, dateFrom, dateTo } = req.query;
 
@@ -213,7 +213,7 @@ router.get('/menu-engineering', (req, res) => {
       params.push(dateTo);
     }
 
-    const products = query(`
+    const products = await query(`
       SELECT 
         oi.product_id,
         oi.product_name,

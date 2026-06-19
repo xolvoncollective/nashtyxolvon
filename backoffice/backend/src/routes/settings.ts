@@ -1,11 +1,11 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { query, get, run } from '../db/database';
 import { randomUUID } from 'crypto';
 
 const router = Router();
 
 // Route 48: GET /api/settings/:outletId — Get all settings for outlet
-router.get('/:outletId', (req, res) => {
+router.get('/:outletId', async (req, res) => {
   try {
     const { outletId } = req.params;
 
@@ -17,14 +17,14 @@ router.get('/:outletId', (req, res) => {
     const tenantId = (outlet as any).tenant_id;
 
     // Get outlet-level settings first, then tenant-level as fallback
-    const outletSettings = query(`
+    const outletSettings = await query(`
       SELECT key, value, type
       FROM settings
       WHERE tenant_id = ? AND outlet_id = ?
       ORDER BY key
     `, [tenantId, outletId]);
 
-    const tenantSettings = query(`
+    const tenantSettings = await query(`
       SELECT key, value, type
       FROM settings
       WHERE tenant_id = ? AND outlet_id IS NULL
@@ -41,7 +41,7 @@ router.get('/:outletId', (req, res) => {
     }
 
     // Get payment methods
-    const paymentMethods = query(`
+    const paymentMethods = await query(`
       SELECT id, name, type, icon, status, display_order
       FROM payment_methods
       WHERE tenant_id = ? AND status = 'active'
@@ -66,7 +66,7 @@ router.get('/:outletId', (req, res) => {
 });
 
 // Route 49: PUT /api/settings/:outletId — Update settings
-router.put('/:outletId', (req, res) => {
+router.put('/:outletId', async (req, res) => {
   try {
     const { outletId } = req.params;
     const { settings } = req.body;
@@ -106,12 +106,12 @@ router.put('/:outletId', (req, res) => {
       );
 
       if (existing) {
-        run(
+        await run(
           'UPDATE settings SET value = ?, type = ?, updated_at = ? WHERE id = ?',
           [stringValue, type, new Date().toISOString(), (existing as any).id]
         );
       } else {
-        run(
+        await run(
           'INSERT INTO settings (id, tenant_id, outlet_id, key, value, type) VALUES (?, ?, ?, ?, ?, ?)',
           [randomUUID(), tenantId, outletId, key, stringValue, type]
         );
@@ -119,7 +119,7 @@ router.put('/:outletId', (req, res) => {
     }
 
     // Log activity
-    run(`
+    await run(`
       INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
       VALUES (?, ?, 'update', 'settings', ?, ?)
     `, [randomUUID(), tenantId, outletId, `Settings diperbarui: ${Object.keys(settings).join(', ')}`]);

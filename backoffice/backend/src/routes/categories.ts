@@ -1,11 +1,11 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { query, get, run } from '../db/database';
 import { randomUUID } from 'crypto';
 
 const router = Router();
 
 // GET /api/categories — Get all categories
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const { tenantId } = req.query;
 
@@ -13,7 +13,7 @@ router.get('/', (req, res) => {
       return res.status(400).json({ error: 'tenantId required' });
     }
 
-    const categories = query(`
+    const categories = await query(`
       SELECT c.*, 
         COUNT(DISTINCT p.id) as product_count
       FROM categories c
@@ -31,7 +31,7 @@ router.get('/', (req, res) => {
 });
 
 // GET /api/categories/:id/products — Get all products in a category (all statuses)
-router.get('/:id/products', (req, res) => {
+router.get('/:id/products', async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -40,7 +40,7 @@ router.get('/:id/products', (req, res) => {
       return res.status(404).json({ error: 'Category not found' });
     }
 
-    const products = query(`
+    const products = await query(`
       SELECT p.*, c.name as category_name
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
@@ -56,7 +56,7 @@ router.get('/:id/products', (req, res) => {
 });
 
 // GET /api/categories/:id — Get category by ID
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -74,7 +74,7 @@ router.get('/:id', (req, res) => {
 });
 
 // Route 7: POST /api/categories — Create category
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { tenantId, name, description, icon, color } = req.body;
 
@@ -89,7 +89,7 @@ router.post('/', (req, res) => {
     const lastOrder = get('SELECT MAX(display_order) as max_order FROM categories WHERE tenant_id = ?', [tenantId]);
     const nextOrder = ((lastOrder as any)?.max_order || 0) + 1;
 
-    run(`
+    await run(`
       INSERT INTO categories (id, tenant_id, name, slug, description, icon, color, display_order, status)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
     `, [categoryId, tenantId, name, slug, description || null, icon || null, color || null, nextOrder]);
@@ -97,7 +97,7 @@ router.post('/', (req, res) => {
     const category = get('SELECT * FROM categories WHERE id = ?', [categoryId]);
 
     // Log activity
-    run(`
+    await run(`
       INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
       VALUES (?, ?, 'create', 'category', ?, ?)
     `, [randomUUID(), tenantId, categoryId, `Kategori "${name}" ditambahkan`]);
@@ -110,7 +110,7 @@ router.post('/', (req, res) => {
 });
 
 // Route 8: PUT /api/categories/:id — Update category
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description, icon, color } = req.body;
@@ -137,7 +137,7 @@ router.put('/:id', (req, res) => {
     params.push(new Date().toISOString());
     params.push(id);
 
-    run(`UPDATE categories SET ${updates.join(', ')} WHERE id = ?`, params);
+    await run(`UPDATE categories SET ${updates.join(', ')} WHERE id = ?`, params);
 
     const category = get('SELECT * FROM categories WHERE id = ?', [id]);
 
@@ -149,7 +149,7 @@ router.put('/:id', (req, res) => {
 });
 
 // Route 9: PATCH /api/categories/:id/status — Toggle category status
-router.patch('/:id/status', (req, res) => {
+router.patch('/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -163,7 +163,7 @@ router.patch('/:id/status', (req, res) => {
       return res.status(404).json({ error: 'Category not found' });
     }
 
-    run('UPDATE categories SET status = ?, updated_at = ? WHERE id = ?', [status, new Date().toISOString(), id]);
+    await run('UPDATE categories SET status = ?, updated_at = ? WHERE id = ?', [status, new Date().toISOString(), id]);
 
     res.json({ success: true, message: `Kategori ${status === 'active' ? 'diaktifkan' : 'dinonaktifkan'}` });
   } catch (error: any) {
@@ -173,7 +173,7 @@ router.patch('/:id/status', (req, res) => {
 });
 
 // Route 10: DELETE /api/categories/:id — Delete category (soft)
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -183,10 +183,10 @@ router.delete('/:id', (req, res) => {
     }
 
     // Soft delete the category
-    run('UPDATE categories SET status = ?, updated_at = ? WHERE id = ?', ['inactive', new Date().toISOString(), id]);
+    await run('UPDATE categories SET status = ?, updated_at = ? WHERE id = ?', ['inactive', new Date().toISOString(), id]);
 
     // Also soft delete all products in this category
-    run('UPDATE products SET status = ?, updated_at = ? WHERE category_id = ? AND status != ?', ['inactive', new Date().toISOString(), id, 'inactive']);
+    await run('UPDATE products SET status = ?, updated_at = ? WHERE category_id = ? AND status != ?', ['inactive', new Date().toISOString(), id, 'inactive']);
 
     res.json({ success: true, message: 'Kategori dan produk di dalamnya berhasil dihapus (nonaktif)' });
   } catch (error: any) {
@@ -196,7 +196,7 @@ router.delete('/:id', (req, res) => {
 });
 
 // Route 11: PUT /api/categories/reorder — Reorder categories
-router.put('/reorder', (req, res) => {
+router.put('/reorder', async (req, res) => {
   try {
     const { items } = req.body;
 
@@ -205,7 +205,7 @@ router.put('/reorder', (req, res) => {
     }
 
     for (const item of items) {
-      run('UPDATE categories SET display_order = ?, updated_at = ? WHERE id = ?',
+      await run('UPDATE categories SET display_order = ?, updated_at = ? WHERE id = ?',
         [item.order, new Date().toISOString(), item.id]);
     }
 

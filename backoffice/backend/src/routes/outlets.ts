@@ -1,11 +1,11 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { query, get, run } from '../db/database';
 import { randomUUID } from 'crypto';
 
 const router = Router();
 
 // Route 45: GET /api/outlets — List all outlets with revenue summary
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const { tenantId } = req.query;
 
@@ -13,7 +13,7 @@ router.get('/', (req, res) => {
       return res.status(400).json({ error: 'tenantId required' });
     }
 
-    const outlets = query(`
+    const outlets = await query(`
       SELECT o.*,
         (SELECT COUNT(*) FROM orders ord WHERE ord.outlet_id = o.id AND DATE(ord.created_at) = DATE('now') AND ord.payment_status = 'paid') as today_orders,
         (SELECT COALESCE(SUM(total), 0) FROM orders ord WHERE ord.outlet_id = o.id AND DATE(ord.created_at) = DATE('now') AND ord.payment_status = 'paid') as today_revenue,
@@ -31,7 +31,7 @@ router.get('/', (req, res) => {
 });
 
 // Route 46: POST /api/outlets — Create new outlet
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { tenantId, name, address, phone } = req.body;
 
@@ -42,7 +42,7 @@ router.post('/', (req, res) => {
     const outletId = randomUUID();
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
-    run(`
+    await run(`
       INSERT INTO outlets (id, tenant_id, name, slug, address, phone, status)
       VALUES (?, ?, ?, ?, ?, ?, 'active')
     `, [outletId, tenantId, name, slug, address || null, phone || null]);
@@ -62,7 +62,7 @@ router.post('/', (req, res) => {
     ];
 
     for (const setting of defaultSettings) {
-      run(`
+      await run(`
         INSERT OR IGNORE INTO settings (id, tenant_id, outlet_id, key, value, type)
         VALUES (?, ?, ?, ?, ?, ?)
       `, [randomUUID(), tenantId, outletId, setting.key, setting.value, setting.type]);
@@ -71,7 +71,7 @@ router.post('/', (req, res) => {
     const outlet = get('SELECT * FROM outlets WHERE id = ?', [outletId]);
 
     // Log activity
-    run(`
+    await run(`
       INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
       VALUES (?, ?, 'create', 'outlet', ?, ?)
     `, [randomUUID(), tenantId, outletId, `Outlet ${name} ditambahkan`]);
@@ -84,7 +84,7 @@ router.post('/', (req, res) => {
 });
 
 // Route 47: PUT /api/outlets/:id — Update outlet
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { name, address, phone, status } = req.body;
@@ -106,7 +106,7 @@ router.put('/:id', (req, res) => {
     params.push(new Date().toISOString());
     params.push(id);
 
-    run(`UPDATE outlets SET ${updates.join(', ')} WHERE id = ?`, params);
+    await run(`UPDATE outlets SET ${updates.join(', ')} WHERE id = ?`, params);
 
     const outlet = get('SELECT * FROM outlets WHERE id = ?', [id]);
 
