@@ -99,8 +99,14 @@ app.use((req, res, next) => {
   next();
 });
 
-// Initialize databases
-initDatabase();
+// Initialize databases (non-fatal - server starts even if DB init fails)
+if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  initDatabase().catch((err) => {
+    console.error('⚠️  Database initialization failed (server will continue):', err.message);
+  });
+} else {
+  console.warn('⚠️  SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set. Database features disabled.');
+}
 
 // Initialize CacheManager (Requirement 10.1)
 // The singleton instance is already created, so we just set up periodic cleanup
