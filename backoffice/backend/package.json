@@ -10,6 +10,7 @@
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/db/seed.ts",
     "supabase:migrate": "tsx migrate-supabase.ts",
+    "supabase:migrate:api": "tsx migrate-via-api.ts",
     "supabase:test": "tsx test-supabase.ts",
     "test": "jest --runInBand",
     "test:watch": "jest --watch"
