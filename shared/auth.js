@@ -1,4 +1,4 @@
-﻿/**
+/**
  * NASHTY OS - Shared Authentication Handler
  * Handles JWT token reception from parent launcher window via postMessage
  * 
@@ -10,7 +10,7 @@
   'use strict';
 
   const NASHTY_AUTH = {
-    LAUNCHER_ORIGIN: 'https://nashty-backoffice-backend-production.up.railway.app',
+    LAUNCHER_ORIGIN: window.location.origin,
     STORAGE_KEYS: {
       TOKEN: 'nashty_token',
       USER: 'nashty_user',
