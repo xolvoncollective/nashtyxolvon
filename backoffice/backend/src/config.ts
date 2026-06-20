@@ -17,7 +17,7 @@ export const config = {
     refreshExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '30d'
   },
   
-  allowedOrigins: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+  allowedOrigins: process.env.ALLOWED_ORIGINS?.split(',') || process.env.CORS_ORIGIN?.split(',') || ['*'],
   
   upload: {
     maxFileSize: parseInt(process.env.MAX_FILE_SIZE || '5242880', 10),
