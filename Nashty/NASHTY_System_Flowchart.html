@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NASHTY OS — System Flowchart & API Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --or: #E4540C; --gn: #16A34A; --bl: #2563EB; --pu: #7C3AED;
+    --rd: #DC2626; --ye: #D97706; --cy: #0891B2;
+    --bg: #F5F4F1; --sf: #fff; --txt: #1C1A16; --txt2: #6B6459;
+    --brd: rgba(0,0,0,.1);
+    --fn: 'Plus Jakarta Sans', sans-serif;
+    --mo: 'JetBrains Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--fn); background: var(--bg); color: var(--txt); font-size: 13px; }
+
+  /* ── PRINT ── */
+  @media print {
+    body { background: #fff; font-size: 11px; }
+    .no-print { display: none !important; }
+    .page-break { page-break-before: always; }
+    .section { box-shadow: none !important; border: 1px solid #ddd !important; }
+    h1 { font-size: 20px !important; }
+    .print-btn { display: none; }
+  }
+
+  /* ── COVER ── */
+  .cover {
+    background: linear-gradient(135deg, #1C1A16 0%, #2d2a22 50%, #E4540C 100%);
+    color: #fff; padding: 60px 80px; min-height: 220px;
+    display: flex; align-items: center; gap: 40px;
+  }
+  .cover-logo {
+    width: 80px; height: 80px; background: rgba(255,255,255,.15);
+    border-radius: 20px; display: flex; align-items: center; justify-content: center;
+    font-size: 36px; font-weight: 900; flex-shrink: 0;
+  }
+  .cover-title { font-size: 32px; font-weight: 800; letter-spacing: -.02em; }
+  .cover-sub { font-size: 15px; opacity: .7; margin-top: 6px; }
+  .cover-meta { margin-top: 16px; display: flex; gap: 20px; flex-wrap: wrap; }
+  .cover-tag {
+    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+    border-radius: 20px; padding: 4px 14px; font-size: 12px; font-weight: 600;
+  }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 1200px; margin: 0 auto; padding: 40px 40px; }
+  .section {
+    background: var(--sf); border-radius: 16px; padding: 28px 32px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06); margin-bottom: 28px;
+    border: 1px solid var(--brd);
+  }
+  .section-title {
+    font-size: 18px; font-weight: 800; margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-badge {
+    font-size: 11px; font-weight: 700; padding: 3px 10px;
+    border-radius: 20px; color: #fff;
+  }
+  h2 { font-size: 14px; font-weight: 700; margin: 20px 0 12px; color: var(--txt2); text-transform: uppercase; letter-spacing: .04em; }
+  .toc { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .toc-item {
+    background: var(--bg); border-radius: 10px; padding: 14px 16px;
+    border: 1px solid var(--brd); display: flex; align-items: center; gap: 10px;
+    font-weight: 600; font-size: 12px;
+  }
+  .toc-num {
+    width: 26px; height: 26px; border-radius: 50%; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 800; flex-shrink: 0;
+  }
+
+  /* ── FLOW DIAGRAMS ── */
+  .flow { display: flex; align-items: center; gap: 0; flex-wrap: wrap; margin: 16px 0; }
+  .flow-node {
+    background: #fff; border: 2px solid var(--brd);
+    border-radius: 10px; padding: 10px 16px; font-size: 12px; font-weight: 600;
+    text-align: center; min-width: 110px; position: relative;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .flow-node.start { border-radius: 50px; background: #1C1A16; color: #fff; border-color: #1C1A16; }
+  .flow-node.end { border-radius: 50px; background: var(--gn); color: #fff; border-color: var(--gn); }
+  .flow-node.decision {
+    border-radius: 4px; transform: rotate(0deg);
+    background: linear-gradient(135deg, #FFF7ED, #FFEDD5);
+    border-color: var(--ye); color: var(--ye);
+  }
+  .flow-node.process { border-color: var(--bl); background: linear-gradient(135deg, #EFF6FF, #DBEAFE); color: var(--bl); }
+  .flow-node.api { border-color: var(--or); background: linear-gradient(135deg, #FFF7ED, #FFEDD5); color: var(--or); }
+  .flow-node.db { border-color: var(--pu); background: linear-gradient(135deg, #F5F3FF, #EDE9FE); color: var(--pu); }
+  .flow-node.kds { border-color: var(--cy); background: linear-gradient(135deg, #ECFEFF, #CFFAFE); color: var(--cy); }
+  .flow-node.success { border-color: var(--gn); background: linear-gradient(135deg, #F0FDF4, #DCFCE7); color: var(--gn); }
+  .flow-node .sub { font-size: 10px; font-weight: 400; margin-top: 3px; opacity: .75; }
+  .flow-arrow { color: var(--txt2); font-size: 18px; margin: 0 4px; font-weight: 700; align-self: center; }
+  .flow-arrow.down { transform: rotate(90deg); }
+  .flow-label { font-size: 10px; color: var(--txt2); margin: 0 4px; align-self: center; }
+
+  /* ── VERTICAL FLOW ── */
+  .vflow { display: flex; flex-direction: column; gap: 0; align-items: center; width: 100%; }
+  .vflow-row { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+  .vflow-arrow { color: var(--txt2); font-size: 20px; text-align: center; margin: 2px 0; }
+
+  /* ── DB SCHEMA ── */
+  .db-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .db-table {
+    background: var(--bg); border-radius: 10px; overflow: hidden;
+    border: 1px solid var(--brd);
+  }
+  .db-table-head {
+    background: var(--pu); color: #fff; padding: 8px 14px;
+    font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px;
+  }
+  .db-table-head.or { background: var(--or); }
+  .db-table-head.bl { background: var(--bl); }
+  .db-table-head.gn { background: var(--gn); }
+  .db-table-head.cy { background: var(--cy); }
+  .db-table-head.rd { background: var(--rd); }
+  .db-table-head.ye { background: var(--ye); }
+  .db-col { padding: 6px 14px; font-size: 11px; border-bottom: 1px solid var(--brd); display: flex; justify-content: space-between; align-items: center; }
+  .db-col:last-child { border-bottom: none; }
+  .db-col-name { font-weight: 600; font-family: var(--mo); }
+  .db-col-type { color: var(--txt2); font-family: var(--mo); font-size: 10px; }
+  .db-col-pk { background: #FFF7ED; color: var(--or); font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 4px; margin-left: 4px; }
+  .db-col-fk { background: #EFF6FF; color: var(--bl); font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 4px; margin-left: 4px; }
+
+  /* ── API CARDS ── */
+  .api-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .api-card { border-radius: 10px; overflow: hidden; border: 1px solid var(--brd); }
+  .api-card-head { padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+  .api-card-head.get { background: linear-gradient(135deg, #F0FDF4, #DCFCE7); border-bottom: 1px solid #BBF7D0; }
+  .api-card-head.post { background: linear-gradient(135deg, #FFF7ED, #FFEDD5); border-bottom: 1px solid #FED7AA; }
+  .api-card-head.put { background: linear-gradient(135deg, #EFF6FF, #DBEAFE); border-bottom: 1px solid #BFDBFE; }
+  .api-card-head.patch { background: linear-gradient(135deg, #F5F3FF, #EDE9FE); border-bottom: 1px solid #DDD6FE; }
+  .method-badge {
+    font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 5px;
+    font-family: var(--mo); color: #fff; flex-shrink: 0;
+  }
+  .method-badge.get { background: var(--gn); }
+  .method-badge.post { background: var(--or); }
+  .method-badge.put { background: var(--bl); }
+  .method-badge.patch { background: var(--pu); }
+  .api-path { font-family: var(--mo); font-size: 12px; font-weight: 600; }
+  .api-desc { font-size: 11px; color: var(--txt2); }
+  .api-body { padding: 12px 16px; background: #FAFAF8; }
+  .api-section-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--txt2); margin-bottom: 6px; }
+  .api-json {
+    background: #1C1A16; color: #A8F7A0; font-family: var(--mo); font-size: 10px;
+    padding: 10px 14px; border-radius: 8px; white-space: pre; overflow-x: auto;
+    line-height: 1.7;
+  }
+  .api-json .key { color: #79B8FF; }
+  .api-json .str { color: #A8F7A0; }
+  .api-json .num { color: #F8C555; }
+  .api-json .bool { color: #FF9580; }
+  .api-json .cmt { color: #6B6459; }
+
+  /* ── ERD RELATIONS ── */
+  .erd-container { position: relative; }
+  .relation-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; align-items: start; }
+  .rel-card {
+    background: var(--bg); border: 1px solid var(--brd); border-radius: 8px;
+    padding: 10px 14px; font-size: 11px;
+  }
+  .rel-card-title { font-weight: 700; font-size: 12px; margin-bottom: 8px; }
+  .rel-line {
+    display: flex; align-items: center; gap: 6px; margin: 4px 0;
+    color: var(--txt2);
+  }
+  .rel-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── STATUS FLOW ── */
+  .status-flow { display: flex; gap: 0; align-items: center; flex-wrap: wrap; margin: 12px 0; }
+  .status-node {
+    padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+  }
+  .status-node .status-sub { font-size: 10px; font-weight: 400; opacity: .75; }
+  .status-arr { font-size: 20px; color: var(--txt2); margin: 0 4px; align-self: center; }
+
+  /* ── LEGEND ── */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin: 12px 0; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+  /* ── TABLES ── */
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { background: var(--bg); padding: 8px 12px; text-align: left; font-weight: 700; font-size: 11px; border-bottom: 2px solid var(--brd); }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--brd); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  code {
+    background: var(--bg); font-family: var(--mo); font-size: 11px;
+    padding: 1px 6px; border-radius: 4px; border: 1px solid var(--brd);
+  }
+  .tag {
+    display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px;
+    border-radius: 20px; color: #fff; margin-right: 4px;
+  }
+  .tag.get { background: var(--gn); }
+  .tag.post { background: var(--or); }
+  .tag.put { background: var(--bl); }
+  .tag.patch { background: var(--pu); }
+
+  /* ── PRINT BUTTON ── */
+  .print-btn {
+    position: fixed; bottom: 30px; right: 30px;
+    background: var(--or); color: #fff; border: none; cursor: pointer;
+    padding: 14px 24px; border-radius: 50px; font-family: var(--fn);
+    font-size: 14px; font-weight: 700; box-shadow: 0 4px 20px rgba(228,84,12,.4);
+    display: flex; align-items: center; gap: 8px; z-index: 999;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .print-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(228,84,12,.5); }
+
+  /* ── DIVIDER ── */
+  .divider { border: none; border-top: 2px dashed var(--brd); margin: 12px 0; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .chip { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+  .chip.or { background: #FFF7ED; color: var(--or); border: 1px solid #FED7AA; }
+  .chip.bl { background: #EFF6FF; color: var(--bl); border: 1px solid #BFDBFE; }
+  .chip.gn { background: #F0FDF4; color: var(--gn); border: 1px solid #BBF7D0; }
+  .chip.pu { background: #F5F3FF; color: var(--pu); border: 1px solid #DDD6FE; }
+  .chip.cy { background: #ECFEFF; color: var(--cy); border: 1px solid #A5F3FC; }
+  .chip.rd { background: #FEF2F2; color: var(--rd); border: 1px solid #FECACA; }
+  .chip.ye { background: #FFFBEB; color: var(--ye); border: 1px solid #FDE68A; }
+</style>
+</head>
+<body>
+
+<!-- PRINT BUTTON -->
+<button class="print-btn no-print" onclick="window.print()">
+  🖨️ Export ke PDF
+</button>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- COVER -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-logo">N</div>
+  <div>
+    <div class="cover-title">NASHTY OS — System Architecture</div>
+    <div class="cover-sub">Flowchart Lengkap · Database Schema · API Reference · Business Logic</div>
+    <div class="cover-meta">
+      <span class="cover-tag">📱 POS Terminal</span>
+      <span class="cover-tag">🍳 Kitchen Display (KDS)</span>
+      <span class="cover-tag">📊 Backoffice Dashboard</span>
+      <span class="cover-tag">⚡ React + Express + SQLite</span>
+      <span class="cover-tag">v1.0 — 2026</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 1. DAFTAR ISI -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">
+    📋 Daftar Isi
+  </div>
+  <div class="toc">
+    <div class="toc-item">
+      <div class="toc-num" style="background:var(--or)">1</div>
+      Arsitektur Sistem Keseluruhan
+    </div>
+    <div class="toc-item">
+      <div class="toc-num" style="background:var(--bl)">2</div>
+      Alur Kerja Modul POS
+    </div>
+    <div class="toc-item">
+      <div class="toc-num" style="background:var(--cy)">3</div>
+      Alur Kerja Modul KDS
+    </div>
+    <div class="toc-item">
+      <div class="toc-num" style="background:var(--pu)">4</div>
+      Alur Kerja Backoffice
+    </div>
+    <div class="toc-item">
+      <div class="toc-num" style="background:var(--gn)">5</div>
+      Skema Database (ERD)
+    </div>
+    <div class="toc-item">
+      <div class="toc-num" style="background:#374151">6</div>
+      Referensi API Lengkap
+    </div>
+    <div class="toc-item">
+      <div class="toc-num" style="background:var(--rd)">7</div>
+      Status Order & Transisi
+    </div>
+    <div class="toc-item">
+      <div class="toc-num" style="background:var(--ye)">8</div>
+      Alur Shift & Laporan
+    </div>
+    <div class="toc-item">
+      <div class="toc-num" style="background:var(--or)">9</div>
+      Payload API Detail
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 2. ARSITEKTUR SISTEM -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">
+    🏗️ Arsitektur Sistem Keseluruhan
+    <span class="section-badge" style="background:var(--or)">OVERVIEW</span>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--bl)"></div>Frontend (React/Vite)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--or)"></div>Backend API (Express)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--pu)"></div>Database (SQLite)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--gn)"></div>User Action</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cy)"></div>KDS Event</div>
+  </div>
+
+  <div class="flow" style="justify-content:center; gap:8px; flex-wrap:wrap;">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+      <div class="flow-node process" style="width:130px;">
+        📱 POS Terminal
+        <div class="sub">localhost:5173/pos</div>
+      </div>
+      <div class="flow-node kds" style="width:130px;">
+        🍳 KDS Display
+        <div class="sub">localhost:5173/kds</div>
+      </div>
+      <div class="flow-node db" style="width:130px;">
+        📊 Backoffice
+        <div class="sub">localhost:5173/backoffice</div>
+      </div>
+    </div>
+    <div class="flow-arrow" style="font-size:28px;">⟺</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+      <div class="flow-node api" style="width:180px;padding:16px;">
+        ⚡ Express API Server
+        <div class="sub">Node.js + TypeScript</div>
+        <div class="sub">localhost:3001/api</div>
+      </div>
+    </div>
+    <div class="flow-arrow" style="font-size:28px;">⟺</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+      <div class="flow-node db" style="width:140px;padding:16px;">
+        🗄️ SQLite Database
+        <div class="sub">better-sqlite3</div>
+        <div class="sub">nashtypos.db</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <h2>Modul & Rute Frontend</h2>
+  <div class="three-col">
+    <div style="background:var(--bg);border-radius:10px;padding:14px;border:1px solid var(--brd);">
+      <div style="font-weight:800;color:var(--bl);margin-bottom:10px;font-size:13px;">📱 POS Module</div>
+      <div style="font-size:11px;line-height:2;font-family:var(--mo);">
+        /pos → Login Screen<br>
+        /pos → Menu Grid<br>
+        /pos → Cart + Order<br>
+        /pos → Payment Modal<br>
+        /pos → History Module<br>
+        /pos → Laporan Shift
+      </div>
+    </div>
+    <div style="background:var(--bg);border-radius:10px;padding:14px;border:1px solid var(--brd);">
+      <div style="font-weight:800;color:var(--cy);margin-bottom:10px;font-size:13px;">🍳 KDS Module</div>
+      <div style="font-size:11px;line-height:2;font-family:var(--mo);">
+        /kds → Order Queue Grid<br>
+        /kds → Timer Per Order<br>
+        /kds → Filter (Dine/Take)<br>
+        /kds → Urgent Strip<br>
+        /kds → Swipe-to-Done<br>
+        /kds → Notify Overlay
+      </div>
+    </div>
+    <div style="background:var(--bg);border-radius:10px;padding:14px;border:1px solid var(--brd);">
+      <div style="font-weight:800;color:var(--pu);margin-bottom:10px;font-size:13px;">📊 Backoffice</div>
+      <div style="font-size:11px;line-height:2;font-family:var(--mo);">
+        /backoffice → Dashboard KPI<br>
+        /backoffice → Menu & Produk<br>
+        /backoffice → Kategori<br>
+        /backoffice → Modifier Groups<br>
+        /backoffice → Tim & Kasir<br>
+        /backoffice → Laporan
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 3. ALUR KERJA POS -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section page-break">
+  <div class="section-title">
+    📱 Alur Kerja Modul POS (Point of Sale)
+    <span class="section-badge" style="background:var(--bl)">POS FLOW</span>
+  </div>
+
+  <h2>A. Alur Login Kasir</h2>
+  <div class="flow" style="gap:6px;flex-wrap:wrap;">
+    <div class="flow-node start">Buka /pos</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node process">Tampil Profil Kasir
+      <div class="sub">GET /api/auth/staff/:outletId</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node process">Kasir Klik Profil
+      <div class="sub">Tampil PIN Modal</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node api">Input PIN (4 digit)
+      <div class="sub">Validasi di UI</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node api">POST /api/auth/login
+      <div class="sub">bcryptjs verify</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node decision">PIN Valid?</div>
+    <div class="flow-arrow">→ Ya →</div>
+    <div class="flow-node success">Masuk POS Menu</div>
+  </div>
+
+  <h2>B. Alur Pembuatan Pesanan</h2>
+  <div class="flow" style="gap:6px;flex-wrap:wrap;">
+    <div class="flow-node start">POS Aktif</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node process">Load Menu
+      <div class="sub">GET /api/menu/outlet/:id</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node process">Pilih Tipe Order
+      <div class="sub">Dine In / Take Away / Delivery</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node process">Klik Produk
+      <div class="sub">Tampil Modifier Modal</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node process">Pilih Modifier
+      <div class="sub">Level Pedas, Add-on dll.</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node process">Tambah ke Keranjang
+      <div class="sub">Zustand State Update</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node api">Hitung Subtotal
+      <div class="sub">+ Tax + Service Charge</div>
+    </div>
+  </div>
+
+  <h2>C. Alur Pembayaran</h2>
+  <div class="flow" style="gap:6px;flex-wrap:wrap;">
+    <div class="flow-node start">Klik Bayar</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node process">Payment Modal
+      <div class="sub">Pilih Metode Bayar</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node process">Input Nominal
+      <div class="sub">Tunai: numpad</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node api">POST /api/orders
+      <div class="sub">Submit Order Payload</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node db">Simpan DB
+      <div class="sub">orders + items + payments</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node kds">Notif KDS
+      <div class="sub">Status: pending</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node success">Struk & Clear Cart</div>
+  </div>
+
+  <h2>D. Fitur-Fitur POS</h2>
+  <div class="three-col">
+    <div style="background:#EFF6FF;border-radius:10px;padding:14px;border:1px solid #BFDBFE;">
+      <div style="font-weight:700;color:var(--bl);margin-bottom:8px;">💳 Metode Pembayaran</div>
+      <div style="font-size:11px;line-height:1.9;">
+        ✓ Tunai (dengan kembalian otomatis)<br>
+        ✓ QRIS<br>
+        ✓ Transfer Bank<br>
+        ✓ BCA Virtual Account<br>
+        ✓ Kartu Debit EDC<br>
+        ✓ GoFood / GrabFood / ShopeeFood<br>
+        ✓ Split Payment (multi-metode)
+      </div>
+    </div>
+    <div style="background:#FFF7ED;border-radius:10px;padding:14px;border:1px solid #FED7AA;">
+      <div style="font-weight:700;color:var(--or);margin-bottom:8px;">🎟️ Diskon & Modifier</div>
+      <div style="font-size:11px;line-height:1.9;">
+        ✓ Diskon nominal / persentase<br>
+        ✓ Modifier wajib (required)<br>
+        ✓ Modifier opsional (multi-pilih)<br>
+        ✓ Harga add-on (+Rp X)<br>
+        ✓ Service Charge (konfigurabel)<br>
+        ✓ Pajak per outlet<br>
+        ✓ Catatan per item
+      </div>
+    </div>
+    <div style="background:#F0FDF4;border-radius:10px;padding:14px;border:1px solid #BBF7D0;">
+      <div style="font-weight:700;color:var(--gn);margin-bottom:8px;">🔐 Keamanan & Kontrol</div>
+      <div style="font-size:11px;line-height:1.9;">
+        ✓ Login PIN per kasir<br>
+        ✓ Auto-logout (konfigurabel)<br>
+        ✓ Void dengan PIN Manager<br>
+        ✓ Max diskon (konfigurabel)<br>
+        ✓ Shift management<br>
+        ✓ Riwayat per shift<br>
+        ✓ Laporan akhir shift
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 4. ALUR KERJA KDS -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section page-break">
+  <div class="section-title">
+    🍳 Alur Kerja Modul KDS (Kitchen Display System)
+    <span class="section-badge" style="background:var(--cy)">KDS FLOW</span>
+  </div>
+
+  <h2>A. Alur Polling & Tampil Order</h2>
+  <div class="flow" style="gap:6px;flex-wrap:wrap;">
+    <div class="flow-node start">KDS Aktif</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node kds">Polling setiap 5 detik
+      <div class="sub">GET /api/orders?kitchenStatus=pending</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node db">Query SQLite
+      <div class="sub">orders + order_items</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node process">React State Update
+      <div class="sub">setOrders(res.data)</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node kds">Render Order Cards
+      <div class="sub">Auto-sort: Urgent → Warn → Fresh</div>
+    </div>
+  </div>
+
+  <h2>B. Alur Penyelesaian Order</h2>
+  <div class="flow" style="gap:6px;flex-wrap:wrap;">
+    <div class="flow-node start">Chef Selesai Masak</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node kds">Swipe / Klik Selesai</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node process">PATCH /api/orders/:id/status
+      <div class="sub">status: "completed"</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node db">Update DB
+      <div class="sub">orders + order_items</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node kds">Tampil Konfirmasi Modal</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node success">Order Hilang dari Queue</div>
+  </div>
+
+  <h2>C. Sistem Urgency Otomatis</h2>
+  <div class="status-flow">
+    <div class="status-node" style="background:#F0FDF4;color:var(--gn);border:2px solid var(--gn);">
+      🟢 FRESH
+      <span class="status-sub">&lt; 10 menit</span>
+    </div>
+    <div class="status-arr">→</div>
+    <div class="status-node" style="background:#FFFBEB;color:var(--ye);border:2px solid var(--ye);">
+      🟡 WARNING
+      <span class="status-sub">10–20 menit</span>
+    </div>
+    <div class="status-arr">→</div>
+    <div class="status-node" style="background:#FEF2F2;color:var(--rd);border:2px solid var(--rd);">
+      🔴 URGENT
+      <span class="status-sub">&gt; 20 menit</span>
+    </div>
+  </div>
+  <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:12px 16px;font-size:12px;margin-top:8px;">
+    ⚠️ Saat status berubah ke URGENT, sistem membunyikan alert audio (Web Audio API) dan menampilkan strip merah di bagian atas layar beserta nomor order urgent.
+  </div>
+
+  <h2>D. Filter & Mode KDS</h2>
+  <div class="two-col">
+    <div style="background:var(--bg);border-radius:10px;padding:14px;border:1px solid var(--brd);">
+      <div style="font-weight:700;margin-bottom:8px;">🔍 Filter Tampilan</div>
+      <div style="font-size:11px;line-height:2;">
+        ✓ Semua Order (default)<br>
+        ✓ Dine In saja<br>
+        ✓ Take Away saja<br>
+        ✓ Delivery (GoFood/GrabFood/Shopee)<br>
+        ✓ Urgent Only
+      </div>
+    </div>
+    <div style="background:var(--bg);border-radius:10px;padding:14px;border:1px solid var(--brd);">
+      <div style="font-weight:700;margin-bottom:8px;">⚙️ Konfigurasi</div>
+      <div style="font-size:11px;line-height:2;">
+        ✓ Day / Dark mode toggle<br>
+        ✓ Timer live per detik<br>
+        ✓ Compact mode (≥12 order)<br>
+        ✓ Auto-sort by urgency<br>
+        ✓ Sound alert (Web Audio)
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 5. ALUR KERJA BACKOFFICE -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section page-break">
+  <div class="section-title">
+    📊 Alur Kerja Backoffice Dashboard
+    <span class="section-badge" style="background:var(--pu)">BACKOFFICE</span>
+  </div>
+
+  <h2>A. Alur Load Dashboard KPI</h2>
+  <div class="flow" style="gap:6px;flex-wrap:wrap;">
+    <div class="flow-node start">Buka /backoffice</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node process">useEffect mount</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node api">GET /api/dashboard/kpi
+      <div class="sub">?date=YYYY-MM-DD&outletId=...</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node db">Aggregate SQL
+      <div class="sub">SUM, COUNT, AVG</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node process">Render KPI Cards
+      <div class="sub">Revenue, Transaksi, Avg</div>
+    </div>
+  </div>
+
+  <h2>B. Alur Recent Orders</h2>
+  <div class="flow" style="gap:6px;flex-wrap:wrap;">
+    <div class="flow-node start">Dashboard Load</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node api">GET /api/dashboard/recent-orders
+      <div class="sub">?limit=10&outletId=...</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node db">JOIN orders + users
+      <div class="sub">ORDER BY created_at DESC</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node process">Render Tabel Transaksi
+      <div class="sub">No.Order, Waktu, Status, Total</div>
+    </div>
+  </div>
+
+  <h2>C. Modul Backoffice</h2>
+  <div class="three-col">
+    <div style="background:var(--bg);border-radius:10px;padding:14px;border:1px solid var(--brd);">
+      <div style="font-weight:700;color:var(--pu);margin-bottom:8px;">📈 Dashboard</div>
+      <div style="font-size:11px;line-height:1.9;">
+        • Pendapatan hari ini<br>
+        • Pendapatan bulan ini<br>
+        • Jumlah transaksi<br>
+        • Rata-rata order value<br>
+        • Breakdown per metode bayar<br>
+        • Grafik 7 hari terakhir<br>
+        • Top 10 produk terlaris
+      </div>
+    </div>
+    <div style="background:var(--bg);border-radius:10px;padding:14px;border:1px solid var(--brd);">
+      <div style="font-weight:700;color:var(--or);margin-bottom:8px;">🍔 Manajemen Menu</div>
+      <div style="font-size:11px;line-height:1.9;">
+        • Tambah / Edit kategori<br>
+        • Tambah / Edit produk<br>
+        • Set harga & deskripsi<br>
+        • Upload foto produk<br>
+        • Modifier groups<br>
+        • Atur ketersediaan outlet<br>
+        • Aktif / Nonaktif produk
+      </div>
+    </div>
+    <div style="background:var(--bg);border-radius:10px;padding:14px;border:1px solid var(--brd);">
+      <div style="font-weight:700;color:var(--gn);margin-bottom:8px;">👥 Tim & Pengaturan</div>
+      <div style="font-size:11px;line-height:1.9;">
+        • Manajemen kasir + PIN<br>
+        • Manajemen manager<br>
+        • Konfigurasi outlet<br>
+        • Pengaturan pajak & SC<br>
+        • Metode bayar aktif<br>
+        • Pengaturan struk<br>
+        • Activity logs
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 6. DATABASE SCHEMA -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section page-break">
+  <div class="section-title">
+    🗄️ Skema Database SQLite (ERD)
+    <span class="section-badge" style="background:var(--gn)">DATABASE</span>
+  </div>
+
+  <div class="db-grid">
+
+    <!-- outlets -->
+    <div class="db-table">
+      <div class="db-table-head bl">🏪 outlets</div>
+      <div class="db-col"><span class="db-col-name">id<span class="db-col-pk">PK</span></span><span class="db-col-type">TEXT UUID</span></div>
+      <div class="db-col"><span class="db-col-name">name</span><span class="db-col-type">TEXT NOT NULL</span></div>
+      <div class="db-col"><span class="db-col-name">address</span><span class="db-col-type">TEXT</span></div>
+      <div class="db-col"><span class="db-col-name">phone</span><span class="db-col-type">TEXT</span></div>
+      <div class="db-col"><span class="db-col-name">tax_rate</span><span class="db-col-type">REAL default 0</span></div>
+      <div class="db-col"><span class="db-col-name">tax_enabled</span><span class="db-col-type">INTEGER 0/1</span></div>
+      <div class="db-col"><span class="db-col-name">is_active</span><span class="db-col-type">INTEGER 0/1</span></div>
+      <div class="db-col"><span class="db-col-name">created_at</span><span class="db-col-type">TEXT datetime</span></div>
+    </div>
+
+    <!-- users -->
+    <div class="db-table">
+      <div class="db-table-head or">👤 users</div>
+      <div class="db-col"><span class="db-col-name">id<span class="db-col-pk">PK</span></span><span class="db-col-type">TEXT UUID</span></div>
+      <div class="db-col"><span class="db-col-name">outlet_id<span class="db-col-fk">FK</span></span><span class="db-col-type">→ outlets</span></div>
+      <div class="db-col"><span class="db-col-name">name</span><span class="db-col-type">TEXT NOT NULL</span></div>
+      <div class="db-col"><span class="db-col-name">role</span><span class="db-col-type">owner/manager/kasir/chef</span></div>
+      <div class="db-col"><span class="db-col-name">pin_hash</span><span class="db-col-type">TEXT bcryptjs</span></div>
+      <div class="db-col"><span class="db-col-name">is_active</span><span class="db-col-type">INTEGER 0/1</span></div>
+      <div class="db-col"><span class="db-col-name">created_at</span><span class="db-col-type">TEXT datetime</span></div>
+    </div>
+
+    <!-- shifts -->
+    <div class="db-table">
+      <div class="db-table-head ye">⏱️ shifts</div>
+      <div class="db-col"><span class="db-col-name">id<span class="db-col-pk">PK</span></span><span class="db-col-type">TEXT UUID</span></div>
+      <div class="db-col"><span class="db-col-name">outlet_id<span class="db-col-fk">FK</span></span><span class="db-col-type">→ outlets</span></div>
+      <div class="db-col"><span class="db-col-name">user_id<span class="db-col-fk">FK</span></span><span class="db-col-type">→ users</span></div>
+      <div class="db-col"><span class="db-col-name">started_at</span><span class="db-col-type">TEXT datetime</span></div>
+      <div class="db-col"><span class="db-col-name">ended_at</span><span class="db-col-type">TEXT nullable</span></div>
+      <div class="db-col"><span class="db-col-name">opening_cash</span><span class="db-col-type">REAL default 0</span></div>
+      <div class="db-col"><span class="db-col-name">closing_cash</span><span class="db-col-type">REAL nullable</span></div>
+      <div class="db-col"><span class="db-col-name">status</span><span class="db-col-type">open / closed</span></div>
+    </div>
+
+    <!-- menu_categories -->
+    <div class="db-table">
+      <div class="db-table-head gn">📂 menu_categories</div>
+      <div class="db-col"><span class="db-col-name">id<span class="db-col-pk">PK</span></span><span class="db-col-type">TEXT UUID</span></div>
+      <div class="db-col"><span class="db-col-name">outlet_id<span class="db-col-fk">FK</span></span><span class="db-col-type">→ outlets</span></div>
+      <div class="db-col"><span class="db-col-name">station_id<span class="db-col-fk">FK</span></span><span class="db-col-type">→ stations</span></div>
+      <div class="db-col"><span class="db-col-name">name</span><span class="db-col-type">TEXT NOT NULL</span></div>
+      <div class="db-col"><span class="db-col-name">emoji</span><span class="db-col-type">TEXT</span></div>
+      <div class="db-col"><span class="db-col-name">order_index</span><span class="db-col-type">INTEGER</span></div>
+      <div class="db-col"><span class="db-col-name">is_active</span><span class="db-col-type">INTEGER 0/1</span></div>
+    </div>
+
+    <!-- menu_items -->
+    <div class="db-table">
+      <div class="db-table-head or">🍔 menu_items</div>
+      <div class="db-col"><span class="db-col-name">id<span class="db-col-pk">PK</span></span><span class="db-col-type">TEXT UUID</span></div>
+      <div class="db-col"><span class="db-col-name">outlet_id<span class="db-col-fk">FK</span></span><span class="db-col-type">→ outlets</span></div>
+      <div class="db-col"><span class="db-col-name">category_id<span class="db-col-fk">FK</span></span><span class="db-col-type">→ menu_categories</span></div>
+      <div class="db-col"><span class="db-col-name">station_id<span class="db-col-fk">FK</span></span><span class="db-col-type">→ stations</span></div>
+      <div class="db-col"><span class="db-col-name">name</span><span class="db-col-type">TEXT NOT NULL</span></div>
+      <div class="db-col"><span class="db-col-name">price</span><span class="db-col-type">REAL NOT NULL</span></div>
+      <div class="db-col"><span class="db-col-name">emoji / photo_url</span><span class="db-col-type">TEXT</span></div>
+      <div class="db-col"><span class="db-col-name">is_active</span><span class="db-col-type">INTEGER 0/1</span></div>
+    </div>
+
+    <!-- orders -->
+    <div class="db-table">
+      <div class="db-table-head rd">🧾 orders</div>
+      <div class="db-col"><span class="db-col-name">id<span class="db-col-pk">PK</span></span><span class="db-col-type">TEXT UUID</span></div>
+      <div class="db-col"><span class="db-col-name">outlet_id<span class="db-col-fk">FK</span></span><span class="db-col-type">→ outlets</span></div>
+      <div class="db-col"><span class="db-col-name">order_number</span><span class="db-col-type">TEXT UNIQUE (SNY-...)</span></div>
+      <div class="db-col"><span class="db-col-name">type</span><span class="db-col-type">dine_in/take_away/...</span></div>
+      <div class="db-col"><span class="db-col-name">table_number</span><span class="db-col-type">TEXT nullable</span></div>
+      <div class="db-col"><span class="db-col-name">status</span><span class="db-col-type">pending/preparing/ready/...</span></div>
+      <div class="db-col"><span class="db-col-name">user_id / shift_id</span><span class="db-col-type">FK</span></div>
+      <div class="db-col"><span class="db-col-name">subtotal / discount / tax</span><span class="db-col-type">REAL</span></div>
+      <div class="db-col"><span class="db-col-name">service_charge / total</span><span class="db-col-type">REAL</span></div>
+      <div class="db-col"><span class="db-col-name">void_reason / void_by</span><span class="db-col-type">TEXT nullable</span></div>
+    </div>
+
+    <!-- order_items -->
+    <div class="db-table">
+      <div class="db-table-head cy">📋 order_items</div>
+      <div class="db-col"><span class="db-col-name">id<span class="db-col-pk">PK</span></span><span class="db-col-type">TEXT UUID</span></div>
+      <div class="db-col"><span class="db-col-name">order_id<span class="db-col-fk">FK</span></span><span class="db-col-type">→ orders</span></div>
+      <div class="db-col"><span class="db-col-name">menu_item_id<span class="db-col-fk">FK</span></span><span class="db-col-type">→ menu_items</span></div>
+      <div class="db-col"><span class="db-col-name">name</span><span class="db-col-type">TEXT (snapshot)</span></div>
+      <div class="db-col"><span class="db-col-name">price</span><span class="db-col-type">REAL (snapshot)</span></div>
+      <div class="db-col"><span class="db-col-name">quantity</span><span class="db-col-type">INTEGER NOT NULL</span></div>
+      <div class="db-col"><span class="db-col-name">item_status</span><span class="db-col-type">pending/ready/done</span></div>
+      <div class="db-col"><span class="db-col-name">station_id<span class="db-col-fk">FK</span></span><span class="db-col-type">→ stations</span></div>
+      <div class="db-col"><span class="db-col-name">notes</span><span class="db-col-type">TEXT nullable</span></div>
+    </div>
+
+    <!-- payments -->
+    <div class="db-table">
+      <div class="db-table-head gn">💳 payments</div>
+      <div class="db-col"><span class="db-col-name">id<span class="db-col-pk">PK</span></span><span class="db-col-type">TEXT UUID</span></div>
+      <div class="db-col"><span class="db-col-name">order_id<span class="db-col-fk">FK</span></span><span class="db-col-type">→ orders</span></div>
+      <div class="db-col"><span class="db-col-name">method</span><span class="db-col-type">tunai/qris/bca/...</span></div>
+      <div class="db-col"><span class="db-col-name">amount</span><span class="db-col-type">REAL NOT NULL</span></div>
+      <div class="db-col"><span class="db-col-name">change_amount</span><span class="db-col-type">REAL default 0</span></div>
+      <div class="db-col"><span class="db-col-name">platform_ref</span><span class="db-col-type">TEXT nullable</span></div>
+      <div class="db-col"><span class="db-col-name">created_at</span><span class="db-col-type">TEXT datetime</span></div>
+    </div>
+
+    <!-- modifier groups -->
+    <div class="db-table">
+      <div class="db-table-head or">⚙️ modifier_groups</div>
+      <div class="db-col"><span class="db-col-name">id<span class="db-col-pk">PK</span></span><span class="db-col-type">TEXT UUID</span></div>
+      <div class="db-col"><span class="db-col-name">outlet_id<span class="db-col-fk">FK</span></span><span class="db-col-type">→ outlets</span></div>
+      <div class="db-col"><span class="db-col-name">name</span><span class="db-col-type">TEXT (Level Pedas...)</span></div>
+      <div class="db-col"><span class="db-col-name">is_required</span><span class="db-col-type">INTEGER 0/1</span></div>
+      <div class="db-col"><span class="db-col-name">min_select</span><span class="db-col-type">INTEGER</span></div>
+      <div class="db-col"><span class="db-col-name">max_select</span><span class="db-col-type">INTEGER</span></div>
+    </div>
+
+  </div>
+
+  <h2>Relasi Antar Tabel</h2>
+  <div class="relation-grid">
+    <div class="rel-card">
+      <div class="rel-card-title" style="color:var(--or)">🏪 Outlet → Users</div>
+      <div class="rel-line"><div class="rel-dot" style="background:var(--or)"></div>1 outlet memiliki banyak users</div>
+      <div class="rel-line"><div class="rel-dot" style="background:var(--or)"></div>users.outlet_id → outlets.id</div>
+    </div>
+    <div class="rel-card">
+      <div class="rel-card-title" style="color:var(--rd)">🧾 Order → Items</div>
+      <div class="rel-line"><div class="rel-dot" style="background:var(--rd)"></div>1 order memiliki banyak order_items</div>
+      <div class="rel-line"><div class="rel-dot" style="background:var(--rd)"></div>order_items.order_id → orders.id</div>
+    </div>
+    <div class="rel-card">
+      <div class="rel-card-title" style="color:var(--gn)">💳 Order → Payments</div>
+      <div class="rel-line"><div class="rel-dot" style="background:var(--gn)"></div>1 order bisa banyak payments (split)</div>
+      <div class="rel-line"><div class="rel-dot" style="background:var(--gn)"></div>payments.order_id → orders.id</div>
+    </div>
+    <div class="rel-card">
+      <div class="rel-card-title" style="color:var(--pu)">⚙️ Item → Modifiers</div>
+      <div class="rel-line"><div class="rel-dot" style="background:var(--pu)"></div>1 item bisa banyak modifier options</div>
+      <div class="rel-line"><div class="rel-dot" style="background:var(--pu)"></div>via order_item_modifiers bridge</div>
+    </div>
+    <div class="rel-card">
+      <div class="rel-card-title" style="color:var(--ye)">⏱️ Shift → Orders</div>
+      <div class="rel-line"><div class="rel-dot" style="background:var(--ye)"></div>1 shift memiliki banyak orders</div>
+      <div class="rel-line"><div class="rel-dot" style="background:var(--ye)"></div>orders.shift_id → shifts.id</div>
+    </div>
+    <div class="rel-card">
+      <div class="rel-card-title" style="color:var(--bl)">📂 Category → Items</div>
+      <div class="rel-line"><div class="rel-dot" style="background:var(--bl)"></div>1 kategori memiliki banyak menu items</div>
+      <div class="rel-line"><div class="rel-dot" style="background:var(--bl)"></div>menu_items.category_id → menu_categories.id</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 7. API REFERENCE -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section page-break">
+  <div class="section-title">
+    ⚡ Referensi API Lengkap
+    <span class="section-badge" style="background:#374151">API DOCS</span>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Method</th>
+        <th>Endpoint</th>
+        <th>Modul</th>
+        <th>Deskripsi</th>
+        <th>Request Body / Params</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- AUTH -->
+      <tr style="background:#FFF7ED;">
+        <td colspan="5" style="font-weight:800;color:var(--or);font-size:12px;">🔐 AUTH — /api/auth</td>
+      </tr>
+      <tr>
+        <td><span class="tag get">GET</span></td>
+        <td><code>/api/auth/staff/:outletId</code></td>
+        <td><span class="chip or">POS</span></td>
+        <td>List kasir aktif untuk login screen</td>
+        <td>Params: outletId</td>
+      </tr>
+      <tr>
+        <td><span class="tag post">POST</span></td>
+        <td><code>/api/auth/login</code></td>
+        <td><span class="chip or">POS</span></td>
+        <td>Verifikasi PIN kasir (bcryptjs)</td>
+        <td><code>{ userId, pin }</code></td>
+      </tr>
+      <tr>
+        <td><span class="tag post">POST</span></td>
+        <td><code>/api/auth/verify-manager-pin</code></td>
+        <td><span class="chip or">POS</span></td>
+        <td>Verifikasi PIN Manager untuk void/diskon besar</td>
+        <td><code>{ pin, outletId }</code></td>
+      </tr>
+      <tr>
+        <td><span class="tag get">GET</span></td>
+        <td><code>/api/auth/outlets</code></td>
+        <td><span class="chip pu">BO</span></td>
+        <td>List semua outlet aktif</td>
+        <td>—</td>
+      </tr>
+
+      <!-- MENU -->
+      <tr style="background:#F0FDF4;">
+        <td colspan="5" style="font-weight:800;color:var(--gn);font-size:12px;">🍔 MENU — /api/menu</td>
+      </tr>
+      <tr>
+        <td><span class="tag get">GET</span></td>
+        <td><code>/api/menu/outlet/:outletId</code></td>
+        <td><span class="chip or">POS</span><span class="chip pu">BO</span></td>
+        <td>Semua kategori + item + modifier groups per outlet</td>
+        <td>Params: outletId</td>
+      </tr>
+
+      <!-- ORDERS -->
+      <tr style="background:#FEF2F2;">
+        <td colspan="5" style="font-weight:800;color:var(--rd);font-size:12px;">🧾 ORDERS — /api/orders</td>
+      </tr>
+      <tr>
+        <td><span class="tag post">POST</span></td>
+        <td><code>/api/orders</code></td>
+        <td><span class="chip or">POS</span></td>
+        <td>Buat order baru (transaksi atomik)</td>
+        <td><code>{ outletId, userId, shiftId, items[], payments[], ... }</code></td>
+      </tr>
+      <tr>
+        <td><span class="tag get">GET</span></td>
+        <td><code>/api/orders</code></td>
+        <td><span class="chip cy">KDS</span><span class="chip pu">BO</span></td>
+        <td>List order dengan filter outletId + kitchenStatus</td>
+        <td>Query: outletId, kitchenStatus</td>
+      </tr>
+      <tr>
+        <td><span class="tag get">GET</span></td>
+        <td><code>/api/orders/shift/:shiftId</code></td>
+        <td><span class="chip or">POS</span></td>
+        <td>Riwayat order per shift (untuk laporan)</td>
+        <td>Params: shiftId</td>
+      </tr>
+      <tr>
+        <td><span class="tag get">GET</span></td>
+        <td><code>/api/orders/config/:outletId</code></td>
+        <td><span class="chip or">POS</span></td>
+        <td>Konfigurasi POS (service charge, payment methods)</td>
+        <td>Params: outletId</td>
+      </tr>
+      <tr>
+        <td><span class="tag patch">PATCH</span></td>
+        <td><code>/api/orders/:id/status</code></td>
+        <td><span class="chip cy">KDS</span></td>
+        <td>Update status order atau item (KDS selesaikan)</td>
+        <td><code>{ status } atau { itemId, itemStatus }</code></td>
+      </tr>
+      <tr>
+        <td><span class="tag put">PUT</span></td>
+        <td><code>/api/orders/:id/void</code></td>
+        <td><span class="chip or">POS</span></td>
+        <td>Void order (perlu PIN Manager)</td>
+        <td><code>{ reason, voidBy }</code></td>
+      </tr>
+
+      <!-- SHIFTS -->
+      <tr style="background:#FFFBEB;">
+        <td colspan="5" style="font-weight:800;color:var(--ye);font-size:12px;">⏱️ SHIFTS — /api/shifts</td>
+      </tr>
+      <tr>
+        <td><span class="tag get">GET</span></td>
+        <td><code>/api/shifts/active/:outletId</code></td>
+        <td><span class="chip or">POS</span></td>
+        <td>Cek shift yang sedang aktif</td>
+        <td>Params: outletId</td>
+      </tr>
+      <tr>
+        <td><span class="tag post">POST</span></td>
+        <td><code>/api/shifts</code></td>
+        <td><span class="chip or">POS</span></td>
+        <td>Buka shift baru</td>
+        <td><code>{ outletId, userId, openingCash }</code></td>
+      </tr>
+      <tr>
+        <td><span class="tag put">PUT</span></td>
+        <td><code>/api/shifts/:id/close</code></td>
+        <td><span class="chip or">POS</span></td>
+        <td>Tutup shift dan generate summary</td>
+        <td><code>{ closingCash }</code></td>
+      </tr>
+      <tr>
+        <td><span class="tag get">GET</span></td>
+        <td><code>/api/shifts/:id/summary</code></td>
+        <td><span class="chip or">POS</span></td>
+        <td>Rekap lengkap shift (total, void, breakdown payment)</td>
+        <td>Params: id</td>
+      </tr>
+
+      <!-- DASHBOARD -->
+      <tr style="background:#F5F3FF;">
+        <td colspan="5" style="font-weight:800;color:var(--pu);font-size:12px;">📊 DASHBOARD — /api/dashboard</td>
+      </tr>
+      <tr>
+        <td><span class="tag get">GET</span></td>
+        <td><code>/api/dashboard/kpi</code></td>
+        <td><span class="chip pu">BO</span></td>
+        <td>KPI harian: revenue, transaksi, avg order, diskon, metode bayar</td>
+        <td>Query: outletId, date</td>
+      </tr>
+      <tr>
+        <td><span class="tag get">GET</span></td>
+        <td><code>/api/dashboard/recent-orders</code></td>
+        <td><span class="chip pu">BO</span></td>
+        <td>N transaksi terbaru dengan nama kasir</td>
+        <td>Query: outletId, limit</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 8. STATUS ORDER FLOW -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section page-break">
+  <div class="section-title">
+    🔄 Status Order & Transisi Lengkap
+    <span class="section-badge" style="background:var(--rd)">STATUS FLOW</span>
+  </div>
+
+  <h2>Siklus Hidup Order</h2>
+  <div class="status-flow" style="flex-wrap:wrap;gap:4px;">
+    <div class="status-node" style="background:#EFF6FF;color:var(--bl);border:2px solid var(--bl);">
+      🆕 pending
+      <span class="status-sub">Baru dibuat dari POS</span>
+    </div>
+    <div class="status-arr">→</div>
+    <div class="status-node" style="background:#FFF7ED;color:var(--or);border:2px solid var(--or);">
+      👨‍🍳 preparing
+      <span class="status-sub">KDS: sedang dimasak</span>
+    </div>
+    <div class="status-arr">→</div>
+    <div class="status-node" style="background:#FFFBEB;color:var(--ye);border:2px solid var(--ye);">
+      🔔 ready
+      <span class="status-sub">Siap diambil</span>
+    </div>
+    <div class="status-arr">→</div>
+    <div class="status-node" style="background:#F0FDF4;color:var(--gn);border:2px solid var(--gn);">
+      ✅ completed
+      <span class="status-sub">Diserahkan ke pelanggan</span>
+    </div>
+  </div>
+
+  <div style="margin-top:12px;display:flex;gap:12px;">
+    <div class="status-node" style="background:#FEF2F2;color:var(--rd);border:2px solid var(--rd);">
+      ❌ voided
+      <span class="status-sub">Dibatalkan (butuh PIN Manager)</span>
+    </div>
+    <div class="status-node" style="background:#F3F4F6;color:#6B7280;border:2px solid #9CA3AF;">
+      🚫 cancelled
+      <span class="status-sub">Dibatalkan sebelum diproses</span>
+    </div>
+  </div>
+
+  <h2 style="margin-top:20px;">Status Order Item (Per Item di KDS)</h2>
+  <div class="status-flow">
+    <div class="status-node" style="background:#EFF6FF;color:var(--bl);border:2px solid var(--bl);">
+      pending
+      <span class="status-sub">Menunggu dimasak</span>
+    </div>
+    <div class="status-arr">→</div>
+    <div class="status-node" style="background:#FFFBEB;color:var(--ye);border:2px solid var(--ye);">
+      ready
+      <span class="status-sub">Item sudah siap</span>
+    </div>
+    <div class="status-arr">→</div>
+    <div class="status-node" style="background:#F0FDF4;color:var(--gn);border:2px solid var(--gn);">
+      completed
+      <span class="status-sub">Diserahkan</span>
+    </div>
+  </div>
+
+  <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px 16px;font-size:12px;margin-top:12px;">
+    💡 <strong>Logika Auto-Update:</strong> Saat SEMUA order_items berubah ke status <code>ready</code> atau <code>completed</code>, status ORDER utama otomatis diperbarui ke <code>ready</code>.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 9. ALUR SHIFT -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section page-break">
+  <div class="section-title">
+    ⏱️ Alur Shift & Laporan
+    <span class="section-badge" style="background:var(--ye)">SHIFT FLOW</span>
+  </div>
+
+  <div class="flow" style="gap:6px;flex-wrap:wrap;">
+    <div class="flow-node start">Kasir Login</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node api">GET /api/shifts/active
+      <div class="sub">Cek shift berjalan?</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node decision">Ada Shift Aktif?</div>
+    <div class="flow-arrow">→ Tidak →</div>
+    <div class="flow-node process">POST /api/shifts
+      <div class="sub">Buka shift baru + modal kasir</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node success">Mulai Transaksi</div>
+  </div>
+
+  <div class="flow" style="gap:6px;flex-wrap:wrap;margin-top:16px;">
+    <div class="flow-node start">Akhir Hari</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node process">Klik Tutup Shift</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node api">PUT /api/shifts/:id/close
+      <div class="sub">{ closingCash }</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node db">Hitung Summary
+      <div class="sub">gross_sales, void_count, SC, diskon</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node api">GET /api/shifts/:id/summary
+      <div class="sub">Breakdown per metode bayar</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node success">Tampil Laporan Shift</div>
+  </div>
+
+  <h2>Data yang Dihitung di Laporan Shift</h2>
+  <div class="two-col">
+    <div>
+      <table>
+        <thead><tr><th>Metrik</th><th>Keterangan</th></tr></thead>
+        <tbody>
+          <tr><td>total_orders</td><td>Jumlah order (exclude voided)</td></tr>
+          <tr><td>gross_sales</td><td>Total subtotal sebelum diskon</td></tr>
+          <tr><td>total_discount</td><td>Total diskon yang diberikan</td></tr>
+          <tr><td>total_sc</td><td>Total service charge</td></tr>
+          <tr><td>net_sales</td><td>Pendapatan bersih akhir</td></tr>
+          <tr><td>void_count</td><td>Jumlah transaksi void</td></tr>
+          <tr><td>opening_cash</td><td>Modal kasir awal shift</td></tr>
+          <tr><td>closing_cash</td><td>Uang tunai saat tutup</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <table>
+        <thead><tr><th>Metode Bayar</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>Tunai</td><td>SUM(payments WHERE method='tunai')</td></tr>
+          <tr><td>QRIS</td><td>SUM(payments WHERE method='qris')</td></tr>
+          <tr><td>Transfer</td><td>SUM(payments WHERE method='transfer')</td></tr>
+          <tr><td>BCA</td><td>SUM(payments WHERE method='bca')</td></tr>
+          <tr><td>Debit</td><td>SUM(payments WHERE method='debit')</td></tr>
+          <tr><td>GoFood</td><td>SUM(payments WHERE method='gofood')</td></tr>
+          <tr><td>GrabFood</td><td>SUM(payments WHERE method='grabfood')</td></tr>
+          <tr><td>ShopeeFood</td><td>SUM(payments WHERE method='shopee')</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 10. PAYLOAD API DETAIL -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section page-break">
+  <div class="section-title">
+    📦 Payload API Detail (Request & Response)
+    <span class="section-badge" style="background:var(--or)">PAYLOAD</span>
+  </div>
+
+  <div class="api-grid">
+
+    <!-- POST /api/orders -->
+    <div class="api-card">
+      <div class="api-card-head post">
+        <span class="method-badge post">POST</span>
+        <div>
+          <div class="api-path">/api/orders</div>
+          <div class="api-desc">Buat pesanan baru dari POS</div>
+        </div>
+      </div>
+      <div class="api-body">
+        <div class="api-section-lbl">📤 Request Body</div>
+        <div class="api-json">{
+  <span class="key">"outletId"</span>: <span class="str">"uuid-outlet"</span>,
+  <span class="key">"userId"</span>: <span class="str">"uuid-kasir"</span>,
+  <span class="key">"shiftId"</span>: <span class="str">"uuid-shift"</span>,
+  <span class="key">"orderType"</span>: <span class="str">"dine_in"</span>,  <span class="cmt">// take_away, gofood</span>
+  <span class="key">"tableNumber"</span>: <span class="str">"T03"</span>,
+  <span class="key">"items"</span>: [{
+    <span class="key">"menuItemId"</span>: <span class="str">"uuid-item"</span>,
+    <span class="key">"name"</span>: <span class="str">"Ayam Bakar Madu"</span>,
+    <span class="key">"price"</span>: <span class="num">55000</span>,
+    <span class="key">"quantity"</span>: <span class="num">2</span>,
+    <span class="key">"notes"</span>: <span class="str">"Pedas extra"</span>,
+    <span class="key">"modifiers"</span>: [{
+      <span class="key">"optionId"</span>: <span class="str">"uuid-opt"</span>,
+      <span class="key">"name"</span>: <span class="str">"Pedas Sedang"</span>,
+      <span class="key">"price_adjustment"</span>: <span class="num">0</span>
+    }]
+  }],
+  <span class="key">"payments"</span>: [{
+    <span class="key">"method"</span>: <span class="str">"tunai"</span>,
+    <span class="key">"amount"</span>: <span class="num">130000</span>,
+    <span class="key">"change"</span>: <span class="num">10000</span>
+  }],
+  <span class="key">"discountType"</span>: <span class="str">"nominal"</span>,
+  <span class="key">"discountValue"</span>: <span class="num">10000</span>,
+  <span class="key">"notes"</span>: <span class="str">"Meja pojok"</span>
+}</div>
+        <div class="api-section-lbl" style="margin-top:10px;">📥 Response</div>
+        <div class="api-json">{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"id"</span>: <span class="str">"uuid-order"</span>,
+    <span class="key">"order_number"</span>: <span class="str">"SNY-0601-001"</span>,
+    <span class="key">"status"</span>: <span class="str">"pending"</span>,
+    <span class="key">"total"</span>: <span class="num">120000</span>,
+    <span class="key">"items"</span>: [...]
+  }
+}</div>
+      </div>
+    </div>
+
+    <!-- GET /api/dashboard/kpi -->
+    <div class="api-card">
+      <div class="api-card-head get">
+        <span class="method-badge get">GET</span>
+        <div>
+          <div class="api-path">/api/dashboard/kpi</div>
+          <div class="api-desc">Metrik KPI harian untuk Backoffice</div>
+        </div>
+      </div>
+      <div class="api-body">
+        <div class="api-section-lbl">📤 Query Params</div>
+        <div class="api-json">?outletId=uuid-outlet&date=2026-06-13</div>
+        <div class="api-section-lbl" style="margin-top:10px;">📥 Response</div>
+        <div class="api-json">{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"date"</span>: <span class="str">"2026-06-13"</span>,
+    <span class="key">"totalOrders"</span>: <span class="num">187</span>,
+    <span class="key">"grossRevenue"</span>: <span class="num">4280000</span>,
+    <span class="key">"netRevenue"</span>: <span class="num">4150000</span>,
+    <span class="key">"totalDiscounts"</span>: <span class="num">130000</span>,
+    <span class="key">"averageOrderValue"</span>: <span class="num">22888</span>,
+    <span class="key">"paymentMethods"</span>: [
+      { <span class="key">"method"</span>: <span class="str">"tunai"</span>, <span class="key">"total_amount"</span>: <span class="num">1240000</span> },
+      { <span class="key">"method"</span>: <span class="str">"qris"</span>, <span class="key">"total_amount"</span>: <span class="num">980000</span> }
+    ]
+  }
+}</div>
+      </div>
+    </div>
+
+    <!-- PATCH /api/orders/:id/status -->
+    <div class="api-card">
+      <div class="api-card-head patch">
+        <span class="method-badge patch">PATCH</span>
+        <div>
+          <div class="api-path">/api/orders/:id/status</div>
+          <div class="api-desc">KDS: Update status order atau item</div>
+        </div>
+      </div>
+      <div class="api-body">
+        <div class="api-section-lbl">📤 Request — Update Order</div>
+        <div class="api-json">{ <span class="key">"status"</span>: <span class="str">"completed"</span> }</div>
+        <div class="api-section-lbl" style="margin-top:10px;">📤 Request — Update Item</div>
+        <div class="api-json">{
+  <span class="key">"itemId"</span>: <span class="str">"uuid-item"</span>,
+  <span class="key">"itemStatus"</span>: <span class="str">"ready"</span>
+}</div>
+        <div class="api-section-lbl" style="margin-top:10px;">📥 Response</div>
+        <div class="api-json">{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"Status berhasil diperbarui"</span>
+}</div>
+      </div>
+    </div>
+
+    <!-- GET /api/menu/outlet/:id -->
+    <div class="api-card">
+      <div class="api-card-head get">
+        <span class="method-badge get">GET</span>
+        <div>
+          <div class="api-path">/api/menu/outlet/:outletId</div>
+          <div class="api-desc">Full menu dengan modifier untuk POS</div>
+        </div>
+      </div>
+      <div class="api-body">
+        <div class="api-section-lbl">📥 Response</div>
+        <div class="api-json">{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"categories"</span>: [
+      { <span class="key">"id"</span>: <span class="str">"uuid"</span>, <span class="key">"name"</span>: <span class="str">"Makanan"</span>, <span class="key">"emoji"</span>: <span class="str">"🍔"</span> }
+    ],
+    <span class="key">"items"</span>: [{
+      <span class="key">"id"</span>: <span class="str">"uuid-item"</span>,
+      <span class="key">"name"</span>: <span class="str">"Ayam Bakar Madu"</span>,
+      <span class="key">"price"</span>: <span class="num">55000</span>,
+      <span class="key">"category_id"</span>: <span class="str">"uuid-cat"</span>,
+      <span class="key">"modifier_groups"</span>: [{
+        <span class="key">"id"</span>: <span class="str">"uuid-grp"</span>,
+        <span class="key">"name"</span>: <span class="str">"Level Pedas"</span>,
+        <span class="key">"is_required"</span>: <span class="bool">true</span>,
+        <span class="key">"options"</span>: [
+          { <span class="key">"name"</span>: <span class="str">"Original"</span>, <span class="key">"price_adjustment"</span>: <span class="num">0</span> },
+          { <span class="key">"name"</span>: <span class="str">"Pedas Extra"</span>, <span class="key">"price_adjustment"</span>: <span class="num">2000</span> }
+        ]
+      }]
+    }]
+  }
+}</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- FOOTER -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section" style="text-align:center;padding:24px;">
+  <div style="font-size:24px;font-weight:900;color:var(--or);letter-spacing:-.02em;">NASHTY OS</div>
+  <div style="color:var(--txt2);font-size:12px;margin-top:6px;">
+    POS · KDS · Backoffice | React + TypeScript + Express + SQLite | v1.0 — 2026
+  </div>
+  <div style="margin-top:12px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
+    <span class="chip or">Frontend: Vite + React 18</span>
+    <span class="chip bl">State: Zustand</span>
+    <span class="chip gn">Backend: Express 4 + TypeScript</span>
+    <span class="chip pu">DB: better-sqlite3 (WAL)</span>
+    <span class="chip cy">Security: bcryptjs</span>
+  </div>
+</div>
+
+</div><!-- end container -->
+
+<script>
+// Otomatis highlight kode JSON
+document.querySelectorAll('.api-json').forEach(el => {
+  let html = el.innerHTML;
+  // Sudah pakai span tags, tidak perlu processing
+});
+</script>
+
+</body>
+</html>
