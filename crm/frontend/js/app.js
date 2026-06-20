@@ -26,17 +26,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // Verify authentication
-    if (!API.session || !API.session.token) {
-        alert('Anda belum login. Silakan login dari Launcher.');
-        window.location.href = '/';
-        return;
+    // Function to initialize CRM once auth is ready
+    function initCRM(authData) {
+        if (!authData || !authData.token) return;
+        
+        // Update API session
+        API.session.token = authData.token;
+        API.session.user = authData.user;
+        API.session.tenantId = authData.user.tenantId || 'demo-tenant';
+        
+        // Update UI with user info
+        document.getElementById('userName').textContent = authData.user.name || authData.user.username;
+        document.getElementById('userRole').textContent = authData.user.role;
+        document.getElementById('userAvatar').textContent = (authData.user.name || authData.user.username).charAt(0).toUpperCase();
+
+        // Initial Load
+        loadCustomers();
     }
 
-    // Update UI with user info
-    document.getElementById('userName').textContent = API.session.user.name;
-    document.getElementById('userRole').textContent = API.session.user.role;
-    document.getElementById('userAvatar').textContent = API.session.user.name.charAt(0).toUpperCase();
+    window.onAuthReceived = initCRM;
+
+    // If already authenticated (e.g. reload)
+    if (typeof NASHTY_AUTH !== 'undefined' && NASHTY_AUTH.hasValidAuth()) {
+        initCRM(NASHTY_AUTH.getAuthData());
+    }
 
     // Tab Navigation
     const navItems = document.querySelectorAll('.nav-item[data-tab]');
@@ -283,6 +296,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Initial Load
-    loadCustomers();
 });

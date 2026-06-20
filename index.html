@@ -612,7 +612,7 @@
       const outletName = outletSelect.options[outletSelect.selectedIndex].dataset.name;
 
       try {
-        const res = await fetch(`${API_BASE_URL}/main-auth/login`, {
+        const res = await fetch(`${API_BASE_URL}/main/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password, outletId })
@@ -733,21 +733,32 @@
       const password = document.getElementById('superadminPassword').value;
 
       try {
-        const res = await fetch(`${API_BASE_URL}/main-auth/superadmin-login`, {
+        const res = await fetch(`${API_BASE_URL}/main/auth/superadmin-login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
+          body: JSON.stringify({ 
+            username, 
+            password,
+            outletId: mainSession.outletId || 'main-branch'
+          })
         });
         
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Access Denied');
 
-        // Success - Open the app
+        // Success - Open the app with consistent payload format
         closeModals();
         openModule(
           currentTargetApp === 'backoffice' ? '/backoffice/frontend/' : '/cost/frontend/', 
           currentTargetApp.toUpperCase(), 
-          { superToken: data.token, role: 'superadmin' }
+          { 
+            token: data.token, 
+            user: data.user,
+            outlet: { 
+              id: data.user.outletId, 
+              name: mainSession.outletName || 'Main Branch' 
+            }
+          }
         );
 
       } catch (err) {

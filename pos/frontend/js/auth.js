@@ -2,8 +2,17 @@
        LOGIN
     ════════════════════════ */
     async function initLogin() {
-      // Login screen is active, wait for user input
+      if (typeof NASHTY_AUTH !== 'undefined' && NASHTY_AUTH.hasValidAuth()) {
+        const user = NASHTY_AUTH.getUser();
+        if (user) doLogin(user);
+      }
     }
+    
+    window.onAuthReceived = function(authData) {
+      if (authData && authData.user) {
+        doLogin(authData.user);
+      }
+    };
     function selectStaff(s) {
       loginSel = s; loginPinArr = [];
       document.querySelectorAll('.staff-btn').forEach(b => b.classList.remove('selected'));

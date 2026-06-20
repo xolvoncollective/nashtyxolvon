@@ -247,7 +247,6 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       initLogin();
-      fetchMenuData();
     });
     
     // Initialize Offline Sync Manager
@@ -261,8 +260,10 @@
     }
     // Refresh menu every 5 minutes (cache TTL)
     setInterval(() => {
-      console.log('Auto-refreshing menu (5-minute interval)');
-      fetchMenuData(true);
+      if (typeof NASHTY_AUTH !== 'undefined' && NASHTY_AUTH.hasValidAuth()) {
+        console.log('Auto-refreshing menu (5-minute interval)');
+        fetchMenuData(true);
+      }
     }, MENU_CACHE_TTL);
   
     /* ── GLOBAL TOAST NOTIFICATION ── */

@@ -123,7 +123,7 @@ router.post('/logout', async (req, res) => {
 // Superadmin login endpoint
 router.post('/superadmin-login', async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, outletId } = req.body;
     if (username === 'superadmin@nashty' && password === 'nashty1111') {
       const token = await createAdminSessionToken({
         id: 'superadmin',
@@ -132,7 +132,27 @@ router.post('/superadmin-login', async (req, res) => {
         tenantId: 'demo-tenant',
         createdAt: new Date()
       });
-      return res.json({ success: true, token, role: 'superadmin' });
+      
+      // Return consistent format with main login
+      return res.json({ 
+        success: true, 
+        token,
+        user: {
+          id: 'superadmin',
+          username: 'superadmin',
+          role: 'superadmin',
+          tenantId: 'demo-tenant',
+          outletId: outletId || 'main-branch'
+        },
+        session: {
+          id: 'superadmin',
+          username: 'superadmin',
+          role: 'superadmin',
+          tenantId: 'demo-tenant',
+          createdAt: new Date().toISOString(),
+          expiresIn: 24 * 60 * 60 // 24 hours
+        }
+      });
     }
     return res.status(401).json({ error: 'Kredensial superadmin tidak valid' });
   } catch (error) {

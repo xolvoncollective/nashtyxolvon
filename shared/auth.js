@@ -100,23 +100,32 @@
 
       // Check if this is an auth message
       if (event.data && event.data.type === 'NASHTY_AUTH') {
-        const { token, user, outlet } = event.data;
+        const { token, user, outlet, superToken } = event.data;
 
-        if (!token || !user || !outlet) {
+        // Support both regular token and superToken for backward compatibility
+        const authToken = token || superToken;
+        
+        if (!authToken || !user) {
           console.error('[NASHTY AUTH] Received incomplete auth data from launcher');
           return;
         }
 
+        // Ensure outlet exists, use default if not provided
+        const authOutlet = outlet || { 
+          id: user.outletId || 'main-branch', 
+          name: 'Main Branch' 
+        };
+
         console.log('[NASHTY AUTH] Received authentication data from launcher');
         
         // Store auth data
-        if (storeAuthData(token, user, outlet)) {
+        if (storeAuthData(authToken, user, authOutlet)) {
           // Sync with API.session if available
           syncAuthWithAPI();
           
           // Dispatch custom event for app to handle
           window.dispatchEvent(new CustomEvent('nashty:auth-received', {
-            detail: { token, user, outlet }
+            detail: { token: authToken, user, outlet: authOutlet }
           }));
           
           // Reload or initialize app if needed
@@ -125,7 +134,7 @@
             window.initializeApp();
           } else if (typeof window.onAuthReceived === 'function') {
             console.log('[NASHTY AUTH] Calling onAuthReceived()');
-            window.onAuthReceived({ token, user, outlet });
+            window.onAuthReceived({ token: authToken, user, outlet: authOutlet });
           } else {
             // If no initialization function, just reload the page
             console.log('[NASHTY AUTH] No init function found, reloading page...');
@@ -197,13 +206,13 @@
         );
         syncAuthWithAPI();
       } else {
-        // Production: wait for postMessage then redirect
+        // Production: wait for postMessage then redirect (increased timeout)
         setTimeout(function() {
           if (!hasValidAuth()) {
             console.warn('[NASHTY AUTH] Still no auth after waiting, redirecting to launcher');
             redirectToLauncher();
           }
-        }, 2000);
+        }, 5000); // Increased from 2s to 5s to allow proper auth initialization
       }
     } else {
       console.log('[NASHTY AUTH] Valid authentication found');
