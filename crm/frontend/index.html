@@ -186,6 +186,181 @@
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" data-close="rewardModal">Batal</button>
                         <button type="submit" class="btn btn-primary">Simpan Reward</button>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">🤝</span>
+                    <h1>Nashty CRM</h1>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-tab="customers">
+                    <span class="icon">👥</span>
+                    <span>Data Pelanggan</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="rewards">
+                    <span class="icon">🎁</span>
+                    <span>Katalog Reward</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="transactions">
+                    <span class="icon">💳</span>
+                    <span>Riwayat Poin</span>
+                </a>
+                <a href="/" class="nav-item back-launcher">
+                    <span class="icon">🏠</span>
+                    <span>Back to Launcher</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-title">
+                    <h2 id="pageTitle">Data Pelanggan</h2>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="location.reload()" style="margin-right: 1rem; padding: 0.4rem 0.8rem; font-size: 0.9rem;">
+                        ↻ Refresh
+                    </button>
+                    <div class="user-profile">
+                        <div class="avatar" id="userAvatar">U</div>
+                        <div class="user-info">
+                            <span class="name" id="userName">User Name</span>
+                            <span class="role" id="userRole">Role</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- CUSTOMERS TAB -->
+            <div id="customersTab" class="page-content active">
+                <div class="content-toolbar glass-card">
+                    <div class="filters">
+                        <input type="text" id="searchCustomer" class="glass-input" placeholder="Cari nama pelanggan..." style="width: 250px;">
+                    </div>
+                    <button class="btn btn-primary" id="addCustomerBtn">
+                        <span class="icon">+</span> Tambah Pelanggan
+                    </button>
+                </div>
+
+                <div class="table-container glass-card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nama Pelanggan</th>
+                                <th>Kontak</th>
+                                <th>Poin Aktif</th>
+                                <th>Total Belanja</th>
+                                <th>Kunjungan</th>
+                                <th class="text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersTableBody">
+                            <tr><td colspan="6" class="text-center empty-state">Memuat data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- REWARDS TAB -->
+            <div id="rewardsTab" class="page-content">
+                <div class="content-toolbar glass-card">
+                    <div class="filters">
+                        <h3 class="toolbar-title">Katalog Hadiah (Reward)</h3>
+                    </div>
+                    <button class="btn btn-primary" id="addRewardBtn">
+                        <span class="icon">+</span> Tambah Reward
+                    </button>
+                </div>
+
+                <div class="rewards-grid" id="rewardsGrid">
+                    <!-- Rewards will be populated here -->
+                </div>
+            </div>
+
+            <!-- TRANSACTIONS TAB -->
+            <div id="transactionsTab" class="page-content">
+                <div class="table-container glass-card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Tipe</th>
+                                <th>Poin</th>
+                                <th>Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsTableBody">
+                            <tr><td colspan="4" class="text-center empty-state">Memuat data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+
+    <!-- Add Customer Modal -->
+    <div class="modal" id="customerModal">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h2>Tambah Pelanggan Baru</h2>
+                <button class="close-btn" data-close="customerModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="customerForm">
+                    <div class="form-group">
+                        <label>Nama Lengkap</label>
+                        <input type="text" id="customerName" class="glass-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nomor HP / WhatsApp</label>
+                        <input type="text" id="customerPhone" class="glass-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Email (Opsional)</label>
+                        <input type="email" id="customerEmail" class="glass-input">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" data-close="customerModal">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan Pelanggan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Reward Modal -->
+    <div class="modal" id="rewardModal">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h2>Tambah Reward Baru</h2>
+                <button class="close-btn" data-close="rewardModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="rewardForm">
+                    <div class="form-group">
+                        <label>Nama / Judul Reward</label>
+                        <input type="text" id="rewardTitle" class="glass-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Poin Dibutuhkan</label>
+                        <input type="number" id="rewardPoints" class="glass-input" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Deskripsi Hadiah</label>
+                        <textarea id="rewardDesc" class="glass-input" rows="3"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" data-close="rewardModal">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan Reward</button>
                     </div>
                 </form>
             </div>
@@ -193,7 +368,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="../../api-client-v2.js"></script>
-    <script src="js/app.js"></script>
+    <script src="../../api-client-v2.js?v=2028"></script>
+    <script src="js/app.js?v=2028"></script>
 </body>
 </html>
