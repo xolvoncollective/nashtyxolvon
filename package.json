@@ -1,7 +1,5 @@
 {
   "workspaces": [
-    "pos/backend",
-    "kds/backend",
     "backoffice/backend"
   ],
   "devDependencies": {
