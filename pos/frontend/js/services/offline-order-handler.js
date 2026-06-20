@@ -1,212 +1,285 @@
 /**
- * NASHTY OS - Offline Order Handler
- * Wraps order creation with offline queue support
+ * Offline Order Handler
+ * Integrates offline capabilities into POS order creation flow
  */
 
-class OfflineOrderHandler {
-  constructor() {
-    this.processing = false;
+export class OfflineOrderHandler {
+  constructor(db, cacheManager, offlineQueue, connectionMonitor) {
+    this.db = db;
+    this.cacheManager = cacheManager;
+    this.offlineQueue = offlineQueue;
+    this.connectionMonitor = connectionMonitor;
   }
 
   /**
-   * Create order - online or offline
+   * Check if we're currently offline
+   */
+  isOffline() {
+    return !navigator.onLine;
+  }
+
+  /**
+   * Create order (handles both online and offline)
    */
   async createOrder(orderData) {
-    if (this.processing) {
-      throw new Error('Order already being processed');
-    }
-
-    this.processing = true;
+    const startTime = performance.now();
 
     try {
-      if (navigator.onLine) {
-        // Try online first
-        return await this.createOnlineOrder(orderData);
+      if (this.isOffline()) {
+        // Offline mode - queue order
+        const order = await this.createOfflineOrder(orderData);
+        const duration = performance.now() - startTime;
+        
+        console.log(`Order created offline in ${duration.toFixed(2)}ms`);
+        
+        // Show offline indicator
+        this.showOfflineBanner();
+        
+        return {
+          success: true,
+          offline: true,
+          order,
+          localId: order.localId,
+          message: 'Order saved locally. Will sync when online.'
+        };
       } else {
-        // Offline - queue it
-        return await this.createOfflineOrder(orderData);
+        // Online mode - send to server
+        const order = await this.createOnlineOrder(orderData);
+        const duration = performance.now() - startTime;
+        
+        console.log(`Order created online in ${duration.toFixed(2)}ms`);
+        
+        return {
+          success: true,
+          offline: false,
+          order,
+          message: 'Order created successfully.'
+        };
       }
     } catch (error) {
-      // If online fails, fallback to offline
-      if (navigator.onLine) {
-        console.warn('Online order failed, falling back to offline queue:', error);
-        return await this.createOfflineOrder(orderData);
-      }
+      console.error('Failed to create order:', error);
       throw error;
-    } finally {
-      this.processing = false;
     }
   }
 
-  async createOnlineOrder(orderData) {
-    const token = sessionStorage.getItem('token');
-    const apiBase = window.API_BASE || 'http://localhost:3099';
+  /**
+   * Create order in offline mode
+   */
+  async createOfflineOrder(orderData) {
+    // Enrich order with metadata
+    const order = {
+      ...orderData,
+      localId: null, // Will be assigned by queue
+      timestamp: Date.now(),
+      createdAt: new Date().toISOString(),
+      offline: true,
+      synced: false
+    };
 
-    const response = await fetch(`${apiBase}/api/orders`, {
+    // Get current user
+    const userId = this.getCurrentUserId();
+    const outletId = this.getCurrentOutletId();
+
+    // Queue order with encryption
+    const localId = await this.offlineQueue.enqueue(userId, outletId, order);
+    
+    order.localId = localId;
+
+    // Update UI
+    await this.connectionMonitor.updateUI();
+
+    return order;
+  }
+
+  /**
+   * Create order in online mode
+   */
+  async createOnlineOrder(orderData) {
+    // Send to server via API
+    const response = await fetch('/api/orders', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.getSessionToken()}`
       },
-      body: JSON.stringify(orderData)
+      body: JSON.stringify({
+        ...orderData,
+        timestamp: Date.now(),
+        createdAt: new Date().toISOString()
+      })
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      throw new Error(`Failed to create order: ${response.statusText}`);
     }
 
-    const result = await response.json();
-    console.log('✅ Order created online:', result.order?.order_number);
-    
-    return {
-      success: true,
-      order: result.order,
-      offline: false
-    };
-  }
-
-  async createOfflineOrder(orderData) {
-    if (!window.OfflineSyncManager) {
-      throw new Error('Offline sync manager not available');
-    }
-
-    const result = await window.OfflineSyncManager.queueOrder(orderData);
-    
-    // Generate temporary order number for receipt
-    const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, '');
-    const timestamp = Date.now().toString().slice(-4);
-    const tempOrderNumber = `OFFLINE-${dateStr}-${timestamp}`;
-
-    console.log(`📴 Order queued offline: ${tempOrderNumber}`);
-    
-    // Show offline notification
-    this.showOfflineNotification(tempOrderNumber);
-
-    return {
-      success: true,
-      order: {
-        id: result.tempId,
-        order_number: tempOrderNumber,
-        ...orderData,
-        created_at: new Date().toISOString(),
-        offline: true
-      },
-      offline: true
-    };
-  }
-
-  showOfflineNotification(orderNumber) {
-    if (typeof window.showToast === 'function') {
-      window.showToast(
-        `📴 Order ${orderNumber} disimpan offline. Akan disinkronisasi saat online.`,
-        'warning'
-      );
-    }
+    return await response.json();
   }
 
   /**
-   * Search products - online or offline
+   * Search products (with offline fallback)
    */
   async searchProducts(query) {
-    if (!query) return [];
+    const startTime = performance.now();
 
     try {
-      if (navigator.onLine) {
-        // Try online first
-        return await this.searchProductsOnline(query);
+      if (this.isOffline()) {
+        // Search in cached data
+        const results = await this.cacheManager.searchCachedProducts(query);
+        const duration = performance.now() - startTime;
+        
+        console.log(`Product search (offline) completed in ${duration.toFixed(2)}ms`);
+        
+        return results;
       } else {
-        // Offline - search cache
-        return await this.searchProductsOffline(query);
+        // Search via API (will also update cache)
+        const response = await fetch(`/api/products/search?q=${encodeURIComponent(query)}`, {
+          headers: {
+            'Authorization': `Bearer ${this.getSessionToken()}`
+          }
+        });
+
+        if (!response.ok) {
+          // Fallback to cache on error
+          return await this.cacheManager.searchCachedProducts(query);
+        }
+
+        const results = await response.json();
+        const duration = performance.now() - startTime;
+        
+        console.log(`Product search (online) completed in ${duration.toFixed(2)}ms`);
+        
+        return results;
       }
     } catch (error) {
-      // Fallback to offline if online fails
-      if (navigator.onLine) {
-        console.warn('Online search failed, trying offline:', error);
-        return await this.searchProductsOffline(query);
-      }
-      return [];
+      console.error('Search failed, falling back to cache:', error);
+      return await this.cacheManager.searchCachedProducts(query);
     }
-  }
-
-  async searchProductsOnline(query) {
-    const token = sessionStorage.getItem('token');
-    const outletId = sessionStorage.getItem('currentOutletId');
-    const apiBase = window.API_BASE || 'http://localhost:3099';
-
-    const response = await fetch(
-      `${apiBase}/api/products?outletId=${outletId}&search=${encodeURIComponent(query)}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    
-    const data = await response.json();
-    return data.products || data.data || [];
-  }
-
-  async searchProductsOffline(query) {
-    if (!window.DatabaseSchema) {
-      return [];
-    }
-
-    const startTime = Date.now();
-    const results = await window.DatabaseSchema.searchProducts(query);
-    const duration = Date.now() - startTime;
-    
-    console.log(`🔍 Offline search: "${query}" → ${results.length} results (${duration}ms)`);
-    
-    return results;
   }
 
   /**
-   * Get product by ID - online or offline
+   * Get product details (with offline fallback)
    */
   async getProduct(productId) {
     try {
-      if (navigator.onLine) {
-        return await this.getProductOnline(productId);
+      if (this.isOffline()) {
+        return await this.cacheManager.getCachedProduct(productId);
       } else {
-        return await this.getProductOffline(productId);
+        // Try API first
+        const response = await fetch(`/api/products/${productId}`, {
+          headers: {
+            'Authorization': `Bearer ${this.getSessionToken()}`
+          }
+        });
+
+        if (!response.ok) {
+          // Fallback to cache
+          return await this.cacheManager.getCachedProduct(productId);
+        }
+
+        return await response.json();
       }
     } catch (error) {
-      if (navigator.onLine) {
-        return await this.getProductOffline(productId);
-      }
-      throw error;
+      console.error('Failed to get product, falling back to cache:', error);
+      return await this.cacheManager.getCachedProduct(productId);
     }
   }
 
-  async getProductOnline(productId) {
-    const token = sessionStorage.getItem('token');
-    const apiBase = window.API_BASE || 'http://localhost:3099';
+  /**
+   * Add product to cart (fast offline operation)
+   */
+  async addToCart(cart, productId, quantity = 1) {
+    const startTime = performance.now();
 
-    const response = await fetch(`${apiBase}/api/products/${productId}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
+    // Get product details
+    const product = await this.getProduct(productId);
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    // Add to cart
+    const cartItem = {
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      quantity,
+      image: product.image,
+      subtotal: product.price * quantity
+    };
+
+    cart.items.push(cartItem);
+    cart.total = cart.items.reduce((sum, item) => sum + item.subtotal, 0);
+
+    const duration = performance.now() - startTime;
+    console.log(`Add to cart completed in ${duration.toFixed(2)}ms`);
+
+    return cart;
+  }
+
+  /**
+   * Show offline mode banner
+   */
+  showOfflineBanner() {
+    let banner = document.getElementById('offline-banner');
     
-    const data = await response.json();
-    return data.product || data.data;
-  }
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'offline-banner';
+      banner.className = 'offline-banner';
+      banner.innerHTML = `
+        <div class="offline-banner-content">
+          <span class="offline-icon">⚠️</span>
+          <span class="offline-text">You are working offline. Orders will be synced when connection is restored.</span>
+          <button class="offline-banner-close">&times;</button>
+        </div>
+      `;
+      
+      document.body.insertAdjacentElement('afterbegin', banner);
 
-  async getProductOffline(productId) {
-    if (!window.DatabaseSchema) {
-      throw new Error('Database not available');
+      banner.querySelector('.offline-banner-close').addEventListener('click', () => {
+        banner.remove();
+      });
     }
 
-    return await window.DatabaseSchema.getProduct(productId);
+    banner.style.display = 'block';
+  }
+
+  /**
+   * Hide offline mode banner
+   */
+  hideOfflineBanner() {
+    const banner = document.getElementById('offline-banner');
+    if (banner) {
+      banner.style.display = 'none';
+    }
+  }
+
+  /**
+   * Get current user ID
+   */
+  getCurrentUserId() {
+    return window.sessionStorage.getItem('userId') || window.localStorage.getItem('userId');
+  }
+
+  /**
+   * Get current outlet ID
+   */
+  getCurrentOutletId() {
+    return window.sessionStorage.getItem('currentOutletId') || window.localStorage.getItem('currentOutletId');
+  }
+
+  /**
+   * Get session token
+   */
+  getSessionToken() {
+    return window.sessionStorage.getItem('sessionToken') || window.localStorage.getItem('sessionToken');
+  }
+
+  /**
+   * Show toast notification
+   */
+  showToast(message, type = 'info') {
+    this.connectionMonitor.showNotification(message, type);
   }
 }
-
-// Initialize and export
-window.OfflineOrderHandler = new OfflineOrderHandler();
-console.log('✅ OfflineOrderHandler loaded');

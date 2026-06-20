@@ -1,54 +1,151 @@
 /**
- * NASHTY OS - Connection Monitor
- * Displays connection status and manages sync notifications
+ * Connection Monitor Service
+ * Detects and reports network connectivity status
  */
 
-class ConnectionMonitor {
-  constructor() {
+export class ConnectionMonitor {
+  constructor(offlineQueue) {
+    this.offlineQueue = offlineQueue;
     this.isOnline = navigator.onLine;
-    this.lastCheck = Date.now();
-    this.checkInterval = 10000; // 10 seconds
-    
-    this.init();
+    this.listeners = [];
+    this.checkInterval = null;
+    this.indicator = null;
+    this.badge = null;
+    this.modal = null;
   }
 
-  init() {
-    // Listen to browser events
-    window.addEventListener('online', () => this.onOnline());
-    window.addEventListener('offline', () => this.onOffline());
-    
-    // Periodic check when offline
-    setInterval(() => {
-      if (!this.isOnline) {
-        this.checkConnectivity();
-      }
-    }, this.checkInterval);
-    
-    // Initial UI update
-    this.updateIndicator();
-    
-    console.log('✅ ConnectionMonitor initialized');
+  /**
+   * Initialize connection monitor
+   */
+  async init() {
+    // Listen to online/offline events
+    window.addEventListener('online', () => this.handleOnline());
+    window.addEventListener('offline', () => this.handleOffline());
+
+    // Create UI elements
+    this.createIndicator();
+    this.createModal();
+
+    // Update initial state
+    await this.updateUI();
   }
 
-  onOnline() {
-    console.log('🌐 Connection restored');
+  /**
+   * Create connection status indicator
+   */
+  createIndicator() {
+    const nav = document.querySelector('.pos-header') || document.querySelector('nav');
+    if (!nav) return;
+
+    const indicatorHTML = `
+      <div id="connection-indicator" class="connection-indicator">
+        <span class="indicator-icon"></span>
+        <span class="indicator-text"></span>
+        <span id="pending-badge" class="pending-badge"></span>
+      </div>
+    `;
+
+    nav.insertAdjacentHTML('beforeend', indicatorHTML);
+    this.indicator = document.getElementById('connection-indicator');
+    this.badge = document.getElementById('pending-badge');
+
+    // Click to open modal
+    this.indicator.addEventListener('click', () => this.openModal());
+  }
+
+  /**
+   * Create sync status modal
+   */
+  createModal() {
+    const modalHTML = `
+      <div id="sync-status-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>Sync Status</h2>
+            <button class="close-modal">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="connection-status">
+              <span class="status-label">Connection:</span>
+              <span id="modal-connection-status"></span>
+            </div>
+            <div class="pending-orders">
+              <h3>Pending Orders (<span id="pending-count">0</span>)</h3>
+              <ul id="pending-orders-list"></ul>
+            </div>
+            <div class="failed-orders">
+              <h3>Failed Orders (<span id="failed-count">0</span>)</h3>
+              <ul id="failed-orders-list"></ul>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="retry-sync-btn" class="btn-primary">Retry Sync</button>
+            <button class="close-modal btn-secondary">Close</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    this.modal = document.getElementById('sync-status-modal');
+
+    // Close modal handlers
+    this.modal.querySelectorAll('.close-modal').forEach(btn => {
+      btn.addEventListener('click', () => this.closeModal());
+    });
+
+    // Retry sync handler
+    document.getElementById('retry-sync-btn').addEventListener('click', () => {
+      window.syncManager?.syncNow();
+      this.closeModal();
+    });
+  }
+
+  /**
+   * Handle online event
+   */
+  async handleOnline() {
     this.isOnline = true;
-    this.updateIndicator();
-    this.showNotification('✅ Connected', 'Connection restored', 'success');
+    console.log('Connection restored');
     
-    // Trigger sync
-    if (window.OfflineSyncManager) {
-      setTimeout(() => window.OfflineSyncManager.syncOfflineOrders(), 1000);
+    // Stop periodic checks
+    if (this.checkInterval) {
+      clearInterval(this.checkInterval);
+      this.checkInterval = null;
     }
+
+    await this.updateUI();
+
+    // Notify sync manager
+    if (window.syncManager) {
+      window.syncManager.syncNow();
+    }
+
+    // Show notification
+    this.showNotification('Connection restored. Syncing pending orders...', 'success');
   }
 
-  onOffline() {
-    console.log('🔌 Connection lost');
+  /**
+   * Handle offline event
+   */
+  async handleOffline() {
     this.isOnline = false;
-    this.updateIndicator();
-    this.showNotification('⚠️ Offline', 'Working in offline mode', 'warning');
+    console.log('Connection lost');
+    
+    await this.updateUI();
+
+    // Start periodic connectivity check (every 10 seconds)
+    this.checkInterval = setInterval(() => {
+      this.checkConnectivity();
+    }, 10000);
+
+    // Show notification
+    this.showNotification('You are offline. Orders will be queued locally.', 'warning');
   }
 
+  /**
+   * Check connectivity (ping server)
+   */
   async checkConnectivity() {
     try {
       const response = await fetch('/api/health', {
@@ -57,159 +154,147 @@ class ConnectionMonitor {
       });
       
       if (response.ok && !this.isOnline) {
-        this.onOnline();
+        // Connection restored
+        this.handleOnline();
       }
     } catch (error) {
       // Still offline
     }
   }
 
-  async updateIndicator() {
-    const chip = document.getElementById('online-status-chip');
-    const dot = document.getElementById('online-status-dot');
-    const text = document.getElementById('online-status-text');
-    
-    if (!chip || !dot || !text) {
-      // Create indicator if doesn't exist
-      this.createIndicator();
-      return;
-    }
-    
-    const pendingCount = await this.getPendingCount();
-    
+  /**
+   * Update UI based on connection status
+   */
+  async updateUI() {
+    if (!this.indicator) return;
+
+    const pendingCount = await this.offlineQueue.getPendingCount();
+
     if (this.isOnline) {
+      this.indicator.classList.remove('offline');
+      this.indicator.classList.add('online');
+      this.indicator.querySelector('.indicator-text').textContent = 'Online';
+      
       if (pendingCount > 0) {
-        chip.className = 'online-chip syncing';
-        dot.className = 'ondot syncing';
-        text.textContent = `Syncing (${pendingCount})`;
+        this.badge.textContent = pendingCount;
+        this.badge.style.display = 'inline-block';
+        this.badge.classList.add('syncing');
       } else {
-        chip.className = 'online-chip';
-        dot.className = 'ondot';
-        text.textContent = 'Online';
+        this.badge.style.display = 'none';
       }
     } else {
-      chip.className = 'online-chip offline';
-      dot.className = 'ondot offline';
-      text.textContent = `Offline${pendingCount > 0 ? ` (${pendingCount})` : ''}`;
+      this.indicator.classList.remove('online');
+      this.indicator.classList.add('offline');
+      this.indicator.querySelector('.indicator-text').textContent = 'Offline';
+      
+      if (pendingCount > 0) {
+        this.badge.textContent = pendingCount;
+        this.badge.style.display = 'inline-block';
+        this.badge.classList.remove('syncing');
+      } else {
+        this.badge.style.display = 'none';
+      }
     }
   }
 
-  createIndicator() {
-    const topbar = document.querySelector('.topbar') || document.querySelector('header');
-    if (!topbar) return;
-    
-    const indicator = document.createElement('div');
-    indicator.id = 'online-status-chip';
-    indicator.className = 'online-chip';
-    indicator.style.cssText = 'display:flex; align-items:center; gap:8px; padding:6px 12px; border-radius:20px; background:var(--sf2); cursor:pointer; transition:all 0.2s;';
-    indicator.onclick = () => this.showModal();
-    
-    indicator.innerHTML = `
-      <span id="online-status-dot" class="ondot" style="width:8px; height:8px; border-radius:50%; background:#10B981;"></span>
-      <span id="online-status-text" style="font-size:13px; font-weight:500; color:var(--txt2);">Online</span>
-    `;
-    
-    topbar.appendChild(indicator);
+  /**
+   * Open sync status modal
+   */
+  async openModal() {
+    const pending = await this.offlineQueue.getPending();
+    const failed = await this.offlineQueue.getFailed();
+
+    // Update connection status
+    const statusEl = document.getElementById('modal-connection-status');
+    statusEl.textContent = this.isOnline ? 'Online' : 'Offline';
+    statusEl.className = this.isOnline ? 'status-online' : 'status-offline';
+
+    // Update pending count
+    document.getElementById('pending-count').textContent = pending.length;
+
+    // Update pending orders list
+    const pendingList = document.getElementById('pending-orders-list');
+    pendingList.innerHTML = pending.length === 0 
+      ? '<li class="empty">No pending orders</li>'
+      : pending.map(item => {
+          const data = JSON.parse(item.data);
+          const timestamp = new Date(item.timestamp).toLocaleString();
+          return `
+            <li>
+              <div class="order-info">
+                <span class="order-type">${item.orderType}</span>
+                <span class="order-time">${timestamp}</span>
+              </div>
+            </li>
+          `;
+        }).join('');
+
+    // Update failed count
+    document.getElementById('failed-count').textContent = failed.length;
+
+    // Update failed orders list
+    const failedList = document.getElementById('failed-orders-list');
+    failedList.innerHTML = failed.length === 0
+      ? '<li class="empty">No failed orders</li>'
+      : failed.map(item => {
+          const timestamp = new Date(item.timestamp).toLocaleString();
+          return `
+            <li>
+              <div class="order-info">
+                <span class="order-type">${item.orderType}</span>
+                <span class="order-time">${timestamp}</span>
+                <span class="order-error">${item.lastError}</span>
+                <span class="retry-count">Retries: ${item.retryCount}</span>
+              </div>
+            </li>
+          `;
+        }).join('');
+
+    this.modal.style.display = 'flex';
   }
 
-  async showModal() {
-    const pendingOrders = await this.getPendingOrders();
-    const isOnline = this.isOnline;
+  /**
+   * Close modal
+   */
+  closeModal() {
+    this.modal.style.display = 'none';
+  }
+
+  /**
+   * Show notification
+   */
+  showNotification(message, type = 'info') {
+    // Create toast notification
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
     
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.cssText = 'display:flex; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center;';
-    
-    modal.innerHTML = `
-      <div class="modal-content" style="background:var(--sf); padding:30px; border-radius:16px; max-width:500px; width:90%; max-height:80vh; overflow-y:auto; box-shadow:var(--sh2);">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
-          <h2 style="margin:0; font-size:24px; color:var(--txt);">
-            ${isOnline ? '🌐 Online' : '🔌 Offline Mode'}
-          </h2>
-          <button onclick="this.closest('.modal').remove()" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--txt2);">×</button>
-        </div>
-        
-        <div style="background:var(--sf2); padding:15px; border-radius:12px; margin-bottom:20px;">
-          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-            <span style="color:var(--txt2);">Status:</span>
-            <strong style="color:${isOnline ? 'var(--gn)' : 'var(--ye)'};">${isOnline ? 'Connected' : 'Disconnected'}</strong>
-          </div>
-          <div style="display:flex; justify-content:space-between;">
-            <span style="color:var(--txt2);">Pending Orders:</span>
-            <strong style="color:var(--txt);">${pendingOrders.length}</strong>
-          </div>
-        </div>
-        
-        ${pendingOrders.length > 0 ? `
-          <h3 style="font-size:16px; margin:0 0 15px 0; color:var(--txt2);">Pending Orders:</h3>
-          <div style="max-height:300px; overflow-y:auto;">
-            ${pendingOrders.map((order, i) => `
-              <div style="background:var(--sf2); padding:12px; border-radius:8px; margin-bottom:8px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <div>
-                    <div style="font-weight:600; color:var(--txt);">Order #${i + 1}</div>
-                    <div style="font-size:12px; color:var(--txt3);">
-                      ${new Date(order.timestamp).toLocaleString('id-ID')}
-                    </div>
-                  </div>
-                  <div style="font-size:12px; padding:4px 8px; border-radius:6px; background:var(--yeL); color:var(--ye);">
-                    ${order.retryCount > 0 ? `Retry ${order.retryCount}/3` : 'Pending'}
-                  </div>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        ` : `
-          <div style="text-align:center; padding:40px 20px; color:var(--txt3);">
-            <div style="font-size:48px; margin-bottom:10px;">✅</div>
-            <p style="margin:0;">No pending orders</p>
-          </div>
-        `}
-        
-        ${isOnline && pendingOrders.length > 0 ? `
-          <button onclick="window.ConnectionMonitor.forceSyncNow(); this.closest('.modal').remove();" style="width:100%; margin-top:20px; padding:12px; background:var(--or); color:white; border:none; border-radius:8px; cursor:pointer; font-size:16px; font-weight:600;">
-            🔄 Sync Now
-          </button>
-        ` : ''}
-      </div>
-    `;
-    
-    document.body.appendChild(modal);
-    modal.onclick = (e) => {
-      if (e.target === modal) modal.remove();
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add('show');
+    }, 100);
+
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
+  /**
+   * Add connection status listener
+   */
+  addListener(callback) {
+    this.listeners.push(callback);
+  }
+
+  /**
+   * Get current status
+   */
+  getStatus() {
+    return {
+      isOnline: this.isOnline,
+      pendingCount: this.offlineQueue.getPendingCount()
     };
   }
-
-  async forceSyncNow() {
-    if (window.OfflineSyncManager) {
-      this.showNotification('🔄 Syncing...', 'Syncing offline orders', 'info');
-      await window.OfflineSyncManager.syncOfflineOrders();
-    }
-  }
-
-  async getPendingCount() {
-    if (window.OfflineSyncManager) {
-      return await window.OfflineSyncManager.getPendingCount().catch(() => 0);
-    }
-    return 0;
-  }
-
-  async getPendingOrders() {
-    if (window.OfflineSyncManager) {
-      return await window.OfflineSyncManager.getQueuedOrders().catch(() => []);
-    }
-    return [];
-  }
-
-  showNotification(title, message, type = 'info') {
-    // Use toast if available
-    if (typeof window.showToast === 'function') {
-      window.showToast(`${title}: ${message}`, type);
-    } else {
-      console.log(`[${type.toUpperCase()}] ${title}: ${message}`);
-    }
-  }
 }
-
-window.ConnectionMonitor = new ConnectionMonitor();
-console.log('✅ ConnectionMonitor loaded');

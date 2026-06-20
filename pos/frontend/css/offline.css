@@ -1,0 +1,119 @@
+/* Offline Mode Styles */
+
+.offline-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: #78350f;
+  z-index: 9998;
+  padding: 12px 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: none;
+}
+
+.offline-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.offline-icon {
+  font-size: 20px;
+}
+
+.offline-text {
+  flex: 1;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.offline-banner-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #78350f;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.offline-banner-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Cart loading states */
+
+.cart-item.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.cart-item.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid #3b82f6;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Product search offline indicator */
+
+.search-results.offline::before {
+  content: 'Offline - Showing cached results';
+  display: block;
+  padding: 8px 12px;
+  background: #fef3c7;
+  color: #78350f;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+/* Order confirmation offline state */
+
+.order-confirmation.offline {
+  border-left: 4px solid #f59e0b;
+}
+
+.order-confirmation.offline .status-badge {
+  background: #fbbf24;
+  color: #78350f;
+}
+
+.order-confirmation.offline .sync-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #fef3c7;
+  border-radius: 8px;
+  margin-top: 16px;
+  font-size: 13px;
+  color: #78350f;
+}
+
+.order-confirmation.offline .sync-info::before {
+  content: '⏱️';
+  font-size: 18px;
+}

@@ -57,8 +57,8 @@ export async function onRequestPost({ request, env }) {
       const { data: user, error } = await supabase
         .from('users')
         .select('*')
-        .eq('username', username)
-        .eq('role', 'admin')
+        .eq('email', username)
+        .eq('role', 'manager')
         .single();
 
       if (error || !user || user.password !== password) {
@@ -78,7 +78,7 @@ export async function onRequestPost({ request, env }) {
       return new Response(JSON.stringify({
         success: true,
         token,
-        user: { id: user.id, username: user.username, role: user.role, tenantId: user.tenant_id, outletId }
+        user: { id: user.id, username: user.email, role: user.role, tenantId: user.tenant_id, outletId }
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     } 
     
@@ -135,7 +135,7 @@ export async function onRequestPost({ request, env }) {
       return new Response(JSON.stringify({
         success: true,
         token,
-        user: { id: user.id, username: user.username, role: user.role, tenantId: user.tenant_id, outletId: outletId || user.outlet_id }
+        user: { id: user.id, username: user.email, role: user.role, tenantId: user.tenant_id, outletId: outletId || user.outlet_id }
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
