@@ -1,4 +1,4 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
 import { query, get, run, transaction } from '../db/database';
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
@@ -100,7 +100,7 @@ router.post('/', async (req, res) => {
     // SERVER-SIDE RECALCULATION TO PREVENT PRICE MANIPULATION
     let calculatedSubtotal = 0;
     for (const item of items) {
-      const product = get('SELECT price, stock_tracking, stock_qty FROM products WHERE id = ?', [item.productId]) as any;
+      const product = await get('SELECT price, stock_tracking, stock_qty FROM products WHERE id = ?', [item.productId]) as any;
       
       if (!product) {
         return res.status(400).json({
@@ -166,9 +166,9 @@ router.post('/', async (req, res) => {
     };
     const mappedOrderType = orderTypeMap[orderType] || orderType;
 
-    const doTransaction = transaction(() => {
+    const doTransaction = async () => {
       // Insert order
-      run(`
+      await run(`
         INSERT INTO orders (
           id, tenant_id, outlet_id, shift_id, user_id, order_number,
           order_type, table_number, customer_name, customer_phone, subtotal, discount, tax, service_charge,
@@ -184,18 +184,18 @@ router.post('/', async (req, res) => {
       if (customerPhone) {
         const cleanPhone = customerPhone.replace(/\D/g, '');
         if (cleanPhone) {
-          let member = get('SELECT id, points, total_spent, visit_count FROM members WHERE tenant_id = ? AND phone = ?', [tenantId, cleanPhone]) as any;
+          let member = await get('SELECT id, points, total_spent, visit_count FROM members WHERE tenant_id = ? AND phone = ?', [tenantId, cleanPhone]) as any;
           const pointsEarned = Math.floor(calculatedTotal / 10000); // 1 point for every Rp 10.000 spent
           
           if (!member) {
             const memberId = randomUUID();
             const defaultName = customerName || 'Pelanggan Baru';
-            run(`
+            await run(`
               INSERT INTO members (id, tenant_id, name, phone, points, total_spent, visit_count, segment, status)
               VALUES (?, ?, ?, ?, ?, ?, 1, 'new', 'active')
             `, [memberId, tenantId, defaultName, cleanPhone, pointsEarned, calculatedTotal]);
             
-            run(`
+            await run(`
               INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description)
               VALUES (?, ?, 'member_registered', 'member', ?, ?)
             `, [randomUUID(), tenantId, memberId, `Member baru terdaftar via POS checkout: ${defaultName} (${cleanPhone})`]);
@@ -209,7 +209,7 @@ router.post('/', async (req, res) => {
             else if (newVisits > 15) newSegment = 'loyal';
             else if (newVisits > 5) newSegment = 'regular';
             
-            run(`
+            await run(`
               UPDATE members
               SET points = ?,
                   total_spent = ?,
@@ -225,7 +225,7 @@ router.post('/', async (req, res) => {
       // Insert order items
       for (const item of items) {
         const itemId = randomUUID();
-        run(`
+        await run(`
           INSERT INTO order_items (
             id, order_id, product_id, product_name, quantity, unit_price, subtotal, notes
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -234,7 +234,7 @@ router.post('/', async (req, res) => {
         // Insert modifiers if any
         if (item.modifiers && item.modifiers.length > 0) {
           for (const mod of item.modifiers) {
-            run(`
+            await run(`
               INSERT INTO order_item_modifiers (
                 id, order_item_id, modifier_group_id, modifier_group_name,
                 modifier_option_id, modifier_option_name, price_adjustment
@@ -244,9 +244,9 @@ router.post('/', async (req, res) => {
         }
 
         // Decrement stock if tracking is enabled
-        const product = get('SELECT stock_tracking FROM products WHERE id = ?', [item.productId]) as any;
+        const product = await get('SELECT stock_tracking FROM products WHERE id = ?', [item.productId]) as any;
         if (product && product.stock_tracking === 1) {
-           run(`
+           await run(`
              UPDATE products SET stock_qty = stock_qty - ?, updated_at = ?
              WHERE id = ?
            `, [item.quantity, new Date().toISOString(), item.productId]);
@@ -256,19 +256,19 @@ router.post('/', async (req, res) => {
       // Insert payments if split payment
       if (payments && Array.isArray(payments)) {
         for (const payment of payments) {
-          run(`
+          await run(`
             INSERT INTO payments (id, order_id, method, amount, change_amount, platform_ref)
             VALUES (?, ?, ?, ?, ?, ?)
           `, [randomUUID(), orderId, payment.method, payment.amount, payment.change || 0, payment.platformRef || null]);
         }
       }
-    });
+    };
 
-    doTransaction();
+    await doTransaction();
 
     // Log order creation to activity_logs
     try {
-      run(`
+      await run(`
         INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description, metadata)
         VALUES (?, ?, ?, 'order_created', 'order', ?, ?, ?)
       `, [
@@ -278,7 +278,7 @@ router.post('/', async (req, res) => {
       ]);
 
       if (paymentStatus === 'paid') {
-        run(`
+        await run(`
           INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description, metadata)
           VALUES (?, ?, ?, 'order_paid', 'order', ?, ?, ?)
         `, [
@@ -295,7 +295,7 @@ router.post('/', async (req, res) => {
     logOrderCreation(orderNumber, orderId, calculatedTotal);
 
     // Get complete order with items
-    const order = get(`
+    const order = await get(`
       SELECT o.*, u.name as cashier_name
       FROM orders o
       LEFT JOIN users u ON o.user_id = u.id
@@ -371,7 +371,7 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const order = get(`
+    const order = await get(`
       SELECT o.*, u.name as cashier_name
       FROM orders o LEFT JOIN users u ON o.user_id = u.id
       WHERE o.id = ?
@@ -431,7 +431,7 @@ router.patch('/:id/status', async (req, res) => {
     params.push(new Date().toISOString());
     params.push(id);
 
-    run(`UPDATE orders SET ${updates.join(', ')} WHERE id = ?`, params);
+    await run(`UPDATE orders SET ${updates.join(', ')} WHERE id = ?`, params);
 
     // Log status update (Task 22.3 - Requirement 14.4)
     if (kitchenStatus) {
@@ -458,7 +458,7 @@ router.put('/:id/void', async (req, res) => {
       return res.status(400).json({ error: 'Reason and Manager PIN are required for voiding an order' });
     }
 
-    const order = get('SELECT * FROM orders WHERE id = ?', [id]) as any;
+    const order = await get('SELECT * FROM orders WHERE id = ?', [id]) as any;
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
     }
@@ -482,7 +482,7 @@ router.put('/:id/void', async (req, res) => {
       return res.status(403).json({ error: 'PIN tidak valid atau Anda tidak memiliki akses Manager' });
     }
 
-    run(`
+    await run(`
       UPDATE orders SET
         order_status = 'cancelled',
         kitchen_status = 'served',
@@ -493,7 +493,7 @@ router.put('/:id/void', async (req, res) => {
     `, [`VOID: ${reason} (by: ${voidBy || 'Manager'})`, new Date().toISOString(), id]);
 
     // Log activity
-    run(`
+    await run(`
       INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description, metadata)
       VALUES (?, ?, ?, 'order_cancelled', 'order', ?, ?, ?)
     `, [randomUUID(), order.tenant_id, voidBy || null, id, `Order ${order.order_number} dibatalkan (void) — ${reason} (Rp ${order.total.toLocaleString()})`, JSON.stringify({ orderNumber: order.order_number, reason, total: order.total })]);
@@ -607,7 +607,7 @@ router.patch('/:id/items/:itemId/status', async (req, res) => {
 
     if ((pendingItems[0] as any).count === 0) {
       // All items are ready or served
-      run(`
+      await run(`
         UPDATE orders SET
           kitchen_status = 'ready',
           order_status = 'ready',
@@ -789,14 +789,14 @@ router.post('/:id/refund', async (req, res) => {
       return res.status(400).json({ error: 'Reason is required for refund' });
     }
 
-    const order = get('SELECT * FROM orders WHERE id = ?', [id]) as any;
+    const order = await get('SELECT * FROM orders WHERE id = ?', [id]) as any;
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
     }
 
     const amount = refundAmount || order.total;
 
-    run(`
+    await run(`
       UPDATE orders SET
         notes = COALESCE(notes || ' | ', '') || ?,
         updated_at = ?
@@ -804,23 +804,23 @@ router.post('/:id/refund', async (req, res) => {
     `, [`REFUND: Rp ${amount.toLocaleString()} — ${reason} (by: ${refundBy || 'Manager'})`, new Date().toISOString(), id]);
 
     // Insert negative payment to correctly reduce shift omzet
-    run(`
+    await run(`
       INSERT INTO payments (id, order_id, method, amount, change_amount, platform_ref)
       VALUES (?, ?, ?, ?, ?, ?)
     `, [randomUUID(), id, order.payment_method || 'tunai', -Math.abs(amount), 0, 'REFUND']);
 
     // If full refund, void the order
     if (amount >= order.total) {
-      run(`UPDATE orders SET order_status = 'cancelled', payment_status = 'cancelled' WHERE id = ?`, [id]);
+      await run(`UPDATE orders SET order_status = 'cancelled', payment_status = 'cancelled' WHERE id = ?`, [id]);
       
-      run(`
+      await run(`
         INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description, metadata)
         VALUES (?, ?, ?, 'order_cancelled', 'order', ?, ?, ?)
       `, [randomUUID(), order.tenant_id, refundBy || null, id, `Order ${order.order_number} dibatalkan (refund penuh sebesar Rp ${amount.toLocaleString()}) — ${reason}`, JSON.stringify({ orderNumber: order.order_number, reason, amount })]);
     }
 
     // Log activity
-    run(`
+    await run(`
       INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description)
       VALUES (?, ?, ?, 'refund', 'order', ?, ?)
     `, [randomUUID(), order.tenant_id, refundBy || null, id, `Refund order ${order.order_number} — Rp ${amount.toLocaleString()} — ${reason}`]);
@@ -833,9 +833,9 @@ router.post('/:id/refund', async (req, res) => {
 });
 
 // Helper for kitchen completed & late logging
-function logKitchenStatusUpdate(orderId: string) {
+async function logKitchenStatusUpdate(orderId: string) {
   try {
-    const order = get('SELECT tenant_id, order_number, created_at, completed_at FROM orders WHERE id = ?', [orderId]) as any;
+    const order = await get('SELECT tenant_id, order_number, created_at, completed_at FROM orders WHERE id = ?', [orderId]) as any;
     if (!order) return;
     
     const startTime = new Date(order.created_at).getTime();
@@ -843,7 +843,7 @@ function logKitchenStatusUpdate(orderId: string) {
     const durationMinutes = Math.round((endTime - startTime) / (60 * 1000));
     
     // Get maximum production time for items in this order
-    const prodResult = get(`
+    const prodResult = await get(`
       SELECT MAX(COALESCE(p.production_time, 10)) as max_time
       FROM order_items oi
       LEFT JOIN products p ON oi.product_id = p.id
@@ -853,7 +853,7 @@ function logKitchenStatusUpdate(orderId: string) {
     const maxProductionTime = prodResult?.max_time || 10;
     
     // Log kitchen completed
-    run(`
+    await run(`
       INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description, metadata)
       VALUES (?, ?, 'kitchen_completed', 'order', ?, ?, ?)
     `, [
@@ -866,7 +866,7 @@ function logKitchenStatusUpdate(orderId: string) {
     
     // Check if late
     if (durationMinutes > maxProductionTime) {
-      run(`
+      await run(`
         INSERT INTO activity_logs (id, tenant_id, action, entity_type, entity_id, description, metadata)
         VALUES (?, ?, 'kitchen_late', 'order', ?, ?, ?)
       `, [
@@ -890,7 +890,7 @@ router.post('/payment-failed', async (req, res) => {
       return res.status(400).json({ error: 'tenantId is required' });
     }
     const logId = randomUUID();
-    run(`
+    await run(`
       INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, description, metadata)
       VALUES (?, ?, ?, 'payment_failed', 'payment', ?, ?)
     `, [
