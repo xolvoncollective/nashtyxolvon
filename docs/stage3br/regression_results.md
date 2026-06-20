@@ -1,1 +1,0 @@
-Ran complete regression suite covering: Create Order, Update Order, Void Order, Refund Order, Assign Member, Award Points, Reverse Points, Update Recipe, Update Cost, Dashboard, Reports. No functionality regressions. All API points responded correctly. PASS.

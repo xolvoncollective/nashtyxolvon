@@ -1,1 +1,0 @@
-Architecture verification via static analysis: Controllers (routes) successfully refactored to delegate business logic to CostService, MemberService, and ProductService. Service ownership is preserved. PASS.
