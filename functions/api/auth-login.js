@@ -54,11 +54,12 @@ export async function onRequestPost({ request, env }) {
     const { action, username, password, pin, outletId } = await request.json();
 
     if (action === 'main-login') {
+      const loginEmail = username === 'admin1' ? 'admin@nashty' : username;
       const { data: user, error } = await supabase
         .from('users')
         .select('*')
-        .eq('email', username)
-        .eq('role', 'manager')
+        .eq('email', loginEmail)
+        .in('role', ['manager', 'superadmin'])
         .single();
 
       if (error || !user || user.password !== password) {
