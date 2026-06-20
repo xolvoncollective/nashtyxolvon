@@ -5,6 +5,11 @@ import { MemberService } from '../services/MemberService';
 
 const router = express.Router();
 
+// Root route for CRM health/check to avoid 404
+router.get('/', (req, res) => {
+  res.json({ success: true, service: 'CRM API', status: 'active' });
+});
+
 // --- CUSTOMERS ---
 
 router.get('/customers', async (req, res) => {
