@@ -28,7 +28,7 @@ router.get('/kpi', async (req, res) => {
       params.push(dateTo);
     }
 
-    // Today's sales
+    // Today's sales - with NULL safety
     const todaySales = await get(`
       SELECT 
         COUNT(*) as order_count,
@@ -38,16 +38,16 @@ router.get('/kpi', async (req, res) => {
         COALESCE(AVG(total), 0) as avg_order_value
       FROM orders o
       ${whereClause} AND DATE(o.created_at, 'localtime') = DATE('now', 'localtime')
-    `, params);
+    `, params) || { order_count: 0, total_sales: 0, gross_sales: 0, total_discount: 0, avg_order_value: 0 };
 
-    // Yesterday's sales for comparison
+    // Yesterday's sales for comparison - with NULL safety
     const yesterdaySales = await get(`
       SELECT COALESCE(SUM(total), 0) as total_sales
       FROM orders o
       ${whereClause} AND DATE(o.created_at, 'localtime') = DATE('now', '-1 day', 'localtime')
-    `, params) as any;
+    `, params) as any || { total_sales: 0 };
 
-    // Top products
+    // Top products - with NULL safety
     const topProducts = await query(`
       SELECT 
         oi.product_name,
@@ -59,9 +59,9 @@ router.get('/kpi', async (req, res) => {
       GROUP BY oi.product_id, oi.product_name
       ORDER BY total_sales DESC
       LIMIT 10
-    `, params);
+    `, params) || [];
 
-    // Sales by order type
+    // Sales by order type - with NULL safety
     const salesByType = await query(`
       SELECT 
         order_type,
@@ -70,7 +70,7 @@ router.get('/kpi', async (req, res) => {
       FROM orders o
       ${whereClause}
       GROUP BY order_type
-    `, params);
+    `, params) || [];
 
     // Calculate growth
     const todayTotal = (todaySales as any)?.total_sales || 0;

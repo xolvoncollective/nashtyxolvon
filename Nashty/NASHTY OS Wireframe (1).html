@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NASHTY OS — Feature Wireframe</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+  :root {
+    --black: #010100;
+    --orange: #E4540C;
+    --brown: #59392B;
+    --gray: #9F9E9E;
+    --white: #FAFAFA;
+    --s0: #0D0D0B;
+    --s1: #141412;
+    --s2: #1C1C1A;
+    --s3: #252523;
+    --s4: #2E2E2B;
+    --border: rgba(255,255,255,0.07);
+    --green: #22C55E;
+    --blue: #3B82F6;
+    --yellow: #F59E0B;
+    --red: #EF4444;
+    --purple: #A855F7;
+    --font: 'IBM Plex Sans', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--black); color: var(--white); font-family: var(--font); }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width:4px; height:4px; }
+  ::-webkit-scrollbar-thumb { background: var(--s3); border-radius:2px; }
+
+  /* ── Layout ── */
+  .shell { display:flex; min-height:100vh; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 240px; flex-shrink:0;
+    background: var(--s0);
+    border-right: 1px solid var(--border);
+    position: fixed; top:0; left:0; bottom:0;
+    overflow-y: auto;
+    z-index: 100;
+    display: flex; flex-direction:column;
+  }
+  .sidebar-logo {
+    padding: 18px 16px;
+    border-bottom: 1px solid var(--border);
+    display:flex; align-items:center; gap:10px;
+  }
+  .logo-box {
+    width:32px; height:32px; border-radius:9px;
+    background: linear-gradient(135deg, #E4540C, #C4420A);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:15px; color:white; flex-shrink:0;
+  }
+  .logo-text { font-size:13px; font-weight:800; letter-spacing:-0.02em; }
+  .logo-sub { font-size:9px; color:var(--gray); letter-spacing:0.05em; margin-top:1px; }
+
+  .sidebar-section {
+    padding: 16px 12px 8px;
+  }
+  .sidebar-group-label {
+    font-size:9px; font-weight:800; letter-spacing:0.15em;
+    color:var(--gray); text-transform:uppercase;
+    padding: 4px 8px 8px;
+  }
+  .sidebar-link {
+    display:flex; align-items:center; gap:8px;
+    padding: 7px 10px; border-radius:9px;
+    color: var(--gray); text-decoration:none; font-size:12px; font-weight:500;
+    transition:all 0.12s; margin-bottom:2px; cursor:pointer; border:none; background:none; width:100%; text-align:left;
+  }
+  .sidebar-link:hover { background:var(--s2); color:var(--white); }
+  .sidebar-link.active { background: rgba(228,84,12,0.15); color:var(--orange); font-weight:600; }
+  .sidebar-link .icon { font-size:14px; flex-shrink:0; width:18px; text-align:center; }
+  .sidebar-link .count { margin-left:auto; font-size:9px; background:var(--s3); padding:2px 6px; border-radius:10px; font-family:var(--mono); }
+
+  /* ── Main content ── */
+  .main { margin-left:240px; flex:1; }
+
+  /* ── Page header ── */
+  .page-header {
+    position: sticky; top:0; z-index:50;
+    background: rgba(1,1,0,0.92); backdrop-filter:blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 32px;
+    display:flex; align-items:center; gap:16px;
+  }
+  .page-badge {
+    font-size:10px; font-weight:800; letter-spacing:0.1em;
+    padding: 4px 10px; border-radius:6px;
+    text-transform:uppercase;
+  }
+  .badge-kds { background: rgba(228,84,12,0.15); color:var(--orange); border:1px solid rgba(228,84,12,0.3); }
+  .badge-pos { background: rgba(59,130,246,0.15); color:var(--blue); border:1px solid rgba(59,130,246,0.3); }
+  .badge-bo { background: rgba(168,85,247,0.15); color:var(--purple); border:1px solid rgba(168,85,247,0.3); }
+
+  /* ── Module sections ── */
+  .module-section { padding: 0 32px 60px; }
+  .module-hero {
+    padding: 40px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+  .module-tag {
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:10px; font-weight:800; letter-spacing:0.12em;
+    padding: 4px 12px; border-radius:20px; margin-bottom:14px;
+    text-transform:uppercase;
+  }
+  .module-title { font-size:32px; font-weight:800; letter-spacing:-0.03em; margin-bottom:8px; }
+  .module-desc { color:var(--gray); font-size:14px; line-height:1.6; max-width:600px; }
+
+  /* ── Feature groups ── */
+  .feature-group { margin-bottom:40px; }
+  .group-header {
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:16px; padding-bottom:10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .group-icon { font-size:20px; }
+  .group-title { font-size:16px; font-weight:700; }
+  .group-desc { color:var(--gray); font-size:12px; margin-top:2px; }
+
+  /* ── Feature cards grid ── */
+  .feature-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap:12px; }
+  .feature-card {
+    background: var(--s1); border:1px solid var(--border);
+    border-radius:14px; padding:16px;
+    transition: all 0.15s;
+    position:relative; overflow:hidden;
+  }
+  .feature-card:hover { border-color:var(--border); transform:translateY(-1px); box-shadow:0 4px 16px rgba(0,0,0,0.4); }
+  .feature-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  }
+  .feature-card.orange::before { background:var(--orange); }
+  .feature-card.blue::before { background:var(--blue); }
+  .feature-card.green::before { background:var(--green); }
+  .feature-card.purple::before { background:var(--purple); }
+  .feature-card.yellow::before { background:var(--yellow); }
+  .feature-card.red::before { background:var(--red); }
+  .feature-card.gray::before { background:var(--gray); }
+
+  .card-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px; gap:8px; }
+  .card-icon { font-size:22px; flex-shrink:0; }
+  .card-title { font-size:13px; font-weight:700; color:var(--white); margin-bottom:3px; }
+  .card-tag {
+    font-size:8px; font-weight:800; letter-spacing:0.08em;
+    padding:2px 7px; border-radius:4px; text-transform:uppercase; flex-shrink:0;
+    margin-top:2px;
+  }
+  .tag-core { background:rgba(34,197,94,0.15); color:var(--green); }
+  .tag-new { background:rgba(228,84,12,0.15); color:var(--orange); }
+  .tag-crm { background:rgba(59,130,246,0.15); color:var(--blue); }
+  .tag-settings { background:rgba(168,85,247,0.15); color:var(--purple); }
+
+  .card-desc { color:var(--gray); font-size:11px; line-height:1.6; margin-bottom:10px; }
+
+  /* ── Feature list inside card ── */
+  .feature-list { list-style:none; display:flex; flex-direction:column; gap:4px; }
+  .feature-list li {
+    display:flex; align-items:flex-start; gap:7px;
+    font-size:11px; color:var(--gray); line-height:1.4;
+    padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.03);
+  }
+  .feature-list li:last-child { border-bottom:none; }
+  .feature-list li .bullet {
+    width:14px; height:14px; border-radius:4px; flex-shrink:0; margin-top:1px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:8px; font-weight:800;
+  }
+  .bullet-do { background:rgba(34,197,94,0.15); color:var(--green); }
+  .bullet-setting { background:rgba(168,85,247,0.15); color:var(--purple); }
+  .bullet-info { background:rgba(59,130,246,0.15); color:var(--blue); }
+  .bullet-warn { background:rgba(239,68,38,0.15); color:var(--red); }
+
+  /* ── Flow diagram ── */
+  .flow-diagram {
+    background:var(--s1); border:1px solid var(--border);
+    border-radius:14px; padding:20px; margin-bottom:16px;
+  }
+  .flow-title { font-size:12px; font-weight:700; color:var(--white); margin-bottom:14px; }
+  .flow-steps { display:flex; gap:0; align-items:center; flex-wrap:wrap; }
+  .flow-step {
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    padding: 8px 14px; border-radius:10px;
+    background:var(--s2); border:1px solid var(--border);
+    font-size:10px; font-weight:600; text-align:center;
+    min-width:80px;
+  }
+  .flow-step .step-icon { font-size:18px; }
+  .flow-step .step-label { color:var(--white); }
+  .flow-step .step-sub { color:var(--gray); font-size:9px; }
+  .flow-arrow { color:var(--gray); font-size:16px; padding:0 4px; flex-shrink:0; }
+  .flow-step.highlight { background:rgba(228,84,12,0.12); border-color:rgba(228,84,12,0.3); }
+  .flow-step.highlight .step-label { color:var(--orange); }
+
+  /* ── Screen wireframe ── */
+  .screen-wf {
+    background:var(--s1); border:1px solid var(--border);
+    border-radius:14px; overflow:hidden; margin-bottom:16px;
+  }
+  .screen-wf-bar {
+    background:var(--s2); border-bottom:1px solid var(--border);
+    padding:8px 14px; display:flex; align-items:center; gap:8px;
+  }
+  .wf-dot { width:8px; height:8px; border-radius:50%; }
+  .wf-title { font-size:11px; font-weight:600; color:var(--gray); margin-left:4px; }
+  .screen-wf-body { padding:16px; }
+
+  /* ── Wireframe zone ── */
+  .wf-zone {
+    border:1.5px dashed rgba(255,255,255,0.12);
+    border-radius:8px; padding:10px 12px;
+    margin-bottom:8px; position:relative;
+  }
+  .wf-zone-label {
+    position:absolute; top:-9px; left:10px;
+    background:var(--s1); padding:0 6px;
+    font-size:9px; font-weight:700; letter-spacing:0.08em;
+    text-transform:uppercase;
+  }
+  .wf-zone.orange { border-color:rgba(228,84,12,0.3); }
+  .wf-zone.orange .wf-zone-label { color:var(--orange); }
+  .wf-zone.blue { border-color:rgba(59,130,246,0.3); }
+  .wf-zone.blue .wf-zone-label { color:var(--blue); }
+  .wf-zone.green { border-color:rgba(34,197,94,0.3); }
+  .wf-zone.green .wf-zone-label { color:var(--green); }
+  .wf-zone.purple { border-color:rgba(168,85,247,0.3); }
+  .wf-zone.purple .wf-zone-label { color:var(--purple); }
+  .wf-zone.yellow { border-color:rgba(245,158,11,0.3); }
+  .wf-zone.yellow .wf-zone-label { color:var(--yellow); }
+
+  .wf-row { display:flex; gap:8px; align-items:stretch; margin-bottom:6px; }
+  .wf-row:last-child { margin-bottom:0; }
+  .wf-block {
+    background:var(--s2); border:1px solid var(--border);
+    border-radius:6px; padding:8px 10px;
+    font-size:10px; color:var(--gray); flex:1;
+    display:flex; align-items:center; gap:5px;
+  }
+  .wf-block.accent { background:rgba(228,84,12,0.08); border-color:rgba(228,84,12,0.2); color:var(--orange); font-weight:600; }
+  .wf-block.dim { opacity:0.45; }
+  .wf-block .wf-icon { font-size:13px; flex-shrink:0; }
+  .wf-block-w2 { flex:2; }
+  .wf-block-w3 { flex:3; }
+  .wf-col { display:flex; flex-direction:column; gap:6px; flex:1; }
+
+  /* ── Permissions matrix ── */
+  .perm-table { width:100%; border-collapse:collapse; font-size:11px; }
+  .perm-table th { background:var(--s2); color:var(--gray); font-weight:600; letter-spacing:0.05em; padding:8px 12px; text-align:left; border-bottom:1px solid var(--border); }
+  .perm-table td { padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.04); color:var(--gray); }
+  .perm-table tr:hover td { background:var(--s2); }
+  .perm-table td:first-child { color:var(--white); font-weight:600; }
+  .perm-yes { color:var(--green); font-weight:700; }
+  .perm-no { color:var(--s4); }
+  .perm-mgr { color:var(--yellow); font-size:10px; }
+
+  /* ── Two column layout ── */
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+
+  /* ── Status chips ── */
+  .chip { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:12px; font-size:10px; font-weight:700; }
+  .chip-orange { background:rgba(228,84,12,0.15); color:var(--orange); }
+  .chip-green { background:rgba(34,197,94,0.12); color:var(--green); }
+  .chip-blue { background:rgba(59,130,246,0.12); color:var(--blue); }
+  .chip-yellow { background:rgba(245,158,11,0.12); color:var(--yellow); }
+  .chip-red { background:rgba(239,68,68,0.12); color:var(--red); }
+  .chip-gray { background:rgba(159,158,158,0.12); color:var(--gray); }
+
+  /* ── Divider ── */
+  .divider { border:none; border-top:1px solid var(--border); margin:32px 0; }
+
+  /* ── Note box ── */
+  .note-box { background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:10px; padding:12px 14px; margin-bottom:14px; }
+  .note-box p { font-size:11px; color:rgba(245,158,11,0.9); line-height:1.6; }
+  .note-box strong { font-weight:700; }
+
+  /* ── Table of contents ── */
+  .toc-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:24px 32px 32px; }
+  .toc-module {
+    background:var(--s1); border:1px solid var(--border); border-radius:14px; padding:18px;
+    text-decoration:none; transition:all 0.15s; display:block;
+  }
+  .toc-module:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.4); }
+  .toc-module-icon { font-size:32px; margin-bottom:10px; }
+  .toc-module-name { font-size:15px; font-weight:800; margin-bottom:4px; }
+  .toc-module-desc { color:var(--gray); font-size:11px; line-height:1.5; }
+  .toc-module-count { margin-top:12px; font-size:10px; color:var(--gray); display:flex; align-items:center; gap:4px; }
+
+  @media print {
+    .sidebar { display:none; }
+    .main { margin-left:0; }
+    .page-header { position:static; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ========================================================= -->
+<!-- SIDEBAR -->
+<!-- ========================================================= -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-box">N</div>
+    <div>
+      <div class="logo-text">NASHTY OS</div>
+      <div class="logo-sub">FEATURE WIREFRAME</div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-group-label">Overview</div>
+    <a class="sidebar-link active" onclick="scrollTo('overview')">
+      <span class="icon">🗺️</span> Feature Map
+    </a>
+
+    <div class="sidebar-group-label" style="margin-top:14px">🖥️ KDS</div>
+    <a class="sidebar-link" onclick="scrollTo('kds-overview')"><span class="icon">◈</span> Overview <span class="count">6</span></a>
+    <a class="sidebar-link" onclick="scrollTo('kds-cards')"><span class="icon">◉</span> Order Cards</a>
+    <a class="sidebar-link" onclick="scrollTo('kds-stations')"><span class="icon">⬡</span> Stasiun</a>
+    <a class="sidebar-link" onclick="scrollTo('kds-actions')"><span class="icon">◆</span> Actions</a>
+    <a class="sidebar-link" onclick="scrollTo('kds-timers')"><span class="icon">◎</span> Timer System</a>
+    <a class="sidebar-link" onclick="scrollTo('kds-settings')"><span class="icon">⚙</span> Settings</a>
+
+    <div class="sidebar-group-label" style="margin-top:14px">🖱️ POS</div>
+    <a class="sidebar-link" onclick="scrollTo('pos-overview')"><span class="icon">◈</span> Overview <span class="count">9</span></a>
+    <a class="sidebar-link" onclick="scrollTo('pos-menu')"><span class="icon">◉</span> Menu Panel</a>
+    <a class="sidebar-link" onclick="scrollTo('pos-cart')"><span class="icon">⬡</span> Cart & Order</a>
+    <a class="sidebar-link" onclick="scrollTo('pos-payment')"><span class="icon">◆</span> Payment Flow</a>
+    <a class="sidebar-link" onclick="scrollTo('pos-customer')"><span class="icon">◎</span> Customer</a>
+    <a class="sidebar-link" onclick="scrollTo('pos-modifiers')"><span class="icon">◫</span> Modifiers</a>
+    <a class="sidebar-link" onclick="scrollTo('pos-discount')"><span class="icon">◉</span> Diskon & Void</a>
+    <a class="sidebar-link" onclick="scrollTo('pos-shift')"><span class="icon">⬡</span> Shift</a>
+    <a class="sidebar-link" onclick="scrollTo('pos-receipt')"><span class="icon">◆</span> Receipt</a>
+    <a class="sidebar-link" onclick="scrollTo('pos-offline')"><span class="icon">◎</span> Offline Mode</a>
+
+    <div class="sidebar-group-label" style="margin-top:14px">📊 Backoffice</div>
+    <a class="sidebar-link" onclick="scrollTo('bo-overview')"><span class="icon">◈</span> Overview <span class="count">8</span></a>
+    <a class="sidebar-link" onclick="scrollTo('bo-dashboard')"><span class="icon">◉</span> Dashboard</a>
+    <a class="sidebar-link" onclick="scrollTo('bo-menu')"><span class="icon">⬡</span> Menu Mgmt</a>
+    <a class="sidebar-link" onclick="scrollTo('bo-inventory')"><span class="icon">◆</span> Inventori</a>
+    <a class="sidebar-link" onclick="scrollTo('bo-crm')"><span class="icon">◎</span> CRM</a>
+    <a class="sidebar-link" onclick="scrollTo('bo-analytics')"><span class="icon">◫</span> Analitik</a>
+    <a class="sidebar-link" onclick="scrollTo('bo-whatsapp')"><span class="icon">◉</span> WhatsApp</a>
+    <a class="sidebar-link" onclick="scrollTo('bo-settings')"><span class="icon">⬡</span> Settings</a>
+    <a class="sidebar-link" onclick="scrollTo('bo-permissions')"><span class="icon">◆</span> Permissions</a>
+  </div>
+</nav>
+
+<!-- ========================================================= -->
+<!-- MAIN CONTENT -->
+<!-- ========================================================= -->
+<main class="main">
+
+<!-- ── OVERVIEW ─────────────────────────────────────────────── -->
+<div id="overview">
+  <div class="page-header">
+    <span style="font-size:18px">🗺️</span>
+    <div>
+      <div style="font-size:15px;font-weight:800">NASHTY OS — Feature Wireframe</div>
+      <div style="font-size:10px;color:var(--gray)">Review dokumen ini untuk evaluasi fitur. Tandai apa yang perlu diubah.</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <span class="chip chip-orange">v1.0</span>
+      <span class="chip chip-green">3 Module</span>
+      <span class="chip chip-blue">23 Feature Groups</span>
+    </div>
+  </div>
+
+  <div class="toc-grid">
+    <a class="toc-module" onclick="scrollTo('kds-overview')" style="border-top:3px solid var(--orange)">
+      <div class="toc-module-icon">🖥️</div>
+      <div class="toc-module-name" style="color:var(--orange)">KDS</div>
+      <div style="font-size:11px;color:var(--gray);font-weight:600;margin-bottom:6px">Kitchen Display System</div>
+      <div class="toc-module-desc">Layar di dapur yang menampilkan semua order realtime. Chef melihat, proses, dan mark setiap order dari sini.</div>
+      <div class="toc-module-count">📍 6 feature groups · Timer · Stasiun · Alert</div>
+    </a>
+    <a class="toc-module" onclick="scrollTo('pos-overview')" style="border-top:3px solid var(--blue)">
+      <div class="toc-module-icon">🖱️</div>
+      <div class="toc-module-name" style="color:var(--blue)">POS</div>
+      <div style="font-size:11px;color:var(--gray);font-weight:600;margin-bottom:6px">Point of Sale Terminal</div>
+      <div class="toc-module-desc">Tablet kasir untuk terima pesanan, proses pembayaran, lookup pelanggan, cetak struk, dan kelola shift.</div>
+      <div class="toc-module-count">📍 9 feature groups · Payment · Customer · Offline</div>
+    </a>
+    <a class="toc-module" onclick="scrollTo('bo-overview')" style="border-top:3px solid var(--purple)">
+      <div class="toc-module-icon">📊</div>
+      <div class="toc-module-name" style="color:var(--purple)">Backoffice</div>
+      <div style="font-size:11px;color:var(--gray);font-weight:600;margin-bottom:6px">Dashboard & Management</div>
+      <div class="toc-module-desc">Dashboard analytics, manajemen menu, inventori, CRM, WhatsApp automation, dan semua settings sistem.</div>
+      <div class="toc-module-count">📍 8 feature groups · Analytics · CRM · Settings</div>
+    </a>
+  </div>
+
+  <!-- System flow -->
+  <div class="module-section">
+    <div class="flow-diagram">
+      <div class="flow-title">🔄 System Data Flow — Realtime</div>
+      <div class="flow-steps">
+        <div class="flow-step highlight"><div class="step-icon">🖱️</div><div class="step-label">POS</div><div class="step-sub">Kasir bayar</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="step-icon">🔥</div><div class="step-label">Firestore</div><div class="step-sub">orders/ saved</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="step-icon">🖥️</div><div class="step-label">KDS</div><div class="step-sub">Order masuk dapur</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="step-icon">🔗</div><div class="step-label">CRM Bridge</div><div class="step-sub">customers/ updated</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="step-icon">📊</div><div class="step-label">CRM</div><div class="step-sub">Segmen update</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="step-icon">💬</div><div class="step-label">WhatsApp</div><div class="step-sub">Struk terkirim</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================= -->
+<!-- MODULE 1: KDS -->
+<!-- ========================================================= -->
+<div id="kds-overview" class="module-section">
+  <div class="module-hero">
+    <div class="module-tag badge-kds">🖥️ Module 1</div>
+    <div class="module-title">KDS — Kitchen Display System</div>
+    <div class="module-desc">Layar yang dipasang di dapur dan bar. Menampilkan semua order aktif secara realtime, dengan timer, stasiun filter, dan action untuk chef. Dirancang untuk dibaca dari jarak jauh dalam kondisi dapur yang sibuk.</div>
+  </div>
+
+  <!-- KDS Screen Layout -->
+  <div id="kds-overview-screen" class="screen-wf" style="margin-bottom:32px">
+    <div class="screen-wf-bar">
+      <div class="wf-dot" style="background:#EF4444"></div>
+      <div class="wf-dot" style="background:#F59E0B"></div>
+      <div class="wf-dot" style="background:#22C55E"></div>
+      <div class="wf-title">KDS — Layout Overview (landscape)</div>
+    </div>
+    <div class="screen-wf-body">
+      <!-- Top header zone -->
+      <div class="wf-zone orange" style="margin-bottom:8px">
+        <div class="wf-zone-label">Header Bar</div>
+        <div class="wf-row">
+          <div class="wf-block"><span class="wf-icon">🏷️</span> NASHTY KDS</div>
+          <div class="wf-block wf-block-w2"><span class="wf-icon">⬡</span> SEMUA · DAPUR · GRILL · BAR · COLD · DESSERT (tabs)</div>
+          <div class="wf-block"><span class="wf-icon">📊</span> 7 antrian · 2 siap · 1 terlambat</div>
+          <div class="wf-block"><span class="wf-icon">⊞</span> Grid / List</div>
+          <div class="wf-block"><span class="wf-icon">🕐</span> 14:32:15</div>
+        </div>
+      </div>
+      <!-- Order grid zone -->
+      <div class="wf-zone blue">
+        <div class="wf-zone-label">Order Grid (auto-fill columns)</div>
+        <div class="wf-row">
+          <!-- Card 1 normal -->
+          <div class="wf-col">
+            <div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+              <div style="height:2px;background:var(--orange)"></div>
+              <div style="padding:8px 10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between">
+                <div style="font-size:10px;font-weight:700">SNY-0048 · T12</div>
+                <div style="font-size:11px;font-weight:700;color:var(--gray)">03:22</div>
+              </div>
+              <div style="padding:6px 10px;font-size:9px;color:var(--gray)">☐ 1× Nasi Goreng Spesial<br>☐ 2× Ayam Bakar Madu<br>&nbsp;&nbsp;+ Extra pedas</div>
+              <div style="height:2px;background:var(--s3);margin:0 10px"></div>
+              <div style="padding:6px 10px"><div style="background:var(--orange);border-radius:5px;text-align:center;font-size:9px;font-weight:800;color:white;padding:5px">SIAP ▶</div></div>
+            </div>
+          </div>
+          <!-- Card 2 warning -->
+          <div class="wf-col">
+            <div style="background:var(--s2);border:1px solid rgba(245,158,11,0.3);border-radius:8px;overflow:hidden;">
+              <div style="height:2px;background:var(--yellow)"></div>
+              <div style="padding:8px 10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between">
+                <div style="font-size:10px;font-weight:700">SNY-0045 · T07</div>
+                <div style="font-size:11px;font-weight:700;color:var(--yellow)">06:44</div>
+              </div>
+              <div style="padding:6px 10px;font-size:9px;color:var(--gray)">☑ 1× Mie Goreng Jawa<br>☐ 1× Rawon Spesial<br>⚠ VVIP table</div>
+              <div style="padding:6px 10px"><div style="background:var(--orange);border-radius:5px;text-align:center;font-size:9px;font-weight:800;color:white;padding:5px">SIAP ▶</div></div>
+            </div>
+          </div>
+          <!-- Card 3 critical -->
+          <div class="wf-col">
+            <div style="background:var(--s2);border:1px solid rgba(239,68,68,0.4);border-radius:8px;overflow:hidden;">
+              <div style="height:2px;background:var(--red)"></div>
+              <div style="padding:8px 10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between">
+                <div style="font-size:10px;font-weight:700">SNY-0041 · T03</div>
+                <div style="font-size:11px;font-weight:800;color:var(--red)">11:02 ⚡</div>
+              </div>
+              <div style="padding:6px 10px;font-size:9px;color:var(--gray)">☐ 3× Sate Ayam<br>☐ 1× Gado-Gado</div>
+              <div style="padding:6px 10px"><div style="background:var(--orange);border-radius:5px;text-align:center;font-size:9px;font-weight:800;color:white;padding:5px">SIAP ▶</div></div>
+            </div>
+          </div>
+          <!-- Card 4 ready -->
+          <div class="wf-col">
+            <div style="background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.3);border-radius:8px;overflow:hidden;">
+              <div style="height:2px;background:var(--green)"></div>
+              <div style="padding:8px 10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between">
+                <div style="font-size:10px;font-weight:700">SNY-0039 · TAKE</div>
+                <div style="font-size:11px;font-weight:800;color:var(--green)">✓ SIAP</div>
+              </div>
+              <div style="padding:6px 10px;font-size:9px;color:var(--gray)">☑ 2× Nasi Goreng<br>☑ 2× Es Teh Manis</div>
+              <div style="padding:6px 10px"><div style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:5px;text-align:center;font-size:9px;font-weight:800;color:var(--green);padding:5px">✓ DISAJIKAN</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KDS Features -->
+  <div id="kds-cards" class="feature-group">
+    <div class="group-header">
+      <div class="group-icon">📋</div>
+      <div><div class="group-title">Order Cards</div><div class="group-desc">Setiap kartu mewakili satu order. Chef interaksi dengan kartu ini.</div></div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card orange">
+        <div class="card-head"><div class="card-icon">🎴</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Informasi di Setiap Kartu</div>
+        <div class="card-desc">Semua info yang ditampilkan di setiap order card.</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Nomor order (SNY-XXXX)</li>
+          <li><span class="bullet bullet-do">✓</span> Nomor meja atau "TAKE AWAY"</li>
+          <li><span class="bullet bullet-do">✓</span> Nama kasir yang input order</li>
+          <li><span class="bullet bullet-do">✓</span> Live timer sejak order masuk</li>
+          <li><span class="bullet bullet-do">✓</span> List item + qty + modifier</li>
+          <li><span class="bullet bullet-do">✓</span> Customer notes / peringatan</li>
+          <li><span class="bullet bullet-do">✓</span> Station badge per item (Bar, Grill, dll)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Semua bisa toggle on/off di Settings</li>
+        </ul>
+      </div>
+      <div class="feature-card blue">
+        <div class="card-head"><div class="card-icon">☑️</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Item Checklist</div>
+        <div class="card-desc">Chef bisa tick setiap item satu per satu saat selesai dimasak.</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Tap item → item ter-coret</li>
+          <li><span class="bullet bullet-do">✓</span> Progress bar bawah kartu mengisi</li>
+          <li><span class="bullet bullet-do">✓</span> Tap lagi → uncheck</li>
+          <li><span class="bullet bullet-do">✓</span> Saat semua item ✓ → tombol SIAP highlight</li>
+          <li><span class="bullet bullet-info">i</span> Tidak wajib tick sebelum mark SIAP</li>
+        </ul>
+      </div>
+      <div class="feature-card green">
+        <div class="card-head"><div class="card-icon">🎨</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Warna Status Kartu</div>
+        <div class="card-desc">Warna border dan accent bar otomatis berubah sesuai status.</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> <strong style="color:var(--orange)">Orange</strong> — Order baru, normal</li>
+          <li><span class="bullet bullet-do">✓</span> <strong style="color:var(--yellow)">Kuning</strong> — Peringatan (5 menit)</li>
+          <li><span class="bullet bullet-do">✓</span> <strong style="color:var(--red)">Merah</strong> — Kritis + berkedip (10 menit)</li>
+          <li><span class="bullet bullet-do">✓</span> <strong style="color:var(--green)">Hijau</strong> — Sudah SIAP</li>
+          <li><span class="bullet bullet-setting">⚙</span> Batas menit bisa diubah di Settings</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="kds-stations" class="feature-group">
+    <div class="group-header">
+      <div class="group-icon">⬡</div>
+      <div><div class="group-title">Stasiun & Filter</div><div class="group-desc">KDS bisa filter per stasiun dapur. Layar Bar hanya tampilkan item Bar.</div></div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card orange">
+        <div class="card-head"><div class="card-icon">🗂️</div><span class="card-tag tag-settings">Settings</span></div>
+        <div class="card-title">Stasiun yang Bisa Dikustomisasi</div>
+        <div class="card-desc">Semua stasiun bisa diubah dari Backoffice Settings.</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Tambah stasiun baru</li>
+          <li><span class="bullet bullet-do">✓</span> Ubah nama, emoji, warna</li>
+          <li><span class="bullet bullet-do">✓</span> Atur urutan tab di KDS</li>
+          <li><span class="bullet bullet-do">✓</span> Assign kategori menu → stasiun</li>
+          <li><span class="bullet bullet-do">✓</span> Toggle aktif/nonaktif per stasiun</li>
+          <li><span class="bullet bullet-do">✓</span> Set timer warning berbeda per stasiun</li>
+        </ul>
+      </div>
+      <div class="feature-card blue">
+        <div class="card-head"><div class="card-icon">📺</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Multi-Screen Setup</div>
+        <div class="card-desc">Satu KDS per stasiun, atau satu KDS filter semua.</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Filter "Semua" → tampilkan semua order</li>
+          <li><span class="bullet bullet-do">✓</span> Filter "Bar" → hanya item Bar</li>
+          <li><span class="bullet bullet-do">✓</span> Bisa buka beberapa tab browser</li>
+          <li><span class="bullet bullet-info">i</span> Misal: 1 TV dapur + 1 iPad bar</li>
+          <li><span class="bullet bullet-info">i</span> Semua realtime dari Firestore</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="kds-actions" class="feature-group">
+    <div class="group-header">
+      <div class="group-icon">⚡</div>
+      <div><div class="group-title">Actions</div><div class="group-desc">Tombol aksi yang bisa dilakukan chef dari layar KDS.</div></div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card green">
+        <div class="card-head"><div class="card-icon">✅</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Tombol SIAP</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Tap → order status jadi "ready"</li>
+          <li><span class="bullet bullet-do">✓</span> Kartu berubah hijau</li>
+          <li><span class="bullet bullet-do">✓</span> POS kasir dapat notifikasi order siap</li>
+          <li><span class="bullet bullet-do">✓</span> Sound alert (bisa di-toggle)</li>
+        </ul>
+      </div>
+      <div class="feature-card blue">
+        <div class="card-head"><div class="card-icon">🍽️</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Tombol DISAJIKAN</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Hanya muncul setelah status "ready"</li>
+          <li><span class="bullet bullet-do">✓</span> Tap → order hilang dari grid</li>
+          <li><span class="bullet bullet-do">✓</span> Counter "Selesai" hari ini naik</li>
+          <li><span class="bullet bullet-do">✓</span> Data tersimpan di Firestore</li>
+        </ul>
+      </div>
+      <div class="feature-card orange">
+        <div class="card-head"><div class="card-icon">➕</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Tombol + MASUK ORDER</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Manual inject order (untuk testing)</li>
+          <li><span class="bullet bullet-info">i</span> Di production order masuk otomatis dari POS</li>
+        </ul>
+      </div>
+      <div class="feature-card yellow">
+        <div class="card-head"><div class="card-icon">🔄</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Layout Toggle</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Grid view — kartu besar, mudah dibaca dari jauh</li>
+          <li><span class="bullet bullet-do">✓</span> List compact — banyak order muat di layar</li>
+          <li><span class="bullet bullet-do">✓</span> Preferensi tersimpan per device</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="kds-timers" class="feature-group">
+    <div class="group-header">
+      <div class="group-icon">⏱️</div>
+      <div><div class="group-title">Timer System</div><div class="group-desc">Sistem waktu yang membantu chef prioritaskan order.</div></div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card orange">
+        <div class="card-head"><div class="card-icon">🕐</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Live Countdown Timer</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Timer jalan sejak order masuk</li>
+          <li><span class="bullet bullet-do">✓</span> Format MM:SS (atau HH:MM:SS)</li>
+          <li><span class="bullet bullet-do">✓</span> Update setiap detik</li>
+          <li><span class="bullet bullet-do">✓</span> Warna berubah: abu → kuning → merah</li>
+          <li><span class="bullet bullet-setting">⚙</span> Batas menit bisa diset per stasiun</li>
+        </ul>
+      </div>
+      <div class="feature-card red">
+        <div class="card-head"><div class="card-icon">🚨</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Alert System</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Kartu kritis → border merah + blink</li>
+          <li><span class="bullet bullet-do">✓</span> Counter "TERLAMBAT" di header</li>
+          <li><span class="bullet bullet-do">✓</span> Sound beep (toggle on/off)</li>
+          <li><span class="bullet bullet-do">✓</span> Header counter juga blink saat ada kritis</li>
+          <li><span class="bullet bullet-setting">⚙</span> Semua alert bisa toggle di Settings</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="kds-settings" class="feature-group">
+    <div class="group-header">
+      <div class="group-icon">⚙️</div>
+      <div><div class="group-title">KDS Settings (dari Backoffice)</div></div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card purple">
+        <div class="card-head"><div class="card-icon">🎛️</div><span class="card-tag tag-settings">Settings</span></div>
+        <div class="card-title">Semua yang Bisa Dikonfigurasi</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-setting">⚙</span> Stasiun: tambah/hapus/rename/reorder</li>
+          <li><span class="bullet bullet-setting">⚙</span> Timer warning (default 5 menit)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Timer kritis (default 10 menit)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Layout default: grid / list</li>
+          <li><span class="bullet bullet-setting">⚙</span> Font scale: small/normal/large</li>
+          <li><span class="bullet bullet-setting">⚙</span> Card min-width (piksel)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Sound alert: on/off</li>
+          <li><span class="bullet bullet-setting">⚙</span> Flash alert: on/off</li>
+          <li><span class="bullet bullet-setting">⚙</span> Tampilkan: kasir, meja, catatan, timer</li>
+          <li><span class="bullet bullet-setting">⚙</span> Assign kategori menu → stasiun</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ========================================================= -->
+<!-- MODULE 2: POS -->
+<!-- ========================================================= -->
+<div id="pos-overview" class="module-section">
+  <div class="module-hero">
+    <div class="module-tag badge-pos">🖱️ Module 2</div>
+    <div class="module-title">POS — Point of Sale Terminal</div>
+    <div class="module-desc">Aplikasi kasir di tablet. Landscape-first, touch-optimized, offline-capable. Kasir pilih menu, proses pembayaran, lookup pelanggan, cetak struk. Semua dalam sesedikit mungkin tap.</div>
+  </div>
+
+  <!-- POS Screen Layout -->
+  <div class="screen-wf" style="margin-bottom:32px">
+    <div class="screen-wf-bar">
+      <div class="wf-dot" style="background:#EF4444"></div>
+      <div class="wf-dot" style="background:#F59E0B"></div>
+      <div class="wf-dot" style="background:#22C55E"></div>
+      <div class="wf-title">POS — Layout (landscape tablet 62% menu | 38% cart)</div>
+    </div>
+    <div class="screen-wf-body">
+      <!-- Header -->
+      <div class="wf-zone orange" style="margin-bottom:8px">
+        <div class="wf-zone-label">Header Bar</div>
+        <div class="wf-row">
+          <div class="wf-block"><span class="wf-icon">🏷️</span> NASHTY</div>
+          <div class="wf-block wf-block-w3"><span class="wf-icon">🔍</span> Cari menu...</div>
+          <div class="wf-block"><span class="wf-icon">🟢</span> Online</div>
+          <div class="wf-block"><span class="wf-icon">🕐</span> 14:32</div>
+          <div class="wf-block"><span class="wf-icon">👤</span> Citra</div>
+        </div>
+      </div>
+      <!-- Body: Menu + Cart -->
+      <div class="wf-row" style="align-items:flex-start">
+        <!-- Left: Menu 62% -->
+        <div class="wf-col" style="flex:1.6">
+          <div class="wf-zone blue">
+            <div class="wf-zone-label">Menu Panel (62%)</div>
+            <!-- Category tabs -->
+            <div class="wf-row" style="margin-bottom:8px">
+              <div class="wf-block accent">✦ Semua</div>
+              <div class="wf-block">🍳 Makanan</div>
+              <div class="wf-block">🥤 Minuman</div>
+              <div class="wf-block">🍟 Camilan</div>
+              <div class="wf-block">🍰 Dessert</div>
+            </div>
+            <!-- Item grid 3 col -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+              <div style="background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:8px;text-align:center;font-size:9px"><div style="font-size:20px;margin-bottom:4px">🍳</div><div style="font-weight:700;color:var(--white);margin-bottom:2px">Nasi Goreng</div><div style="color:var(--orange);font-weight:800">Rp 35.000</div></div><div style="background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:8px;text-align:center;font-size:9px"><div style="font-size:20px;margin-bottom:4px">🍗</div><div style="font-weight:700;color:var(--white);margin-bottom:2px">Ayam Bakar</div><div style="color:var(--orange);font-weight:800">Rp 55.000</div></div><div style="background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:8px;text-align:center;font-size:9px"><div style="font-size:20px;margin-bottom:4px">🥤</div><div style="font-weight:700;color:var(--white);margin-bottom:2px">Kopi Susu</div><div style="color:var(--orange);font-weight:800">Rp 22.000</div></div><div style="background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:8px;text-align:center;font-size:9px"><div style="font-size:20px;margin-bottom:4px">🍜</div><div style="font-weight:700;color:var(--white);margin-bottom:2px">Mie Goreng</div><div style="color:var(--orange);font-weight:800">Rp 30.000</div></div><div style="background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:8px;text-align:center;font-size:9px"><div style="font-size:20px;margin-bottom:4px">🍢</div><div style="font-weight:700;color:var(--white);margin-bottom:2px">Sate Ayam</div><div style="color:var(--orange);font-weight:800">Rp 45.000</div></div><div style="background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:8px;text-align:center;font-size:9px"><div style="font-size:20px;margin-bottom:4px">🍟</div><div style="font-weight:700;color:var(--white);margin-bottom:2px">French Fries</div><div style="color:var(--orange);font-weight:800">Rp 22.000</div></div>
+            </div>
+          </div>
+        </div>
+        <!-- Right: Cart 38% -->
+        <div class="wf-col" style="flex:1">
+          <div class="wf-zone green">
+            <div class="wf-zone-label">Cart Panel (38%)</div>
+            <div class="wf-row">
+              <div class="wf-block"><span class="wf-icon">🛒</span> Pesanan (3)</div>
+              <div class="wf-block"><span class="wf-icon">👤</span> Tamu</div>
+            </div>
+            <!-- Cart items -->
+            <div style="background:var(--s2);border-radius:7px;padding:6px 8px;margin-bottom:4px;font-size:9px">
+              <div style="display:flex;justify-content:space-between"><span>🍳 Nasi Goreng Spesial</span><span style="display:flex;gap:4px"><span>—</span><span style="font-weight:700">1</span><span>+</span></span></div>
+              <div style="color:var(--orange);font-weight:700">Rp 35.000</div>
+            </div>
+            <div style="background:var(--s2);border-radius:7px;padding:6px 8px;margin-bottom:4px;font-size:9px">
+              <div style="display:flex;justify-content:space-between"><span>🥤 Kopi Susu Aren</span><span style="display:flex;gap:4px"><span>—</span><span style="font-weight:700">2</span><span>+</span></span></div>
+              <div style="color:var(--orange);font-weight:700">Rp 44.000</div>
+            </div>
+            <!-- Totals -->
+            <div style="font-size:9px;border-top:1px solid var(--border);padding-top:6px;margin-top:6px">
+              <div style="display:flex;justify-content:space-between;color:var(--gray)"><span>Subtotal</span><span>Rp 79.000</span></div>
+              <div style="display:flex;justify-content:space-between;color:var(--gray)"><span>Pajak 11%</span><span>Rp 8.690</span></div>
+              <div style="display:flex;justify-content:space-between;font-weight:800;color:var(--white);margin-top:4px"><span>Total</span><span style="color:var(--orange)">Rp 87.690</span></div>
+            </div>
+            <!-- Pay button -->
+            <div style="background:var(--orange);border-radius:8px;text-align:center;padding:8px;font-size:10px;font-weight:800;color:white;margin-top:8px">BAYAR Rp 87.690</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="pos-menu" class="feature-group">
+    <div class="group-header"><div class="group-icon">🍽️</div><div><div class="group-title">Menu Panel</div></div></div>
+    <div class="feature-grid">
+      <div class="feature-card blue">
+        <div class="card-head"><div class="card-icon">📑</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Kategori & Tabs</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Tab per kategori (horizontal scroll)</li>
+          <li><span class="bullet bullet-do">✓</span> Urutan tab dari Backoffice Settings</li>
+          <li><span class="bullet bullet-do">✓</span> Emoji + nama + count item</li>
+          <li><span class="bullet bullet-do">✓</span> Tab "Semua" selalu di paling kiri</li>
+          <li><span class="bullet bullet-setting">⚙</span> Gaya tab: pill / flat / chip</li>
+        </ul>
+      </div>
+      <div class="feature-card blue">
+        <div class="card-head"><div class="card-icon">🖼️</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Kartu Menu</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Foto thumbnail (upload dari Backoffice)</li>
+          <li><span class="bullet bullet-do">✓</span> Nama item</li>
+          <li><span class="bullet bullet-do">✓</span> Deskripsi singkat (toggle)</li>
+          <li><span class="bullet bullet-do">✓</span> Harga</li>
+          <li><span class="bullet bullet-do">✓</span> Badge stasiun (Bar, Grill, dll)</li>
+          <li><span class="bullet bullet-do">✓</span> Overlay "Habis" jika sold out</li>
+          <li><span class="bullet bullet-do">✓</span> Ripple effect saat di-tap</li>
+          <li><span class="bullet bullet-setting">⚙</span> Kolom: 2/3/4/5 (diatur di Settings)</li>
+        </ul>
+      </div>
+      <div class="feature-card blue">
+        <div class="card-head"><div class="card-icon">🔍</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Search</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Realtime filter saat mengetik</li>
+          <li><span class="bullet bullet-do">✓</span> Search lintas semua kategori</li>
+          <li><span class="bullet bullet-do">✓</span> Clear dengan satu tap</li>
+          <li><span class="bullet bullet-do">✓</span> Empty state jika tidak ada hasil</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="pos-cart" class="feature-group">
+    <div class="group-header"><div class="group-icon">🛒</div><div><div class="group-title">Cart & Order</div></div></div>
+    <div class="feature-grid">
+      <div class="feature-card green">
+        <div class="card-head"><div class="card-icon">🛒</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Cart Management</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Tap menu → langsung masuk cart</li>
+          <li><span class="bullet bullet-do">✓</span> Item sama di-merge otomatis</li>
+          <li><span class="bullet bullet-do">✓</span> Tombol + / − untuk ubah qty</li>
+          <li><span class="bullet bullet-do">✓</span> Tombol × (1 item) → hapus item</li>
+          <li><span class="bullet bullet-do">✓</span> Swipe atau long press untuk delete</li>
+          <li><span class="bullet bullet-do">✓</span> Notes per item</li>
+          <li><span class="bullet bullet-do">✓</span> Cart tersimpan di IndexedDB (offline)</li>
+        </ul>
+      </div>
+      <div class="feature-card green">
+        <div class="card-head"><div class="card-icon">🧮</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Kalkulasi Total</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Subtotal (otomatis)</li>
+          <li><span class="bullet bullet-do">✓</span> Diskon (Rp atau %)</li>
+          <li><span class="bullet bullet-do">✓</span> Pajak PPN (% dari Settings)</li>
+          <li><span class="bullet bullet-do">✓</span> Service charge (% dari Settings)</li>
+          <li><span class="bullet bullet-do">✓</span> Pembulatan (Rp 500 / Rp 1.000)</li>
+          <li><span class="bullet bullet-do">✓</span> TOTAL (real-time update)</li>
+        </ul>
+      </div>
+      <div class="feature-card yellow">
+        <div class="card-head"><div class="card-icon">🪑</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Tipe Order & Meja</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Dine In / Take Away / Delivery</li>
+          <li><span class="bullet bullet-do">✓</span> Input nomor meja</li>
+          <li><span class="bullet bullet-do">✓</span> Notes order keseluruhan</li>
+          <li><span class="bullet bullet-setting">⚙</span> Wajib meja: toggle di Settings</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="pos-payment" class="feature-group">
+    <div class="group-header"><div class="group-icon">💳</div><div><div class="group-title">Payment Flow</div></div></div>
+    <div class="feature-grid">
+      <div class="feature-card orange">
+        <div class="card-head"><div class="card-icon">💳</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Metode Pembayaran</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Tunai — numpad + hitung kembalian</li>
+          <li><span class="bullet bullet-do">✓</span> QRIS — tampilkan QR code</li>
+          <li><span class="bullet bullet-do">✓</span> Kartu Debit</li>
+          <li><span class="bullet bullet-do">✓</span> Kartu Kredit</li>
+          <li><span class="bullet bullet-do">✓</span> E-Wallet (GoPay, OVO, Dana)</li>
+          <li><span class="bullet bullet-do">✓</span> Transfer Bank</li>
+          <li><span class="bullet bullet-setting">⚙</span> On/off per metode di Settings</li>
+        </ul>
+      </div>
+      <div class="feature-card orange">
+        <div class="card-head"><div class="card-icon">🖩</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Cash Numpad</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Numpad full angka</li>
+          <li><span class="bullet bullet-do">✓</span> Tombol "PAS" → auto-fill exact</li>
+          <li><span class="bullet bullet-do">✓</span> Quick preset (Rp 50rb, 100rb, dll)</li>
+          <li><span class="bullet bullet-do">✓</span> Live preview kembalian</li>
+          <li><span class="bullet bullet-do">✓</span> Validasi: tidak bisa konfirmasi jika kurang</li>
+        </ul>
+      </div>
+      <div class="feature-card green">
+        <div class="card-head"><div class="card-icon">✅</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Konfirmasi Bayar</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Tap "Konfirmasi Bayar"</li>
+          <li><span class="bullet bullet-do">✓</span> Loading state saat proses</li>
+          <li><span class="bullet bullet-do">✓</span> Success screen + kembalian</li>
+          <li><span class="bullet bullet-do">✓</span> Order dikirim ke KDS otomatis</li>
+          <li><span class="bullet bullet-do">✓</span> CRM Bridge update customer</li>
+          <li><span class="bullet bullet-do">✓</span> WhatsApp struk dikirim (jika aktif)</li>
+          <li><span class="bullet bullet-do">✓</span> Cart dikosongkan, siap order baru</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="pos-customer" class="feature-group">
+    <div class="group-header"><div class="group-icon">👤</div><div><div class="group-title">Customer Lookup & CRM</div></div></div>
+    <div class="feature-grid">
+      <div class="feature-card blue">
+        <div class="card-head"><div class="card-icon">📱</div><span class="card-tag tag-crm">CRM</span></div>
+        <div class="card-title">Cari Pelanggan</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Input nomor HP</li>
+          <li><span class="bullet bullet-do">✓</span> Cari di Firestore (shared dengan CRM)</li>
+          <li><span class="bullet bullet-do">✓</span> Tampilkan: nama, segmen, total kunjungan</li>
+          <li><span class="bullet bullet-do">✓</span> Tampilkan: total belanja, menu favorit</li>
+          <li><span class="bullet bullet-do">✓</span> Pilih customer → attach ke order</li>
+          <li><span class="bullet bullet-do">✓</span> Tidak ketemu → simpan sebagai baru</li>
+          <li><span class="bullet bullet-do">✓</span> Lewati → lanjut sebagai Tamu</li>
+          <li><span class="bullet bullet-setting">⚙</span> Wajib phone: toggle di Settings</li>
+        </ul>
+      </div>
+      <div class="feature-card blue">
+        <div class="card-head"><div class="card-icon">🏷️</div><span class="card-tag tag-crm">CRM</span></div>
+        <div class="card-title">Segmen Pelanggan di POS</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-info">i</span> <strong style="color:var(--blue)">Baru</strong> — kunjungan pertama</li>
+          <li><span class="bullet bullet-info">i</span> <strong style="color:var(--green)">Reguler</strong> — 2-9 kunjungan</li>
+          <li><span class="bullet bullet-info">i</span> <strong style="color:var(--orange)">Loyal</strong> — 10-24 kunjungan</li>
+          <li><span class="bullet bullet-info">i</span> <strong style="color:var(--yellow)">VIP</strong> — 25+ kunjungan</li>
+          <li><span class="bullet bullet-warn">!</span> <strong style="color:var(--red)">Perlu Perhatian</strong> — 30+ hari tidak berkunjung</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="pos-modifiers" class="feature-group">
+    <div class="group-header"><div class="group-icon">⚙️</div><div><div class="group-title">Modifiers & Add-on</div></div></div>
+    <div class="feature-grid">
+      <div class="feature-card purple">
+        <div class="card-head"><div class="card-icon">➕</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Modifier Selection Modal</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Muncul saat tap item yang punya modifier</li>
+          <li><span class="bullet bullet-do">✓</span> Group: Level Pedas, Ukuran, Topping</li>
+          <li><span class="bullet bullet-do">✓</span> Single select atau multi-select</li>
+          <li><span class="bullet bullet-do">✓</span> Harga tambahan realtime update</li>
+          <li><span class="bullet bullet-do">✓</span> Wajib atau opsional per group</li>
+          <li><span class="bullet bullet-do">✓</span> Validasi min/max pilihan</li>
+          <li><span class="bullet bullet-setting">⚙</span> Semua modifier dikelola di Backoffice</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="pos-discount" class="feature-group">
+    <div class="group-header"><div class="group-icon">🏷️</div><div><div class="group-title">Diskon & Void</div></div></div>
+    <div class="feature-grid">
+      <div class="feature-card yellow">
+        <div class="card-head"><div class="card-icon">🏷️</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Diskon</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Diskon Rp (nominal)</li>
+          <li><span class="bullet bullet-do">✓</span> Diskon % (persentase)</li>
+          <li><span class="bullet bullet-do">✓</span> Validasi max diskon dari Settings</li>
+          <li><span class="bullet bullet-warn">!</span> Lebih dari batas → butuh PIN manajer</li>
+          <li><span class="bullet bullet-do">✓</span> Tampil di cart dan struk</li>
+          <li><span class="bullet bullet-setting">⚙</span> Max diskon % diatur di Settings</li>
+        </ul>
+      </div>
+      <div class="feature-card red">
+        <div class="card-head"><div class="card-icon">🚫</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Void Order</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Void satu item atau seluruh order</li>
+          <li><span class="bullet bullet-do">✓</span> Wajib isi alasan void</li>
+          <li><span class="bullet bullet-warn">!</span> Default: butuh PIN manajer</li>
+          <li><span class="bullet bullet-do">✓</span> Tercatat di Audit Log</li>
+          <li><span class="bullet bullet-do">✓</span> Ditampilkan tercoret di laporan</li>
+          <li><span class="bullet bullet-setting">⚙</span> Toggle butuh/tidak butuh manajer</li>
+        </ul>
+      </div>
+      <div class="feature-card orange">
+        <div class="card-head"><div class="card-icon">🖨️</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Reprint Struk</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Dari history order di shift</li>
+          <li><span class="bullet bullet-do">✓</span> Cetak ulang dengan watermark "COPY"</li>
+          <li><span class="bullet bullet-do">✓</span> Print ke thermal printer</li>
+          <li><span class="bullet bullet-do">✓</span> Atau kirim ulang via WhatsApp</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="pos-shift" class="feature-group">
+    <div class="group-header"><div class="group-icon">🔒</div><div><div class="group-title">Shift Management</div></div></div>
+    <div class="feature-grid">
+      <div class="feature-card green">
+        <div class="card-head"><div class="card-icon">🔓</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Buka Shift</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Wajib buka shift sebelum bisa transaksi</li>
+          <li><span class="bullet bullet-do">✓</span> Input kas awal dengan numpad</li>
+          <li><span class="bullet bullet-do">✓</span> Quick preset: Rp 100rb, 200rb, 500rb</li>
+          <li><span class="bullet bullet-do">✓</span> Tercatat: kasir, waktu, kas awal</li>
+        </ul>
+      </div>
+      <div class="feature-card red">
+        <div class="card-head"><div class="card-icon">🔒</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Tutup Shift</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Ringkasan: total transaksi & omzet</li>
+          <li><span class="bullet bullet-do">✓</span> Breakdown per metode bayar</li>
+          <li><span class="bullet bullet-do">✓</span> Input kas penutupan</li>
+          <li><span class="bullet bullet-do">✓</span> Hitung selisih kas otomatis</li>
+          <li><span class="bullet bullet-do">✓</span> Input catatan opsional</li>
+          <li><span class="bullet bullet-do">✓</span> Konfirmasi → data tersimpan</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="pos-receipt" class="feature-group">
+    <div class="group-header"><div class="group-icon">🧾</div><div><div class="group-title">Receipt (Struk)</div></div></div>
+    <div class="feature-grid">
+      <div class="feature-card orange">
+        <div class="card-head"><div class="card-icon">🖨️</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Print Thermal</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Auto-print setelah bayar</li>
+          <li><span class="bullet bullet-do">✓</span> Format 58mm atau 80mm</li>
+          <li><span class="bullet bullet-do">✓</span> ESC/POS commands</li>
+          <li><span class="bullet bullet-do">✓</span> Retry queue jika printer offline</li>
+          <li><span class="bullet bullet-setting">⚙</span> Auto-print: toggle di Settings</li>
+        </ul>
+      </div>
+      <div class="feature-card blue">
+        <div class="card-head"><div class="card-icon">💬</div><span class="card-tag tag-crm">CRM</span></div>
+        <div class="card-title">WhatsApp Struk Digital</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Auto-kirim setelah bayar</li>
+          <li><span class="bullet bullet-do">✓</span> Template bisa dikustomisasi</li>
+          <li><span class="bullet bullet-do">✓</span> Via Fonnte API</li>
+          <li><span class="bullet bullet-setting">⚙</span> Auto-send: toggle di Settings</li>
+          <li><span class="bullet bullet-setting">⚙</span> Template diatur di Receipt Editor</li>
+        </ul>
+      </div>
+      <div class="feature-card purple">
+        <div class="card-head"><div class="card-icon">🎨</div><span class="card-tag tag-settings">Settings</span></div>
+        <div class="card-title">Kustomisasi Template Struk</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-setting">⚙</span> Upload logo brand</li>
+          <li><span class="bullet bullet-setting">⚙</span> Nama outlet & alamat</li>
+          <li><span class="bullet bullet-setting">⚙</span> Toggle: queue no, kasir, order ID</li>
+          <li><span class="bullet bullet-setting">⚙</span> Toggle: subtotal, pajak, metode bayar</li>
+          <li><span class="bullet bullet-setting">⚙</span> Social media (Instagram, TikTok)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Catatan / notes footer</li>
+          <li><span class="bullet bullet-setting">⚙</span> Tagline brand (bold, ukuran, gaya)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Gaya divider & font</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="pos-offline" class="feature-group">
+    <div class="group-header"><div class="group-icon">📶</div><div><div class="group-title">Offline Mode</div></div></div>
+    <div class="feature-grid">
+      <div class="feature-card gray">
+        <div class="card-head"><div class="card-icon">📴</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Cara Kerja Offline</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Indikator offline di header</li>
+          <li><span class="bullet bullet-do">✓</span> Menu ter-cache di IndexedDB</li>
+          <li><span class="bullet bullet-do">✓</span> Order tersimpan lokal</li>
+          <li><span class="bullet bullet-do">✓</span> Sync otomatis saat online kembali</li>
+          <li><span class="bullet bullet-do">✓</span> Counter pending orders di header</li>
+          <li><span class="bullet bullet-info">i</span> Cache menu berlaku 1 jam</li>
+          <li><span class="bullet bullet-warn">!</span> WhatsApp & CRM update saat online</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ========================================================= -->
+<!-- MODULE 3: BACKOFFICE -->
+<!-- ========================================================= -->
+<div id="bo-overview" class="module-section">
+  <div class="module-hero">
+    <div class="module-tag badge-bo">📊 Module 3</div>
+    <div class="module-title">Backoffice — Dashboard & Management</div>
+    <div class="module-desc">Desktop browser app untuk owner dan manajer. Analytics penjualan, manajemen menu lengkap, inventori, CRM pelanggan, WhatsApp automation, dan semua konfigurasi sistem untuk KDS dan POS.</div>
+  </div>
+
+  <div id="bo-dashboard" class="feature-group">
+    <div class="group-header"><div class="group-icon">📈</div><div><div class="group-title">Dashboard</div></div></div>
+    <div class="feature-grid">
+      <div class="feature-card purple">
+        <div class="card-head"><div class="card-icon">📊</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">KPI Cards</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Total Omzet (vs kemarin)</li>
+          <li><span class="bullet bullet-do">✓</span> Total Transaksi</li>
+          <li><span class="bullet bullet-do">✓</span> Average Order Value</li>
+          <li><span class="bullet bullet-do">✓</span> Pelanggan Unik hari ini</li>
+          <li><span class="bullet bullet-do">✓</span> Delta % vs periode lalu</li>
+          <li><span class="bullet bullet-do">✓</span> Period: Hari Ini / 7 Hari / 30 Hari</li>
+        </ul>
+      </div>
+      <div class="feature-card purple">
+        <div class="card-head"><div class="card-icon">📉</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Charts</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Area chart omzet per jam / per hari</li>
+          <li><span class="bullet bullet-do">✓</span> Bar chart transaksi per hari</li>
+          <li><span class="bullet bullet-do">✓</span> Pie chart metode pembayaran (%)</li>
+          <li><span class="bullet bullet-do">✓</span> Bar chart peak hours</li>
+          <li><span class="bullet bullet-do">✓</span> Hover tooltip dengan detail</li>
+        </ul>
+      </div>
+      <div class="feature-card purple">
+        <div class="card-head"><div class="card-icon">🔴</div><span class="card-tag tag-crm">Live</span></div>
+        <div class="card-title">Live Order Feed</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Daftar transaksi realtime</li>
+          <li><span class="bullet bullet-do">✓</span> No order, meja, total, metode, kasir</li>
+          <li><span class="bullet bullet-do">✓</span> Status badge (selesai/void)</li>
+          <li><span class="bullet bullet-do">✓</span> Update otomatis via Firestore</li>
+        </ul>
+      </div>
+      <div class="feature-card purple">
+        <div class="card-head"><div class="card-icon">🏆</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Menu Terlaris</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Top 10 item berdasarkan qty</li>
+          <li><span class="bullet bullet-do">✓</span> Revenue per item</li>
+          <li><span class="bullet bullet-do">✓</span> Progress bar relatif</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="bo-menu" class="feature-group">
+    <div class="group-header"><div class="group-icon">🍽️</div><div><div class="group-title">Menu Management</div></div></div>
+    <div class="feature-grid">
+      <div class="feature-card orange">
+        <div class="card-head"><div class="card-icon">📂</div><span class="card-tag tag-settings">Settings</span></div>
+        <div class="card-title">Kategori Menu</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Tambah kategori baru</li>
+          <li><span class="bullet bullet-do">✓</span> Edit nama, emoji, warna</li>
+          <li><span class="bullet bullet-do">✓</span> Hapus kategori</li>
+          <li><span class="bullet bullet-do">✓</span> Reorder ▲▼ (urutan = urutan tab POS)</li>
+          <li><span class="bullet bullet-do">✓</span> Assign ke stasiun KDS</li>
+          <li><span class="bullet bullet-do">✓</span> Toggle aktif/nonaktif</li>
+        </ul>
+      </div>
+      <div class="feature-card orange">
+        <div class="card-head"><div class="card-icon">🍽️</div><span class="card-tag tag-settings">Settings</span></div>
+        <div class="card-title">Item Menu</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Tambah item baru</li>
+          <li><span class="bullet bullet-do">✓</span> <strong>Upload foto</strong> (drag & drop / klik)</li>
+          <li><span class="bullet bullet-do">✓</span> Nama, deskripsi, harga, SKU</li>
+          <li><span class="bullet bullet-do">✓</span> Pilih kategori & stasiun KDS</li>
+          <li><span class="bullet bullet-do">✓</span> Toggle tampil di POS</li>
+          <li><span class="bullet bullet-do">✓</span> Toggle sold out / habis</li>
+          <li><span class="bullet bullet-do">✓</span> Edit & hapus item</li>
+          <li><span class="bullet bullet-do">✓</span> Filter per kategori + search</li>
+        </ul>
+      </div>
+      <div class="feature-card orange">
+        <div class="card-head"><div class="card-icon">⚙️</div><span class="card-tag tag-settings">Settings</span></div>
+        <div class="card-title">Modifier & Add-on</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Tambah modifier group</li>
+          <li><span class="bullet bullet-do">✓</span> Nama group (Level Pedas, Ukuran, dll)</li>
+          <li><span class="bullet bullet-do">✓</span> Set wajib / opsional</li>
+          <li><span class="bullet bullet-do">✓</span> Single atau multi-select</li>
+          <li><span class="bullet bullet-do">✓</span> Min/max pilihan</li>
+          <li><span class="bullet bullet-do">✓</span> Tambah pilihan + harga tambahan</li>
+          <li><span class="bullet bullet-do">✓</span> Hapus/edit pilihan</li>
+          <li><span class="bullet bullet-do">✓</span> Toggle aktif/nonaktif per group</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="bo-inventory" class="feature-group">
+    <div class="group-header"><div class="group-icon">📦</div><div><div class="group-title">Inventori</div></div></div>
+    <div class="feature-grid">
+      <div class="feature-card green">
+        <div class="card-head"><div class="card-icon">📦</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Stok Bahan Baku</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> List semua item inventori</li>
+          <li><span class="bullet bullet-do">✓</span> Stok saat ini per unit</li>
+          <li><span class="bullet bullet-do">✓</span> Stok minimum (alert threshold)</li>
+          <li><span class="bullet bullet-do">✓</span> Harga per unit (untuk HPP)</li>
+          <li><span class="bullet bullet-do">✓</span> Filter: semua / menipis / cukup</li>
+          <li><span class="bullet bullet-do">✓</span> Alert jika stok di bawah minimum</li>
+        </ul>
+      </div>
+      <div class="feature-card green">
+        <div class="card-head"><div class="card-icon">📝</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Stock Movement</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Restock (tambah stok)</li>
+          <li><span class="bullet bullet-do">✓</span> Adjustment (koreksi manual)</li>
+          <li><span class="bullet bullet-do">✓</span> Waste (catat barang rusak/terbuang)</li>
+          <li><span class="bullet bullet-do">✓</span> Auto-deduct saat order selesai (via Recipe)</li>
+          <li><span class="bullet bullet-do">✓</span> History semua pergerakan stok</li>
+        </ul>
+      </div>
+      <div class="feature-card green">
+        <div class="card-head"><div class="card-icon">📖</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Recipe Linkage</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Define resep per menu item</li>
+          <li><span class="bullet bullet-do">✓</span> Berapa gram/ml tiap bahan per porsi</li>
+          <li><span class="bullet bullet-do">✓</span> Auto-deduct stok saat order confirmed</li>
+          <li><span class="bullet bullet-do">✓</span> Kalkulasi HPP (Harga Pokok Penjualan)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="bo-crm" class="feature-group">
+    <div class="group-header"><div class="group-icon">👥</div><div><div class="group-title">CRM — Customer Intelligence</div></div></div>
+    <div class="feature-grid">
+      <div class="feature-card blue">
+        <div class="card-head"><div class="card-icon">👥</div><span class="card-tag tag-crm">CRM</span></div>
+        <div class="card-title">Database Pelanggan</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> List semua pelanggan</li>
+          <li><span class="bullet bullet-do">✓</span> Search by nama / nomor HP</li>
+          <li><span class="bullet bullet-do">✓</span> Filter by segmen</li>
+          <li><span class="bullet bullet-do">✓</span> Sort by last order, total belanja</li>
+          <li><span class="bullet bullet-do">✓</span> Realtime sync dari POS</li>
+        </ul>
+      </div>
+      <div class="feature-card blue">
+        <div class="card-head"><div class="card-icon">👤</div><span class="card-tag tag-crm">CRM</span></div>
+        <div class="card-title">Detail Pelanggan</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Nama, HP, segmen</li>
+          <li><span class="bullet bullet-do">✓</span> Total kunjungan & total belanja</li>
+          <li><span class="bullet bullet-do">✓</span> Average order value</li>
+          <li><span class="bullet bullet-do">✓</span> Menu favorit (top 5)</li>
+          <li><span class="bullet bullet-do">✓</span> Kunjungan terakhir</li>
+          <li><span class="bullet bullet-do">✓</span> Tanggal pertama kunjungan</li>
+          <li><span class="bullet bullet-do">✓</span> Tags pelanggan</li>
+          <li><span class="bullet bullet-do">✓</span> WhatsApp opt-in status</li>
+        </ul>
+      </div>
+      <div class="feature-card blue">
+        <div class="card-head"><div class="card-icon">🔗</div><span class="card-tag tag-crm">Integrasi</span></div>
+        <div class="card-title">Link ke nashty-crm.vercel.app</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-info">i</span> Data customer shared via Firestore</li>
+          <li><span class="bullet bullet-do">✓</span> Tombol "Buka CRM" di semua halaman</li>
+          <li><span class="bullet bullet-info">i</span> Update dari POS → langsung terlihat di CRM</li>
+          <li><span class="bullet bullet-info">i</span> Segmentasi otomatis via CRM Bridge</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="bo-analytics" class="feature-group">
+    <div class="group-header"><div class="group-icon">📉</div><div><div class="group-title">Analitik</div></div></div>
+    <div class="feature-grid">
+      <div class="feature-card purple">
+        <div class="card-head"><div class="card-icon">📅</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Period & Filter</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Hari Ini</li>
+          <li><span class="bullet bullet-do">✓</span> 7 Hari terakhir</li>
+          <li><span class="bullet bullet-do">✓</span> 30 Hari terakhir</li>
+          <li><span class="bullet bullet-do">✓</span> 3 Bulan</li>
+          <li><span class="bullet bullet-do">✓</span> Custom date range</li>
+        </ul>
+      </div>
+      <div class="feature-card purple">
+        <div class="card-head"><div class="card-icon">📊</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Metrics</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Total omzet + delta %</li>
+          <li><span class="bullet bullet-do">✓</span> Total transaksi</li>
+          <li><span class="bullet bullet-do">✓</span> Avg check value</li>
+          <li><span class="bullet bullet-do">✓</span> Pelanggan baru</li>
+          <li><span class="bullet bullet-do">✓</span> Tren omzet harian/jam</li>
+          <li><span class="bullet bullet-do">✓</span> Breakdown metode bayar</li>
+          <li><span class="bullet bullet-do">✓</span> Peak hours heatmap</li>
+          <li><span class="bullet bullet-do">✓</span> Top 10 menu terlaris</li>
+        </ul>
+      </div>
+      <div class="feature-card purple">
+        <div class="card-head"><div class="card-icon">⬇️</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Export</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Download CSV</li>
+          <li><span class="bullet bullet-do">✓</span> Download PDF report</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="bo-whatsapp" class="feature-group">
+    <div class="group-header"><div class="group-icon">💬</div><div><div class="group-title">WhatsApp Automation</div></div></div>
+    <div class="feature-grid">
+      <div class="feature-card green">
+        <div class="card-head"><div class="card-icon">🤖</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Automasi Aktif</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Struk digital → otomatis setelah bayar</li>
+          <li><span class="bullet bullet-do">✓</span> Selamat ulang tahun (H-1)</li>
+          <li><span class="bullet bullet-do">✓</span> Reaktivasi pelanggan tidak aktif 30 hari</li>
+          <li><span class="bullet bullet-do">✓</span> Selamat datang member baru</li>
+          <li><span class="bullet bullet-setting">⚙</span> Semua bisa toggle on/off</li>
+        </ul>
+      </div>
+      <div class="feature-card green">
+        <div class="card-head"><div class="card-icon">📢</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Broadcast Campaign</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Buat campaign baru</li>
+          <li><span class="bullet bullet-do">✓</span> Target: segmen / semua</li>
+          <li><span class="bullet bullet-do">✓</span> Template pesan bebas</li>
+          <li><span class="bullet bullet-do">✓</span> Jadwal kirim</li>
+          <li><span class="bullet bullet-do">✓</span> Stats: terkirim, gagal, delivered</li>
+        </ul>
+      </div>
+      <div class="feature-card green">
+        <div class="card-head"><div class="card-icon">📋</div><span class="card-tag tag-core">Core</span></div>
+        <div class="card-title">Send Log</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-do">✓</span> Log semua pesan terkirim</li>
+          <li><span class="bullet bullet-do">✓</span> Status: pending / sent / delivered / failed</li>
+          <li><span class="bullet bullet-do">✓</span> Retry pesan gagal</li>
+          <li><span class="bullet bullet-do">✓</span> Filter by type & status</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="bo-settings" class="feature-group">
+    <div class="group-header"><div class="group-icon">⚙️</div><div><div class="group-title">Settings — Semua Konfigurasi Sistem</div></div></div>
+    <div class="feature-grid">
+      <div class="feature-card orange">
+        <div class="card-head"><div class="card-icon">🖥️</div><span class="card-tag tag-settings">Settings POS</span></div>
+        <div class="card-title">POS Configuration</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-setting">⚙</span> Pajak PPN (%)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Service charge (%)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Mode pembulatan</li>
+          <li><span class="bullet bullet-setting">⚙</span> Jumlah kolom grid menu (2/3/4/5)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Tampilkan foto menu (on/off)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Tampilkan deskripsi (on/off)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Wajib nomor meja (on/off)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Wajib nomor HP (on/off)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Max diskon %</li>
+          <li><span class="bullet bullet-setting">⚙</span> Void butuh manajer (on/off)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Metode bayar aktif</li>
+        </ul>
+      </div>
+      <div class="feature-card blue">
+        <div class="card-head"><div class="card-icon">📺</div><span class="card-tag tag-settings">Settings KDS</span></div>
+        <div class="card-title">KDS Configuration</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-setting">⚙</span> Stasiun: add/edit/delete/reorder</li>
+          <li><span class="bullet bullet-setting">⚙</span> Kategori → stasiun mapping</li>
+          <li><span class="bullet bullet-setting">⚙</span> Timer warning (menit)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Timer kritis (menit)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Layout default (grid/list)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Ukuran font KDS</li>
+          <li><span class="bullet bullet-setting">⚙</span> Card min width</li>
+          <li><span class="bullet bullet-setting">⚙</span> Sound alert (on/off)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Flash alert (on/off)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Info di kartu: kasir, meja, catatan</li>
+        </ul>
+      </div>
+      <div class="feature-card purple">
+        <div class="card-head"><div class="card-icon">🧾</div><span class="card-tag tag-settings">Settings Struk</span></div>
+        <div class="card-title">Receipt Template</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-setting">⚙</span> Upload logo brand</li>
+          <li><span class="bullet bullet-setting">⚙</span> Ukuran logo (S/M/L)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Nama & alamat outlet</li>
+          <li><span class="bullet bullet-setting">⚙</span> Banner promosi (on/off + teks)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Toggle setiap baris info order</li>
+          <li><span class="bullet bullet-setting">⚙</span> Social media (Instagram, TikTok)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Tagline brand (teks + gaya)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Notes/catatan footer</li>
+          <li><span class="bullet bullet-setting">⚙</span> Font & gaya divider</li>
+          <li><span class="bullet bullet-setting">⚙</span> Lebar kertas (58mm / 80mm)</li>
+          <li><span class="bullet bullet-setting">⚙</span> Live preview realtime</li>
+        </ul>
+      </div>
+      <div class="feature-card green">
+        <div class="card-head"><div class="card-icon">🖨️</div><span class="card-tag tag-settings">Devices</span></div>
+        <div class="card-title">Perangkat & Printer</div>
+        <ul class="feature-list">
+          <li><span class="bullet bullet-setting">⚙</span> Daftar tablet/device POS</li>
+          <li><span class="bullet bullet-setting">⚙</span> Register printer thermal</li>
+          <li><span class="bullet bullet-setting">⚙</span> USB / Network / Cloud print</li>
+          <li><span class="bullet bullet-setting">⚙</span> Test print</li>
+          <li><span class="bullet bullet-setting">⚙</span> Assign printer per outlet</li>
+          <li><span class="bullet bullet-setting">⚙</span> Print queue monitor</li>
+          <li><span class="bullet bullet-setting">⚙</span> Retry failed print jobs</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="bo-permissions" class="feature-group">
+    <div class="group-header"><div class="group-icon">🔐</div><div><div class="group-title">Users & Permissions Matrix</div></div></div>
+    <table class="perm-table">
+      <thead>
+        <tr>
+          <th>Fitur / Aksi</th>
+          <th>Super Admin</th>
+          <th>Owner</th>
+          <th>Manager</th>
+          <th>Kasir</th>
+          <th>Dapur</th>
+          <th>Viewer</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Akses POS</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-no">—</td><td class="perm-no">—</td></tr>
+        <tr><td>Akses KDS</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-no">—</td></tr>
+        <tr><td>Akses Backoffice</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-no">—</td><td class="perm-no">—</td><td class="perm-yes">✓</td></tr>
+        <tr><td>Kelola Menu</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-no">—</td><td class="perm-no">—</td><td class="perm-no">—</td></tr>
+        <tr><td>Kelola Inventori</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-no">—</td><td class="perm-no">—</td><td class="perm-no">—</td></tr>
+        <tr><td>Lihat CRM</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-no">—</td><td class="perm-yes">✓</td></tr>
+        <tr><td>Lihat Analitik</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-no">—</td><td class="perm-no">—</td><td class="perm-yes">✓</td></tr>
+        <tr><td>WhatsApp Campaign</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-no">—</td><td class="perm-no">—</td><td class="perm-no">—</td></tr>
+        <tr><td>Beri Diskon</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-no">—</td><td class="perm-no">—</td></tr>
+        <tr><td>Diskon > batas</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-mgr">Perlu PIN Manajer</td><td class="perm-no">—</td><td class="perm-no">—</td></tr>
+        <tr><td>Void Order</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-mgr">Perlu PIN Manajer</td><td class="perm-no">—</td><td class="perm-no">—</td></tr>
+        <tr><td>Buka Shift</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-no">—</td><td class="perm-no">—</td></tr>
+        <tr><td>Tutup Shift</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-no">—</td><td class="perm-no">—</td></tr>
+        <tr><td>Kelola Settings</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-no">—</td><td class="perm-no">—</td><td class="perm-no">—</td><td class="perm-no">—</td></tr>
+        <tr><td>Kelola Users</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-no">—</td><td class="perm-no">—</td><td class="perm-no">—</td><td class="perm-no">—</td></tr>
+        <tr><td>Export Laporan</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-no">—</td><td class="perm-no">—</td><td class="perm-no">—</td></tr>
+        <tr><td>Kelola Perangkat</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-no">—</td><td class="perm-no">—</td><td class="perm-no">—</td><td class="perm-no">—</td></tr>
+        <tr><td>Lihat Audit Log</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-yes">✓</td><td class="perm-no">—</td><td class="perm-no">—</td><td class="perm-no">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Bottom note -->
+  <div class="note-box" style="margin-top:32px">
+    <p>📌 <strong>Cara review dokumen ini:</strong> Scroll melalui semua fitur. Jika ada yang perlu diubah, ditambahkan, atau dihapus — list nomor fiturnya dan apa perubahannya. Itu jauh lebih efisien daripada menjelaskan ulang dari awal di chat.</p>
+  </div>
+
+</div>
+
+</main>
+</div>
+
+<script>
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  }
+}
+
+// Highlight active sidebar link on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(\`.sidebar-link[onclick="scrollTo('${id}')"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { threshold: 0.3, rootMargin: '-60px 0px -60% 0px' });
+
+document.querySelectorAll('[id]').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
