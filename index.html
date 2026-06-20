@@ -537,7 +537,7 @@
     
     const SUPABASE_URL = 'https://mzucfndifneytbesirkx.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16dWNmbmRpZm5leXRiZXNpcmt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNDA1MzUsImV4cCI6MjA5NjkxNjUzNX0.fUynF1mfZCyy48aFkwz3_G52-4hd4EE-b5gpG7k0mpg';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // State
     let mainSession = null;
@@ -575,7 +575,7 @@
 
     async function loadOutlets() {
       try {
-        const { data: outlets, error } = await supabase
+        const { data: outlets, error } = await supabaseClient
           .from('outlets')
           .select('id, name')
           .eq('status', 'active');
