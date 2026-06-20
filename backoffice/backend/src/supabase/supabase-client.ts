@@ -156,7 +156,7 @@ export async function validateAdminCredentials(username: string, password: strin
 
 export async function createAdminSessionToken(session: AdminSession): Promise<string> {
   const jwt = require('jsonwebtoken');
-  const jwtSecret = process.env.JWT_SECRET || 'ZaidunkMargin';
+  const jwtSecret = process.env.JWT_SECRET || 'nashty-super-secret-key-2026';
   const expiresIn = process.env.JWT_EXPIRES_IN || '24h';
   
   const token = jwt.sign(
@@ -177,7 +177,7 @@ export async function createAdminSessionToken(session: AdminSession): Promise<st
 export async function validateAdminSessionToken(token: string): Promise<AdminSession | null> {
   try {
     const jwt = require('jsonwebtoken');
-    const jwtSecret = process.env.JWT_SECRET || 'ZaidunkMargin';
+    const jwtSecret = process.env.JWT_SECRET || 'nashty-super-secret-key-2026';
     
     const decoded = jwt.verify(token, jwtSecret) as any;
     

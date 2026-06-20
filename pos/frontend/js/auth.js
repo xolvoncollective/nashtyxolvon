@@ -2,11 +2,7 @@
        LOGIN
     ════════════════════════ */
     async function initLogin() {
-      // DEV OVERRIDE: Skip login entirely
-      // Use setTimeout to allow history.js to be parsed before calling loadHist()
-      setTimeout(() => {
-        doLogin({ id: 'admin', name: 'Admin Demo', role: 'admin', tenantId: 'demo-tenant', outletId: 'demo-outlet' });
-      }, 50);
+      // Login screen is active, wait for user input
     }
     function selectStaff(s) {
       loginSel = s; loginPinArr = [];
