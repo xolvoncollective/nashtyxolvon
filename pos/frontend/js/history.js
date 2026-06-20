@@ -30,7 +30,13 @@
       
       try {
         const filters = { limit: 20, offset: histOffset };
-        if (histFilter !== 'all') filters.status = histFilter;
+        if (histFilter !== 'all') {
+          if (histFilter === 'open_bill') {
+            filters.status = 'open_bill';
+          } else {
+            filters.status = histFilter;
+          }
+        }
         
         const res = await API.orders.getAll(filters);
         if (res && res.orders) {
@@ -45,7 +51,9 @@
               date: d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'),
               time: String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'),
               method: o.payment_method,
-              status: o.order_status === 'paid' || o.order_status === 'confirmed' ? 'done' : o.order_status,
+              status: o.order_status === 'paid' || o.order_status === 'confirmed' ? 'done' : 
+                      o.order_status === 'open_bill' ? 'open_bill' :
+                      o.order_status === 'cancelled' ? 'voided' : o.order_status,
               sub: o.subtotal, disc: o.discount, tax: o.tax, svc: o.service_charge, total: o.total,
               items: (o.items || []).map(it => {
                 let modsList = it.modifier_names ? it.modifier_names.split(', ') : [];
@@ -83,7 +91,11 @@
       items.forEach(h => {
         const d = document.createElement('div');
         d.className = 'hcard' + (selTxn && selTxn.id === h.id ? ' active' : '') + (h.status === 'voided' || h.status === 'cancelled' ? ' voided' : '');
-        d.innerHTML = `<div class="hc-top"><div class="hc-no">${h.no}</div><div class="hc-st ${h.status}">${h.status === 'done' ? 'SELESAI' : h.status === 'voided' || h.status === 'cancelled' ? 'VOID' : 'TERBUKA'}</div></div><div class="hc-meta"><span>${h.date} ${h.time} WIB</span><span>${h.type === 'take' ? 'Take Away' : 'Meja ' + h.table}</span><span>${h.cashier}</span><span>${h.method}</span></div><div class="hc-total">${fr(h.total)}</div>`;
+        const statusLabel = h.status === 'done' ? 'SELESAI' : 
+                           h.status === 'open_bill' ? 'OPEN BILL' :
+                           (h.status === 'voided' || h.status === 'cancelled') ? 'VOID' : 'TERBUKA';
+        const statusColor = h.status === 'open_bill' ? 'open_bill' : h.status;
+        d.innerHTML = `<div class="hc-top"><div class="hc-no">${h.no}</div><div class="hc-st ${statusColor}">${statusLabel}</div></div><div class="hc-meta"><span>${h.date} ${h.time} WIB</span><span>${h.type === 'take' ? 'Take Away' : 'Meja ' + h.table}</span><span>${h.cashier}</span><span>${h.method}</span></div><div class="hc-total">${fr(h.total)}</div>`;
         d.onclick = () => selHist(h); el.appendChild(d);
       });
 
@@ -103,7 +115,10 @@
       document.getElementById('hd-no').textContent = h.no;
       document.getElementById('hd-meta').innerHTML = `<span>${h.date} ${h.time} WIB</span><span>${h.type === 'take' ? 'Take Away' : 'Meja ' + h.table}</span><span>Kasir: ${h.cashier}</span>${h.member ? `<span>Member: ${h.member}</span>` : ''}`;
       document.getElementById('hd-acts').style.display = 'flex';
-      document.getElementById('btn-void-o').classList.toggle('off', h.status === 'voided');
+      document.getElementById('btn-void-o').classList.toggle('off', h.status === 'voided' || h.status === 'open_bill');
+      // Show "Bayar Sekarang" button only for open bills
+      const payNowBtn = document.getElementById('btn-pay-now');
+      if (payNowBtn) payNowBtn.style.display = h.status === 'open_bill' ? 'flex' : 'none';
       const rep = '- '.repeat(22);
       document.getElementById('hd-body').innerHTML = `
     ${h.status === 'voided' ? `<div style="background:var(--rdL);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:10px 13px;margin-bottom:12px;display:flex;align-items:center;gap:10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--rd)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><div><div style="font-size:13px;font-weight:700;color:var(--rd)">Order di-VOID</div><div style="font-size:11px;color:var(--txt3);margin-top:1px">Oleh: ${h.voidBy} · ${h.voidReason}</div></div></div>` : ''}
@@ -260,3 +275,79 @@
         voidArr = []; setTimeout(() => { for (let i = 0; i < 4; i++) { const d = document.getElementById('vd' + i); if (d) d.classList.remove('on'); } const er = document.getElementById('verr'); if (er) er.textContent = ''; }, 1500);
       }
     }
+
+    // Close open bill with payment
+    function showPayNowModal() {
+      if (!selTxn || selTxn.status !== 'open_bill') return;
+      const total = selTxn.total;
+      const PMS = [
+        { id: 'cash', label: 'Tunai', color: '#22C55E' },
+        { id: 'qris', label: 'QRIS', color: '#3B82F6' },
+        { id: 'bca', label: 'BCA', color: '#1E40AF' },
+        { id: 'debit', label: 'Debit', color: '#A855F7' },
+        { id: 'transfer', label: 'Transfer', color: '#06B6D4' },
+      ];
+
+      const ov = document.createElement('div');
+      ov.className = 'ov'; ov.id = 'mo-paynow';
+      ov.innerHTML = `<div class="mo" style="max-width:380px">
+        <div class="mo-h">
+          <div class="mo-t">💳 Bayar Open Bill</div>
+          <div class="mo-x" onclick="document.getElementById('mo-paynow').remove()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+        </div>
+        <div class="mo-b">
+          <div style="text-align:center;margin-bottom:16px">
+            <div style="font-size:12px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Order No.</div>
+            <div style="font-size:18px;font-weight:800;color:var(--txt)">${selTxn.no}</div>
+            <div style="font-size:28px;font-weight:900;color:var(--or);font-family:var(--mo);margin:4px 0">${fr(total)}</div>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Metode Pembayaran</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">
+            ${PMS.map((pm, i) => `<div class="pmb${i===0?' act':''}" id="pnb-${pm.id}" onclick="document.querySelectorAll('[id^=pnb-]').forEach(b=>b.classList.remove('act'));this.classList.add('act');window._payNowMethod='${pm.id}'" style="padding:10px 6px;border-radius:10px;cursor:pointer;text-align:center;background:var(--sf2);border:1.5px solid var(--brd2);transition:all .15s">
+              <div style="font-size:12px;font-weight:700;color:${pm.color}">${pm.label}</div>
+            </div>`).join('')}
+          </div>
+          <button class="btn-cfm" style="width:100%;background:#F59E0B;color:#fff" onclick="doPayNow(${total})">
+            ✅ Konfirmasi Pembayaran
+          </button>
+        </div>
+      </div>`;
+      window._payNowMethod = 'cash';
+      ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+      document.body.appendChild(ov);
+    }
+
+    async function doPayNow(total) {
+      if (!selTxn || !selTxn.id) { toast('Tidak ada order dipilih', 'err'); return; }
+      const paymentMethod = window._payNowMethod || 'cash';
+      const btn = document.querySelector('#mo-paynow .btn-cfm');
+      if (btn) { btn.innerHTML = 'Memproses...'; btn.disabled = true; }
+
+      try {
+        const res = await API.orders.closeBill(selTxn.id, paymentMethod, [{
+          method: paymentMethod,
+          amount: total,
+          change: 0
+        }]);
+
+        if (res.success) {
+          document.getElementById('mo-paynow')?.remove();
+          toast('Open Bill ' + selTxn.no + ' berhasil dibayar!', 'success');
+          // Update local entry
+          selTxn.status = 'done';
+          selTxn.method = paymentMethod;
+          histOffset = 0;
+          loadHist();
+        } else {
+          toast('Gagal: ' + (res.error || res.message), 'err');
+          if (btn) { btn.innerHTML = '✅ Konfirmasi Pembayaran'; btn.disabled = false; }
+        }
+      } catch(err) {
+        console.error(err);
+        toast('Error: ' + err.message, 'err');
+        if (btn) { btn.innerHTML = '✅ Konfirmasi Pembayaran'; btn.disabled = false; }
+      }
+    }
+

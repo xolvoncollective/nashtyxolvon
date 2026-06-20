@@ -3649,7 +3649,7 @@
         </div>
       </div>
       <div class="tb-right">
-        <button class="btn-refresh" onclick="location.reload()">
+        <button class="btn-refresh" onclick="localStorage.removeItem('nashty_menu_cache');location.reload()" title="Refresh data menu dan pesanan">
           ↻ Refresh
         </button>
         <div class="online-chip" id="online-status-chip">
@@ -3810,6 +3810,7 @@
               <button class="fbt" onclick="setFilter('done',this)">Selesai</button>
               <button class="fbt" onclick="setFilter('voided',this)">Void</button>
               <button class="fbt" onclick="setFilter('open',this)">Terbuka</button>
+              <button class="fbt" style="color:#F59E0B;border-color:rgba(245,158,11,0.3)" onclick="setFilter('open_bill',this)">📋 Open Bill</button>
             </div>
             <div class="hsrch">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -3846,6 +3847,12 @@
                   <line x1="9" y1="9" x2="15" y2="15" />
                 </svg>
                 Void
+              </button>
+              <button class="btn-print" id="btn-pay-now" onclick="showPayNowModal()" style="display:none;background:rgba(245,158,11,0.15);border-color:rgba(245,158,11,0.4);color:#F59E0B">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+                </svg>
+                Bayar Sekarang
               </button>
             </div>
           </div>

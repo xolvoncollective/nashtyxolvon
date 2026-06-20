@@ -707,7 +707,7 @@
         
         // Pass staff auth to POS/CRM
         openModule(
-          currentTargetApp === 'pos' ? '/pos/frontend/' : '/crm/', 
+          currentTargetApp === 'pos' ? '/pos/frontend/' : '/crm/frontend/', 
           currentTargetApp.toUpperCase(), 
           { token: data.token, user: data.user, outlet: { id: mainSession.outletId, name: mainSession.outletName } }
         );
@@ -745,7 +745,7 @@
         // Success - Open the app
         closeModals();
         openModule(
-          currentTargetApp === 'backoffice' ? '/backoffice/frontend/' : '/cost/', 
+          currentTargetApp === 'backoffice' ? '/backoffice/frontend/' : '/cost/frontend/', 
           currentTargetApp.toUpperCase(), 
           { superToken: data.token, role: 'superadmin' }
         );
@@ -760,7 +760,8 @@
     }
 
     function openModule(path, title, authPayload) {
-        const url = `https://nashtyxolvon2.pages.dev${path}`;
+        // Use current origin so it works locally and on cloudflare
+        const url = `${window.location.origin}${path}`;
         const windowFeatures = 'width=1280,height=800,menubar=no,toolbar=no,location=no,status=no';
         const newWindow = window.open(url, title, windowFeatures);
         

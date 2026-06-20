@@ -15,36 +15,7 @@ export interface AuthRequest extends Request {
 export const requireAuth = (req: AuthRequest, res: Response, next: NextFunction) => {
   // Allow bypass for local development regardless of token status
   if (process.env.NODE_ENV !== 'production') {
-    // If there is a token, try to decode it, but ignore errors
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    
-    if (token && token !== 'dev-token' && token !== 'null' && token !== 'undefined') {
-      try {
-        const decoded = jwt.verify(token, JWT_SECRET) as any;
-        req.user = {
-          id: decoded.userId,
-          role: decoded.role,
-          tenantId: 'demo-tenant',
-          outletId: decoded.outletId
-        };
-        return next();
-      } catch (e) {
-        // Ignore token errors in dev mode, fallback to default dev user
-      }
-    }
-    
-    // Check for X-User-Id header for activity log tracking in dev mode
-    const xUserId = req.headers['x-user-id'] as string | undefined;
-    
-    // Fallback default user for development
-    req.user = {
-      id: xUserId || 'admin',
-      tenantId: 'demo-tenant',
-      outletId: 'demo-outlet',
-      role: 'admin'
-    };
-    return next();
+    // Development bypass has been removed to prevent session hijacking and enforce strict security checks.
   }
   
   authenticateToken(req, res, next);

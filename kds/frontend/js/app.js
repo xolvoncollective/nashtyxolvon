@@ -40,8 +40,8 @@ async function fetchOrders() {
   }
   
   try {
-    // Fetch orders with paid status that need kitchen attention
-    const data = await API.orders.getAll({ status: 'paid', kitchenStatus: 'pending' });
+    // Fetch active kitchen queue (all pending/preparing items)
+    const data = await API.orders.getKDSQueue();
     if (data && data.orders) {
       const newOrders = data.orders.map(o => {
         const oData = {

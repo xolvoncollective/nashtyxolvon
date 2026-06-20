@@ -183,6 +183,11 @@
   color: var(--bl);
 }
 
+.hc-st.open_bill {
+  background: rgba(245, 158, 11, 0.15);
+  color: #F59E0B;
+}
+
 .hc-meta {
   font-size: 11px;
   color: var(--txt3);

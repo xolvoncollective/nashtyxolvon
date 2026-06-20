@@ -1,4 +1,4 @@
-﻿/**
+/**
  * NASHTY POS API Client
  * Centralized API communication layer
  * 
@@ -198,13 +198,54 @@ const API = {
       return API.request(`/orders/${id}`);
     },
 
+
     async updateStatus(id, status) {
       return API.request(`/orders/${id}/status`, {
         method: 'PATCH',
         body: JSON.stringify(status)
       });
+    },
+
+    async createOpenBill(orderData) {
+      if (!API.session.tenantId) throw new Error('No tenant ID in session');
+      if (!API.session.outletId) throw new Error('No outlet ID in session');
+      if (!API.session.user) throw new Error('No user in session');
+
+      const payload = {
+        tenantId: API.session.tenantId,
+        outletId: API.session.outletId,
+        userId: API.session.user.id,
+        shiftId: API.session.shiftId,
+        isOpenBill: true,
+        payments: [],
+        ...orderData
+      };
+
+      return API.request('/orders', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+    },
+
+    async closeBill(orderId, paymentMethod, payments) {
+      return API.request(`/orders/${orderId}/close-bill`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          paymentMethod,
+          payments,
+          userId: API.session.user ? API.session.user.id : null
+        })
+      });
+    },
+
+    async void(id, reason, voidBy, managerPin) {
+      return API.request(`/orders/${id}/void`, {
+        method: 'PUT',
+        body: JSON.stringify({ reason, voidBy, managerPin })
+      });
     }
   },
+
 
   // ========== SHIFTS ==========
   shifts: {

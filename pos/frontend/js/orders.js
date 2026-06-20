@@ -1,4 +1,4 @@
-﻿    /* ════════════════════════
+    /* ════════════════════════
        PAYMENT
     ════════════════════════ */
     function showPayModal() {
@@ -39,6 +39,10 @@
           id: 'shopee', label: 'ShopeeFood', color: '#EE4D2D', delivery: true,
           svg: '<svg viewBox="0 0 24 24" fill="none" stroke="#EE4D2D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>'
         },
+        {
+          id: 'open_bill', label: 'Open Bill', color: '#F59E0B', isOpenBill: true,
+          svg: '<svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>'
+        },
       ];
 
       // Build order summary without nested template literals
@@ -68,11 +72,14 @@
         var act = (pm.id === 'cash') ? ' act' : '';
         var style = '';
         var isLocked = pm.delivery && orderType === 'dine';
-        var lstyle = isLocked ? style + 'opacity:.3;cursor:not-allowed;pointer-events:none;' : style;
+        var isOpenBillOpt = pm.isOpenBill;
+        var lstyle = isLocked ? style + 'opacity:.3;cursor:not-allowed;pointer-events:none;' :
+                    isOpenBillOpt ? style + 'border:1.5px dashed #F59E0B;' : style;
         pmHtml += '<div class="pmb' + act + '" id="pmb-' + pm.id + '" onclick="selPm(\'' + pm.id + '\',' + grand + ')" style="' + lstyle + '">'
           + '<div class="pmb-ico">' + pm.svg + '</div>'
           + '<div class="pmb-lbl">' + pm.label + '</div>'
           + (isLocked ? '<div style="font-size:9px;color:rgba(255,255,255,.4);margin-top:2px;font-weight:600">Khusus Delivery</div>' : '')
+          + (isOpenBillOpt ? '<div style="font-size:9px;color:#F59E0B;margin-top:2px;font-weight:600">Bayar Nanti</div>' : '')
           + '</div>';
       });
 
@@ -109,7 +116,7 @@
         + '</div>'
         + '</div>'
 
-        + '<button class="btn-cfm" id="btn-cfm" onclick="doPay(' + grand + ')" disabled>'
+        + '<button class="btn-cfm" id="btn-cfm" onclick="pmSel===\'open_bill\'?doOpenBill():doPay(' + grand + ')" disabled>'
         + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
         + ' Konfirmasi'
         + '</button>'
@@ -135,6 +142,8 @@
       ov.innerHTML = html;
       document.body.appendChild(ov);
       cashIn = ''; pmSel = 'cash';
+      // Immediately enable confirm for non-cash
+      selPm('cash', grand);
     }
 
     function selPm(id, tot) {
@@ -145,6 +154,7 @@
 
       var isDelivery = (id === 'gofood' || id === 'grabfood' || id === 'shopee');
       var isCash = (id === 'cash');
+      var isOpenBillMode = (id === 'open_bill');
 
       var dnw = document.getElementById('delivery-note-wrap');
       var npd = document.getElementById('pay-npd');
@@ -154,6 +164,18 @@
 
       // Delivery note field
       if (dnw) dnw.style.display = isDelivery ? 'block' : 'none';
+
+      // Open Bill mode: hide numpad, change button label
+      if (isOpenBillMode) {
+        if (npdLock) { npdLock.style.display = 'flex'; }
+        if (npd) { npd.style.opacity = '0.15'; npd.style.pointerEvents = 'none'; }
+        if (ca) { ca.style.opacity = '0.3'; }
+        if (btn) { btn.disabled = false; btn.textContent = '📋 Buka Open Bill'; btn.style.background = '#F59E0B'; }
+        return;
+      }
+
+      // Reset button style
+      if (btn) { btn.style.background = ''; btn.textContent = 'Konfirmasi'; }
 
       // Numpad lock for non-cash methods
       if (npdLock) {
@@ -455,6 +477,119 @@
       }
 
       await proceedWithOrderCreation(orderData, sub, disc, tax, svc, grand, paid, chg, delivNote);
+    }
+
+    // Handle Open Bill: create order without payment, send to kitchen
+    async function doOpenBill() {
+      var btn = document.getElementById('btn-cfm');
+      if (btn) { btn.innerHTML = 'Membuka Bill...'; btn.disabled = true; }
+
+      var { sub, disc, tax, svc, grand } = calcT();
+
+      const orderData = {
+        orderType: orderType,
+        tableNumber: document.getElementById('tbl-no')?.value || (orderType === 'dine' ? 'T01' : 'TAKE'),
+        paymentMethod: null,
+        subtotal: sub,
+        discount: disc,
+        tax: tax,
+        serviceCharge: svc,
+        total: grand,
+        customerName: curMember || null,
+        customerPhone: window.curMemberPhone || null,
+        isOpenBill: true,
+        payments: [],
+        items: cart.map(function(i) {
+           var apiModifiers = [];
+           if (i.selectedOpts) {
+             Object.entries(i.selectedOpts).forEach(function([groupName, opts]) {
+               var optArr = Array.isArray(opts) ? opts : [opts];
+               optArr.forEach(function(optName) {
+                 apiModifiers.push({
+                   groupId: 'opt-' + groupName,
+                   groupName: groupName,
+                   optionId: 'opt-' + optName,
+                   optionName: optName,
+                   priceAdjustment: 0
+                 });
+               });
+             });
+           }
+           if (i.addonNames) {
+             i.addonNames.split(', ').forEach(function(addonName) {
+               apiModifiers.push({
+                 groupId: 'addon',
+                 groupName: 'Add-on',
+                 optionId: 'addon-' + addonName,
+                 optionName: addonName,
+                 priceAdjustment: 0
+               });
+             });
+           }
+           return {
+              productId: String(i.id),
+              productName: i.n,
+              quantity: i.qty,
+              unitPrice: i.p,
+              subtotal: i.qty * i.p,
+              notes: i.note || null,
+              modifiers: apiModifiers
+           };
+        })
+      };
+
+      try {
+        const res = await API.orders.createOpenBill(orderData);
+        if (res.success) {
+          var now = new Date();
+          var hh = String(now.getHours()).padStart(2, '0');
+          var mm = String(now.getMinutes()).padStart(2, '0');
+          HISTORY.unshift({
+            id: res.order ? res.order.id : Date.now(),
+            no: res.order ? res.order.order_number : 'OB-' + Date.now(),
+            table: orderData.tableNumber || 'TAKE',
+            type: orderType,
+            cashier: currentUser ? currentUser.name : 'Kasir',
+            time: hh + ':' + mm,
+            method: 'Open Bill',
+            status: 'open_bill',
+            sub: sub, disc: disc, tax: tax, svc: svc, tips: 0, total: grand,
+            member: curMember,
+            items: cart.map(function(i) {
+               var mods = i.selectedOpts ? Object.values(i.selectedOpts).flat() : [];
+               if (i.addonNames) mods = mods.concat(i.addonNames.split(', ').map(a => '+' + a));
+               if (i.note) mods.push(i.note);
+               return { id: i.id, n: i.n, qty: i.qty, p: i.p, mods: mods };
+            })
+          });
+          document.getElementById('pay-ov')?.remove();
+          showOpenBillSuccess(grand, orderData.tableNumber, res.order);
+        } else {
+          toast('Gagal membuka bill: ' + (res.error || 'Error'), 'err');
+          if (btn) { btn.innerHTML = '📋 Buka Open Bill'; btn.disabled = false; }
+        }
+      } catch (err) {
+        console.error(err);
+        toast('Gagal memproses open bill: ' + err.message, 'err');
+        if (btn) { btn.innerHTML = '📋 Buka Open Bill'; btn.disabled = false; }
+      }
+    }
+
+    function showOpenBillSuccess(total, tableNo, order) {
+      const ov = document.createElement('div'); ov.className = 'ov'; ov.id = 'mo-ok';
+      ov.innerHTML = `<div class="mo smo"><div class="mo-b" style="padding:24px">
+        <div class="sico" style="background:rgba(245,158,11,0.15)"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="stitl">Open Bill Dibuka!</div>
+        <div class="ssub">Pesanan dikirim ke dapur. Pelanggan bayar saat selesai.</div>
+        <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:13px;margin-bottom:14px;text-align:center">
+          <div style="font-size:9.5px;font-weight:700;color:#F59E0B;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Total Bill</div>
+          <div style="font-size:24px;font-weight:900;color:#F59E0B;font-family:var(--mo)">${fr(total)}</div>
+          <div style="font-size:11px;color:var(--txt3);margin-top:4px">${tableNo ? 'Meja: ' + tableNo : 'Take Away'}</div>
+        </div>
+        <button class="btn-new" onclick="newOrder()">+ Order Baru</button>
+      </div></div>`;
+      ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+      document.body.appendChild(ov);
     }
 
 

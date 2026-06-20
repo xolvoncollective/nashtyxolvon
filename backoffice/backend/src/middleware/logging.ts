@@ -7,6 +7,8 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import { run } from '../db/database';
+import { randomUUID } from 'crypto';
 
 /**
  * Request logging middleware (Requirement 14.1, 14.9)
@@ -37,7 +39,6 @@ export function requestLoggingMiddleware(req: Request, res: Response, next: Next
     const statusCode = res.statusCode;
     const url = originalUrl || path;
     
-    // Determine log level based on status code (Requirement 14.1)
     if (statusCode >= 500) {
       // ERROR level for 5xx responses
       console.error(`[ERROR] ${method} ${url} - ${statusCode} - ${duration}ms`);
@@ -47,6 +48,26 @@ export function requestLoggingMiddleware(req: Request, res: Response, next: Next
     } else {
       // INFO level for successful requests (2xx, 3xx)
       console.log(`[INFO] ${method} ${url} - ${statusCode} - ${duration}ms`);
+    }
+
+    // GHOST ACTION PREVENTION: Automatically log all state mutations to the database
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && statusCode >= 200 && statusCode < 400) {
+        // Exclude some spammy paths
+        if (!path.includes('/api/health') && !path.includes('/logs')) {
+            const tenantId = (req.body && req.body.tenantId) || (req.query && req.query.tenantId) || ((req as any).user && (req as any).user.tenantId) || 'unknown';
+            const userId = ((req as any).user && (req as any).user.id) || req.headers['x-user-id'] || 'system';
+            const action = method.toLowerCase();
+            const entityType = path.split('/')[2] || 'system'; // e.g. /api/orders -> orders
+            const description = `Auto-logged: ${method} ${url}`;
+            
+            // Insert asynchronously without awaiting to not block response
+            run(`
+              INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description)
+              VALUES (?, ?, ?, ?, ?, ?, ?)
+            `, [randomUUID(), tenantId, userId, action, entityType, 'auto', description]).catch(err => {
+               console.error('[WARN] Auto-logger failed to write to DB:', err.message);
+            });
+        }
     }
   }
   

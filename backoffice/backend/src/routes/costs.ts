@@ -1,4 +1,4 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
 import { query, get, run } from '../db/database';
 import { randomUUID } from 'crypto';
 
@@ -113,6 +113,13 @@ router.put('/:id', async (req, res) => {
     }
 
     const cost = await get('SELECT * FROM nashtycosts WHERE id = ?', [id]);
+
+    // Log activity
+    const userId = req.headers['x-user-id'] || null;
+    await run(`
+      INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description)
+      VALUES (?, ?, ?, 'update_cost', 'cost', ?, ?)
+    `, [randomUUID(), existing.tenant_id, userId, id, `Biaya ${existing.category} diperbarui`]);
 
     res.json({ success: true, cost });
   } catch (error: any) {

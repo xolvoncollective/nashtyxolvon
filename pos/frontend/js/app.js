@@ -105,7 +105,7 @@
 
     /* ── MENU CACHE MANAGEMENT ── */
     const MENU_CACHE_KEY = 'nashty_menu_cache';
-    const MENU_CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const MENU_CACHE_TTL = 60 * 1000; // 1 minute (reduced from 5 minutes for faster sync)
 
     function getMenuFromCache() {
       try {

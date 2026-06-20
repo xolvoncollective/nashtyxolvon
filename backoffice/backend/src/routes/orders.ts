@@ -49,7 +49,8 @@ const CreateOrderSchema = z.object({
   serviceCharge: z.number().nonnegative('Service charge cannot be negative').optional().default(0),
   total: z.number().positive('Total must be positive'),
   paymentMethod: z.string().optional().nullable(),
-  payments: z.array(PaymentSchema).min(1, 'At least one payment is required'),
+  isOpenBill: z.boolean().optional().default(false),
+  payments: z.array(PaymentSchema).optional().default([]),
   notes: z.string().optional().nullable(),
   customerName: z.string().optional().nullable(),
   customerPhone: z.string().optional().nullable()
@@ -152,9 +153,14 @@ router.post('/', async (req, res) => {
     
     const calculatedTotal = baseAmount + calculatedTax + calculatedServiceCharge;
 
+    // Open bill: no payment required yet
+    const isOpenBill = validationResult.data.isOpenBill || false;
+
     // Validate payment amounts
-    const totalPaid = payments ? payments.reduce((sum, p) => sum + p.amount - (p.change || 0), 0) : 0;
-    const paymentStatus = totalPaid >= calculatedTotal ? 'paid' : 'pending';
+    const totalPaid = (payments && payments.length > 0) ? payments.reduce((sum, p) => sum + p.amount - (p.change || 0), 0) : 0;
+    const paymentStatus = isOpenBill ? 'pending' : (totalPaid >= calculatedTotal ? 'paid' : 'pending');
+    const orderStatus = isOpenBill ? 'open_bill' : 'confirmed';
+    const kitchenStatus = isOpenBill ? 'pending' : 'pending';
 
     // Map order type
     const orderTypeMap: Record<string, string> = {
@@ -177,7 +183,7 @@ router.post('/', async (req, res) => {
       `, [
         orderId, tenantId, outletId, shiftId, userId, orderNumber,
         mappedOrderType, tableNumber, customerName, customerPhone, calculatedSubtotal, validDiscount, calculatedTax, calculatedServiceCharge,
-        calculatedTotal, paymentMethod, paymentStatus, 'confirmed', 'pending', notes
+        calculatedTotal, paymentMethod, paymentStatus, orderStatus, kitchenStatus, notes
       ]);
 
       // CRM points / member registration
@@ -253,8 +259,8 @@ router.post('/', async (req, res) => {
         }
       }
 
-      // Insert payments if split payment
-      if (payments && Array.isArray(payments)) {
+      // Insert payments if not open bill
+      if (!isOpenBill && payments && Array.isArray(payments) && payments.length > 0) {
         for (const payment of payments) {
           await run(`
             INSERT INTO payments (id, order_id, method, amount, change_amount, platform_ref)
@@ -302,6 +308,15 @@ router.post('/', async (req, res) => {
       WHERE o.id = ?
     `, [orderId]);
 
+    if (!order) {
+      // Order was created but couldn't be fetched — return minimal response
+      console.error('Order inserted but not found on SELECT. orderId:', orderId);
+      return res.status(201).json({ 
+        success: true, 
+        order: { id: orderId, order_number: orderNumber, total: calculatedTotal, order_status: orderStatus } 
+      });
+    }
+
     const orderItems = await query('SELECT * FROM order_items WHERE order_id = ?', [orderId]);
 
     for (const item of orderItems as any[]) {
@@ -313,6 +328,57 @@ router.post('/', async (req, res) => {
     res.status(201).json({ success: true, order });
   } catch (error: any) {
     console.error('Create order error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PATCH /api/orders/:id/close-bill — Close an open bill with payment
+router.patch('/:id/close-bill', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { paymentMethod, payments: billPayments, userId } = req.body;
+
+    const order = await get('SELECT * FROM orders WHERE id = ?', [id]) as any;
+    if (!order) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+    if (order.order_status !== 'open_bill') {
+      return res.status(400).json({ success: false, error: 'Order ini bukan Open Bill' });
+    }
+
+    const now = new Date().toISOString();
+    await run(`
+      UPDATE orders SET
+        order_status = 'confirmed',
+        payment_status = 'paid',
+        payment_method = ?,
+        updated_at = ?
+      WHERE id = ?
+    `, [paymentMethod || (billPayments?.[0]?.method) || 'tunai', now, id]);
+
+    // Insert payment records
+    if (billPayments && Array.isArray(billPayments)) {
+      for (const payment of billPayments) {
+        await run(`
+          INSERT INTO payments (id, order_id, method, amount, change_amount, platform_ref)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `, [randomUUID(), id, payment.method, payment.amount, payment.change || 0, payment.platformRef || null]);
+      }
+    }
+
+    // Log activity
+    await run(`
+      INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description, metadata)
+      VALUES (?, ?, ?, 'open_bill_closed', 'order', ?, ?, ?)
+    `, [
+      randomUUID(), order.tenant_id, userId || order.user_id, id,
+      `Open Bill ${order.order_number} dibayar sebesar Rp ${order.total.toLocaleString()} via ${paymentMethod || 'tunai'}`,
+      JSON.stringify({ orderNumber: order.order_number, paymentMethod, total: order.total })
+    ]);
+
+    res.json({ success: true, message: `Open Bill ${order.order_number} berhasil dibayar` });
+  } catch (error: any) {
+    console.error('Close bill error:', error);
     res.status(500).json({ error: error.message });
   }
 });

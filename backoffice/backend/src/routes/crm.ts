@@ -1,4 +1,4 @@
-﻿import express from 'express';
+import express from 'express';
 import db from '../db/database';
 import { nanoid } from 'nanoid';
 import { MemberService } from '../services/MemberService';
@@ -21,6 +21,11 @@ router.post('/customers', async (req, res) => {
   await db.run(`INSERT INTO crm_customers (id, tenant_id, name, phone, email, points, total_spent, visit_count) 
           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
           [id, tenantId, name, phone, email, points || 0, total_spent || 0, visit_count || 0]);
+          
+  const userId = req.headers['x-user-id'] || null;
+  await db.run(`INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description) VALUES (?, ?, ?, 'customer_created', 'customer', ?, ?)`, 
+    [nanoid(), tenantId, userId, id, `Added customer ${name}`]);
+    
   res.json({ success: true, message: 'Customer added', id });
 });
 
@@ -37,12 +42,22 @@ router.put('/customers/:id', async (req, res) => {
           updated_at = CURRENT_TIMESTAMP
           WHERE id = ? AND tenant_id = ?`, 
           [name, phone, email, points, total_spent, visit_count, id, tenantId]);
+          
+  const userId = req.headers['x-user-id'] || null;
+  await db.run(`INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description) VALUES (?, ?, ?, 'customer_updated', 'customer', ?, ?)`, 
+    [nanoid(), tenantId, userId, id, `Updated customer ${name}`]);
+    
   res.json({ success: true, message: 'Customer updated' });
 });
 
 router.delete('/customers/:id', async (req, res) => {
   const tId = req.query.tenantId || req.body?.tenantId;
   await db.run('UPDATE crm_customers SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND tenant_id = ?', [req.params.id, tId]);
+  
+  const userId = req.headers['x-user-id'] || null;
+  await db.run(`INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description) VALUES (?, ?, ?, 'customer_deleted', 'customer', ?, ?)`, 
+    [nanoid(), tId, userId, req.params.id, `Deleted customer ID ${req.params.id}`]);
+    
   res.json({ success: true, message: 'Customer deleted' });
 });
 
@@ -63,6 +78,11 @@ router.post('/rewards', async (req, res) => {
   await db.run(`INSERT INTO crm_rewards (id, tenant_id, title, points_required, description, is_active) 
           VALUES (?, ?, ?, ?, ?, ?)`, 
           [id, tenantId, title, points_required || 0, description, is_active !== undefined ? is_active : 1]);
+          
+  const userId = req.headers['x-user-id'] || null;
+  await db.run(`INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description) VALUES (?, ?, ?, 'reward_created', 'reward', ?, ?)`, 
+    [nanoid(), tenantId, userId, id, `Added reward ${title}`]);
+    
   res.json({ success: true, message: 'Reward added', id });
 });
 
@@ -82,6 +102,11 @@ router.put('/rewards/:id', async (req, res) => {
 router.delete('/rewards/:id', async (req, res) => {
   const tId = req.query.tenantId || req.body?.tenantId;
   await db.run('UPDATE crm_rewards SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND tenant_id = ?', [req.params.id, tId]);
+  
+  const userId = req.headers['x-user-id'] || null;
+  await db.run(`INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description) VALUES (?, ?, ?, 'reward_deleted', 'reward', ?, ?)`, 
+    [nanoid(), tId, userId, req.params.id, `Deleted reward ID ${req.params.id}`]);
+    
   res.json({ success: true, message: 'Reward deleted' });
 });
 
@@ -108,6 +133,10 @@ router.post('/point-transactions', async (req, res) => {
   
   const id = MemberService.handlePointTransaction(tenantId, customerId, points, type, description);
   
+  const userId = req.headers['x-user-id'] || null;
+  await db.run(`INSERT INTO activity_logs (id, tenant_id, user_id, action, entity_type, entity_id, description) VALUES (?, ?, ?, 'point_transaction', 'customer', ?, ?)`, 
+    [nanoid(), tenantId, userId, customerId, `Point transaction ${type} ${points} pts: ${description}`]);
+    
   res.json({ success: true, message: 'Point transaction added', id });
 });
 

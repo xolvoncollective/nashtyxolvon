@@ -1,4 +1,4 @@
-﻿/**
+/**
  * NASHTY KDS API Client
  * Centralized API communication layer for Kitchen Display System
  * 
@@ -104,7 +104,8 @@ const API = {
     // Get KDS queue (all pending/preparing orders)
     async getKDSQueue(outletId) {
       const params = new URLSearchParams({
-        outletId: outletId || API.session.outletId
+        tenantId: API.session.tenantId || 'demo-tenant',
+        outletId: outletId || API.session.outletId || 'demo-outlet'
       });
 
       const response = await API.request(`/orders/kitchen/queue?${params}`);
