@@ -154,6 +154,17 @@ app.get('/api/health', async (req, res) => {
   });
 });
 
+// Debug endpoint to safely check if Railway injected the environment variables
+app.get('/api/debug/env', (req, res) => {
+  res.json({
+    NODE_ENV: process.env.NODE_ENV || 'not set',
+    HAS_SUPABASE_URL: !!process.env.SUPABASE_URL,
+    HAS_SUPABASE_SERVICE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    HAS_JWT_SECRET: !!process.env.JWT_SECRET,
+    DATABASE_MODE: process.env.DATABASE_MODE || 'not set',
+  });
+});
+
 
 // Main auth API (no auth required)
 app.use('/api/main/auth', mainAuthRoutes);
