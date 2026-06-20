@@ -8,8 +8,8 @@ const SUPABASE_URL = 'https://mzucfndifneytbesirkx.supabase.co';
 // ANON_KEY is safe to expose in the frontend
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16dWNmbmRpZm5leXRiZXNpcmt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNDA1MzUsImV4cCI6MjA5NjkxNjUzNX0.fUynF1mfZCyy48aFkwz3_G52-4hd4EE-b5gpG7k0mpg';
 
-// Railway Backend API (Express)
-const RAILWAY_API_URL = 'https://nashty-backend-production.up.railway.app';
+// Railway Backend API (Express) - DELETED
+// const RAILWAY_API_URL = 'https://nashty-backend-production.up.railway.app';
 
 // Supabase Edge Functions base URL
 const EDGE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
@@ -57,50 +57,13 @@ const API = {
     }
   },
 
-  // ─── Railway Backend Request ───────────────────────────────────────────────
-  async backendRequest(path, options = {}) {
-    await API._refreshTokenIfNeeded();
-
-    const headers = {
-      'Content-Type': 'application/json',
-      ...(options.headers || {})
-    };
-
-    const token = API.session.token || API.session.adminToken;
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-
-    try {
-      const response = await fetch(`${RAILWAY_API_URL}${path}`, {
-        ...options,
-        headers
-      });
-
-      const data = await response.json();
-
-      // Auto-retry with refresh on 401
-      if (response.status === 401 && API.session.refreshToken) {
-        const refreshResult = await API.auth.refreshToken(API.session.refreshToken);
-        if (refreshResult.success) {
-          headers['Authorization'] = `Bearer ${refreshResult.token}`;
-          const retryRes = await fetch(`${RAILWAY_API_URL}${path}`, { ...options, headers });
-          const retryData = await retryRes.json();
-          if (!retryRes.ok) throw new Error(retryData.error || 'Request failed after token refresh');
-          return retryData;
-        }
-      }
-
-      if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
-      return data;
-    } catch (error) {
-      console.error(`[Backend API] ${path}:`, error);
-      throw error;
-    }
-  },
-
-  // ─── Edge Function Request (Rerouted to Backend) ─────────────────────────
+  // ─── Edge Function Request (Pure Supabase) ─────────────────────────
   async edgeRequest(functionName, options = {}) {
+    await API._refreshTokenIfNeeded();
+    
     const headers = {
       'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
       ...(options.headers || {})
     };
 
@@ -108,39 +71,16 @@ const API = {
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
     try {
-      // Intercept and route to Express Backend
-      if (functionName === 'auth-login') {
-        return await API.backendRequest('/api/auth/login', { ...options, headers });
-      }
-      
-      if (functionName === 'orders-api') {
-        const body = options.body ? JSON.parse(options.body) : {};
-        if (body.action === 'create') {
-          return await API.backendRequest('/api/orders', { ...options, headers });
-        }
-      }
-      
-      if (functionName === 'reports-api') {
-        const body = options.body ? JSON.parse(options.body) : {};
-        const params = new URLSearchParams(body).toString();
-        if (body.action === 'sales') {
-          return await API.backendRequest(`/api/reports/sales?${params}`, { method: 'GET', headers });
-        } else if (body.action === 'top-products') {
-          return await API.backendRequest(`/api/reports/products?${params}`, { method: 'GET', headers });
-        }
-      }
-
-      // Fallback to actual edge function (if deployed)
       const response = await fetch(`${EDGE_FUNCTIONS_URL}/${functionName}`, {
         method: 'POST',
         ...options,
-        headers: { ...headers, 'apikey': SUPABASE_ANON_KEY }
+        headers
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
       return data;
     } catch (error) {
-      console.error(`[Edge/Backend Intercept] ${functionName}:`, error);
+      console.error(`[Edge Function] ${functionName}:`, error);
       throw error;
     }
   },
@@ -297,22 +237,12 @@ const API = {
       return data;
     },
     async refreshToken(refreshToken) {
-      const data = await API.backendRequest('/api/auth/refresh', {
-        method: 'POST',
-        body: JSON.stringify({ refreshToken })
-      });
-      if (data.success) {
-        API.session.token = data.token;
-        API.session.refreshToken = data.refreshToken;
-        API.session.tokenExpiry = Date.now() + (60 * 60 * 1000);
-        localStorage.setItem('nashty_session', JSON.stringify(API.session));
-      }
-      return data;
+      // In Pure Supabase without custom edge function for refresh, we just rely on existing token expiry.
+      // Wait, if we use GoTrue, it handles refresh. Since we use custom JWT, edge function doesn't have refresh endpoint yet.
+      // We will clear the session if expired.
+      return { success: false, error: 'Token refresh not implemented in edge functions yet' };
     },
     async logout() {
-      try {
-        await API.backendRequest('/api/auth/logout', { method: 'POST' });
-      } catch (e) {}
       localStorage.removeItem('nashty_session');
       API.session.token = null;
       API.session.refreshToken = null;
@@ -333,112 +263,110 @@ const API = {
     }
   },
 
-  // ─── Favorites API (Railway Backend) ──────────────────────────────────────
+  // ─── Favorites API (Pure Supabase) ──────────────────────────────────────
   favorites: {
     async getAll(userId = null) {
       const uid = userId || API.session.user?.id;
       if (!uid) throw new Error('userId required');
-      return await API.backendRequest(`/api/favorites?userId=${uid}`);
+      const { data, error } = await API.supabase.from('favorites')
+        .select('*, product:products(*)').eq('user_id', uid).order('position');
+      if (error) throw error;
+      return { success: true, favorites: data };
     },
     async add(productId, position = 0) {
       const userId = API.session.user?.id;
       if (!userId) throw new Error('Not authenticated');
-      return await API.backendRequest('/api/favorites', {
-        method: 'POST',
-        body: JSON.stringify({ userId, productId, position })
-      });
+      const { data, error } = await API.supabase.from('favorites')
+        .upsert([{ user_id: userId, product_id: productId, position }]).select();
+      if (error) throw error;
+      return { success: true, favorite: data[0] };
     },
     async remove(favoriteId) {
-      return await API.backendRequest(`/api/favorites/${favoriteId}`, {
-        method: 'DELETE'
-      });
+      const { error } = await API.supabase.from('favorites').delete().eq('id', favoriteId);
+      if (error) throw error;
+      return { success: true };
     },
     async reorder(favoritesArray) {
       const userId = API.session.user?.id;
       if (!userId) throw new Error('Not authenticated');
-      return await API.backendRequest('/api/favorites/reorder', {
-        method: 'PUT',
-        body: JSON.stringify({ userId, favorites: favoritesArray })
-      });
+      const payload = favoritesArray.map(f => ({ id: f.id, user_id: userId, product_id: f.productId, position: f.position }));
+      const { error } = await API.supabase.from('favorites').upsert(payload);
+      if (error) throw error;
+      return { success: true };
     }
   },
 
-  // ─── Analytics API (Railway Backend) ──────────────────────────────────────
+  // ─── Analytics API (Pure Supabase) ──────────────────────────────────────
   analytics: {
     async getTopProducts(outletId = null, days = 7, limit = 20) {
       const oid = outletId || API.session.outletId;
-      return await API.backendRequest(
-        `/api/analytics/top-products?outletId=${oid}&days=${days}&limit=${limit}`
-      );
+      return await API.edgeRequest('reports-api', {
+        body: JSON.stringify({ action: 'top-products', tenantId: API.session.tenantId, outletId: oid, days, limit })
+      });
     }
   },
 
-  // ─── Outlet Settings API (Railway Backend) ─────────────────────────────────
+  // ─── Outlet Settings API (Pure Supabase) ─────────────────────────────────
   outletSettings: {
     async get(outletId = null) {
       const oid = outletId || API.session.outletId;
-      return await API.backendRequest(`/api/outlets/${oid}/settings`);
+      const { data, error } = await API.supabase.from('outlet_settings').select('*').eq('outlet_id', oid);
+      if (error) throw error;
+      const settings = {};
+      data?.forEach(row => settings[row.key] = row.value);
+      return { success: true, settings };
     },
-    async update(settings, outletId = null) {
+    async update(settingsObj, outletId = null) {
       const oid = outletId || API.session.outletId;
-      return await API.backendRequest(`/api/outlets/${oid}/settings`, {
-        method: 'PUT',
-        body: JSON.stringify(settings)
-      });
+      const payload = Object.keys(settingsObj).map(key => ({
+        outlet_id: oid, key, value: settingsObj[key], updated_at: new Date().toISOString()
+      }));
+      const { error } = await API.supabase.from('outlet_settings').upsert(payload, { onConflict: 'outlet_id, key' });
+      if (error) throw error;
+      return { success: true };
     },
     async uploadLogo(file, outletId = null) {
       const oid = outletId || API.session.outletId;
-      const formData = new FormData();
-      formData.append('logo', file);
-      const headers = {};
-      const token = API.session.token || API.session.adminToken;
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      const response = await fetch(`${RAILWAY_API_URL}/api/outlets/${oid}/upload-logo`, {
-        method: 'POST',
-        headers,
-        body: formData
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Upload failed');
-      return data;
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${oid}-logo-${Date.now()}.${fileExt}`;
+      const { error } = await API.supabase.storage.from('receipts').upload(fileName, file, { upsert: true });
+      if (error) throw error;
+      const { data: { publicUrl } } = API.supabase.storage.from('receipts').getPublicUrl(fileName);
+      await API.outletSettings.update({ logo_url: publicUrl }, oid);
+      return { success: true, url: publicUrl };
     },
     async uploadPromoImages(files, outletId = null) {
       const oid = outletId || API.session.outletId;
-      const formData = new FormData();
-      Array.from(files).forEach(f => formData.append('images', f));
-      const headers = {};
-      const token = API.session.token || API.session.adminToken;
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      const response = await fetch(`${RAILWAY_API_URL}/api/outlets/${oid}/upload-promo-images`, {
-        method: 'POST',
-        headers,
-        body: formData
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Upload failed');
-      return data;
+      const urls = [];
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${oid}-promo-${Date.now()}-${Math.floor(Math.random()*1000)}.${fileExt}`;
+        const { error } = await API.supabase.storage.from('promotions').upload(fileName, file);
+        if (!error) {
+          const { data: { publicUrl } } = API.supabase.storage.from('promotions').getPublicUrl(fileName);
+          urls.push(publicUrl);
+        }
+      }
+      return { success: true, urls };
     }
   },
 
   // ─── Dashboard API ─────────────────────────────────────────────────────────
   dashboard: {
     async getKPI(filters = {}) {
-      const params = new URLSearchParams({
-        tenantId: API.session.tenantId,
-        outletId: API.session.outletId || '',
-        ...filters
+      return await API.edgeRequest('dashboard-api', {
+        body: JSON.stringify({ action: 'kpi', tenantId: API.session.tenantId, outletId: API.session.outletId, ...filters })
       });
-      return await API.backendRequest(`/api/dashboard/kpi?${params}`);
     },
     async getRecentOrders(limit = 10) {
-      return await API.backendRequest(
-        `/api/dashboard/recent-orders?outletId=${API.session.outletId}&limit=${limit}`
-      );
+      return await API.edgeRequest('dashboard-api', {
+        body: JSON.stringify({ action: 'recent-orders', tenantId: API.session.tenantId, outletId: API.session.outletId, limit })
+      });
     },
     async getWeeklyChart() {
-      return await API.backendRequest(
-        `/api/dashboard/weekly-chart?outletId=${API.session.outletId}`
-      );
+      return await API.edgeRequest('dashboard-api', {
+        body: JSON.stringify({ action: 'weekly-chart', tenantId: API.session.tenantId, outletId: API.session.outletId })
+      });
     }
   },
 
