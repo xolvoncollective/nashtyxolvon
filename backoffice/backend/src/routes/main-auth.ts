@@ -129,7 +129,7 @@ router.post('/superadmin-login', async (req, res) => {
         id: 'superadmin',
         username: 'superadmin',
         role: 'superadmin',
-        tenantId: 'demo-tenant',
+        tenantId: '337db3a3-ba68-4da9-824a-1ad261197f58',
         createdAt: new Date()
       });
       
@@ -141,14 +141,14 @@ router.post('/superadmin-login', async (req, res) => {
           id: 'superadmin',
           username: 'superadmin',
           role: 'superadmin',
-          tenantId: 'demo-tenant',
+          tenantId: '337db3a3-ba68-4da9-824a-1ad261197f58',
           outletId: outletId || 'main-branch'
         },
         session: {
           id: 'superadmin',
           username: 'superadmin',
           role: 'superadmin',
-          tenantId: 'demo-tenant',
+          tenantId: '337db3a3-ba68-4da9-824a-1ad261197f58',
           createdAt: new Date().toISOString(),
           expiresIn: 24 * 60 * 60 // 24 hours
         }

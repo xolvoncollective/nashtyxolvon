@@ -142,7 +142,7 @@ export async function validateAdminCredentials(username: string, password: strin
         id: admin.id,
         username: admin.username,
         role: 'admin',
-        tenantId: 'demo-tenant',
+        tenantId: '337db3a3-ba68-4da9-824a-1ad261197f58',
         createdAt: new Date()
       };
     }

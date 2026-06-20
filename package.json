@@ -1,9 +1,5 @@
 {
-  "workspaces": [
-    "pos/backend",
-    "kds/backend",
-    "backoffice/backend"
-  ],
+
   "devDependencies": {
     "@playwright/test": "^1.60.0",
     "@types/supertest": "^7.2.0",
