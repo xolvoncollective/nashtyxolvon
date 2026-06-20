@@ -533,7 +533,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // Configuration
-    const API_BASE_URL = '/api/auth-login';
+    const API_BASE_URL = 'https://mzucfndifneytbesirkx.supabase.co/functions/v1/auth-login';
     
     const SUPABASE_URL = 'https://mzucfndifneytbesirkx.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16dWNmbmRpZm5leXRiZXNpcmt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNDA1MzUsImV4cCI6MjA5NjkxNjUzNX0.fUynF1mfZCyy48aFkwz3_G52-4hd4EE-b5gpG7k0mpg';
@@ -627,7 +627,7 @@
       try {
         const res = await fetch(`${API_BASE_URL}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
           body: JSON.stringify({ action: 'main-login', username, password, outletId })
         });
         
@@ -708,7 +708,7 @@
       try {
         const res = await fetch(`${API_BASE_URL}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
           body: JSON.stringify({ action: 'pin-login', pin, outletId: mainSession.outletId })
         });
         
@@ -748,7 +748,7 @@
       try {
         const res = await fetch(`${API_BASE_URL}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
           body: JSON.stringify({ action: 'superadmin-login', username, password, outletId: mainSession.outletId || 'main-branch' })
         });
         
