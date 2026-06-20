@@ -175,6 +175,8 @@ app.get('/api/debug/env', (req, res) => {
 
 // Main auth API (no auth required)
 app.use('/api/main/auth', mainAuthRoutes);
+// Legacy support for older frontends that use /api/main-auth/login
+app.use('/api/main-auth', mainAuthRoutes);
 
 // API Routes — Auth & Users (AUTH BYPASSED IN DEV MODE)
 app.use('/api/auth', authRoutes);
