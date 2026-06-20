@@ -15,7 +15,7 @@ async function run() {
   await client.connect();
   console.log('Connected to DB');
   
-  const tenantId = 'demo-tenant';
+  const tenantId = '337db3a3-ba68-4da9-824a-1ad261197f58';
   const outletId = 'd4ee75ff-f866-4fbc-baa9-95bba9af52ed'; // Nashty Pusat
   
   try {
