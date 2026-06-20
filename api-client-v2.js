@@ -38,6 +38,57 @@ const API = {
       if (API.session.token) headers['Authorization'] = `Bearer ${API.session.token}`;
       else if (API.session.adminToken) headers['Authorization'] = `Bearer ${API.session.adminToken}`;
 
+      // --- BACKOFFICE MIGRATION INTERCEPTOR ---
+      if (endpoint.startsWith('/dashboard/kpi')) {
+        return await API.dashboard.getKPI();
+      }
+      if (endpoint.startsWith('/dashboard/weekly-chart')) {
+        return await API.request('/dashboard-api', { method: 'POST', body: JSON.stringify({ action: 'weekly-chart', tenantId: API.session.tenantId }) });
+      }
+      if (endpoint.startsWith('/settings')) {
+        if (options.method === 'PUT') return await API.settings.update(JSON.parse(options.body).settings);
+        return await API.settings.get();
+      }
+      if (endpoint.startsWith('/activity-logs')) {
+        const { data } = await API.supabase.from('activity_logs').select('*').eq('tenant_id', API.session.tenantId).order('created_at', { ascending: false }).limit(20);
+        return { success: true, logs: data || [] };
+      }
+      if (endpoint.startsWith('/costs')) {
+        const idMatch = endpoint.match(/\/costs\/([^?]+)/);
+        if (options.method === 'DELETE' && idMatch) {
+          await API.supabase.from('nashtycosts').delete().eq('id', idMatch[1]);
+          return { success: true };
+        }
+        if ((options.method === 'PUT' || options.method === 'POST') && options.body) {
+          let body = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
+          body.tenant_id = API.session.tenantId;
+          body.outlet_id = API.session.outletId;
+          if (idMatch) body.id = idMatch[1];
+          await API.supabase.from('nashtycosts').upsert(body);
+          return { success: true };
+        }
+        const { data } = await API.supabase.from('nashtycosts').select('*').eq('tenant_id', API.session.tenantId).order('created_at', { ascending: false });
+        return { success: true, costs: data || [] };
+      }
+      if (endpoint.match(/\/products\/.*\/duplicate/)) {
+        const idMatch = endpoint.match(/\/products\/([^/]+)\/duplicate/);
+        const { data: p } = await API.supabase.from('products').select('*').eq('id', idMatch[1]).single();
+        if (p) {
+          delete p.id;
+          p.name = p.name + ' (Copy)';
+          await API.supabase.from('products').insert(p);
+        }
+        return { success: true };
+      }
+      if (endpoint.startsWith('/users/')) {
+        const idMatch = endpoint.match(/\/users\/([^?]+)/);
+        if (idMatch) {
+           const { data } = await API.supabase.from('users').select('*').eq('id', idMatch[1]).single();
+           return { success: true, user: data };
+        }
+      }
+      // --- END INTERCEPTOR ---
+
       const response = await fetch(`${API_BASE_URL}${endpoint}`, { headers, ...options });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Request failed');

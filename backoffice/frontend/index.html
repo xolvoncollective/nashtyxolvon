@@ -299,8 +299,8 @@
       // INIT DYNAMIC DATA
       async function initBackoffice() {
         if (!API.session.tenantId) {
-          API.session.tenantId = 'demo-tenant';
-          API.session.outletId = 'demo-outlet';
+          API.session.tenantId = '00000000-0000-0000-0000-000000000001';
+          API.session.outletId = '00000000-0000-0000-0000-000000000002';
         }
         
         try {
@@ -308,7 +308,7 @@
           if (kpi && kpi.kpi) {
             window.GLOBAL_KPI = kpi.kpi;
           }
-          const chart = await API.request('/dashboard/weekly-chart?tenantId=demo-tenant');
+          const chart = await API.request('/dashboard/weekly-chart?tenantId=00000000-0000-0000-0000-000000000001');
           if (chart && chart.chart) {
             window.WEEKLY_CHART = chart.chart;
           }

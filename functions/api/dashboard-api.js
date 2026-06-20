@@ -84,6 +84,35 @@ export async function onRequestPost({ request, env }) {
       });
     }
 
+    if (action === 'weekly-chart') {
+      let q = supabase
+        .from('orders')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .eq('payment_status', 'paid')
+        .neq('order_status', 'cancelled');
+        
+      if (outletId) q = q.eq('outlet_id', outletId);
+      const { data, error } = await q;
+      if (error) throw error;
+      
+      const chartData = [0, 0, 0, 0, 0, 0, 0];
+      const today = new Date();
+      data.forEach(o => {
+         const orderDate = new Date(o.created_at);
+         const diffTime = Math.abs(today - orderDate);
+         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+         if (diffDays < 7) {
+             const dayIndex = 6 - diffDays;
+             chartData[dayIndex] += (o.total || 0);
+         }
+      });
+
+      return new Response(JSON.stringify({ success: true, data: chartData }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     return new Response(JSON.stringify({ error: 'Invalid action' }), { status: 400, headers: corsHeaders });
 
   } catch (err) {
