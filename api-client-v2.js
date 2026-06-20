@@ -8,14 +8,14 @@ const SUPABASE_URL = 'https://mzucfndifneytbesirkx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16dWNmbmRpZm5leXRiZXNpcmt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNDA1MzUsImV4cCI6MjA5NjkxNjUzNX0.fUynF1mfZCyy48aFkwz3_G52-4hd4EE-b5gpG7k0mpg';
 
 // Setup supabase if loaded via CDN
-const supabase = typeof window !== 'undefined' && window.supabase 
+const supabaseClient = typeof window !== 'undefined' && window.supabase 
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;
 
 const API_BASE_URL = '/api';
 
 const API = {
-  supabase,
+  supabase: supabaseClient,
   session: {
     admin: { id: 'admin', role: 'admin', tenantId: '00000000-0000-0000-0000-000000000001' },
     adminToken: 'dev-token',
