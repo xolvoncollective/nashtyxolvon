@@ -51,13 +51,32 @@ export async function initDatabase() {
   }
 }
 
+// Helper to inline parameters safely
+function formatSql(sql: string, params: any[]): string {
+  if (!params || params.length === 0) return sql;
+  let finalSql = sql;
+  for (const param of params) {
+    let formattedParam = '';
+    if (param === null || param === undefined) {
+      formattedParam = 'NULL';
+    } else if (typeof param === 'number' || typeof param === 'boolean') {
+      formattedParam = param.toString();
+    } else {
+      formattedParam = `'${String(param).replace(/'/g, "''")}'`;
+    }
+    finalSql = finalSql.replace('?', formattedParam);
+  }
+  return finalSql;
+}
+
 // Convert SQL query to Supabase query
 export async function query(sql: string, params: any[] = []): Promise<any[]> {
   const startTime = Date.now();
   try {
+    const finalSql = formatSql(sql, params);
     const { data, error } = await getSupabaseClient().rpc('execute_sql', { 
-      query_text: sql, 
-      query_params: params 
+      query_text: finalSql, 
+      query_params: [] 
     });
     
     if (error) throw error;
@@ -89,9 +108,10 @@ export async function get(sql: string, params: any[] = []): Promise<any> {
 export async function run(sql: string, params: any[] = []): Promise<{ changes: number }> {
   const startTime = Date.now();
   try {
+    const finalSql = formatSql(sql, params);
     const { data, error } = await getSupabaseClient().rpc('execute_sql', { 
-      query_text: sql, 
-      query_params: params 
+      query_text: finalSql, 
+      query_params: [] 
     });
     
     if (error) throw error;
