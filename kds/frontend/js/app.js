@@ -9,14 +9,14 @@ async function fetchOrders() {
   
   // Try to use a default or mocked tenant if session isn't loaded (for dev/demo)
   if (!API.session.tenantId) {
-    API.session.tenantId = 'demo-tenant';
-    API.session.outletId = 'demo-outlet';
+    API.session.tenantId = '00000000-0000-0000-0000-000000000001';
+    API.session.outletId = '00000000-0000-0000-0000-000000000002';
   }
 
   // Silent login if no token so KDS can bypass requireAuth
   if (!API.session.token) {
     try {
-      await API.auth.login('1234', 'demo-outlet');
+      await API.auth.login('1234', '00000000-0000-0000-0000-000000000002');
     } catch(e) {
       console.error('KDS Silent login failed', e);
     }

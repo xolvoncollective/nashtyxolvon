@@ -65,7 +65,8 @@ async function setupNashtyPusat() {
     // ===== STEP 2: CREATE TENANT =====
     console.log('🏢 Step 2: Creating tenant...');
     
-    const tenantId = randomUUID();
+    // Use consistent UUID (not random) for demo tenant
+    const tenantId = '00000000-0000-0000-0000-000000000001';
     const { error: tenantError } = await supabase
       .from('tenants')
       .insert({
@@ -87,7 +88,8 @@ async function setupNashtyPusat() {
     // ===== STEP 3: CREATE OUTLET =====
     console.log('🏪 Step 3: Creating outlet...');
     
-    const outletId = randomUUID();
+    // Use consistent UUID (not random) for demo outlet
+    const outletId = '00000000-0000-0000-0000-000000000002';
     const { error: outletError } = await supabase
       .from('outlets')
       .insert({

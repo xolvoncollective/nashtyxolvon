@@ -131,7 +131,7 @@ window.saveCost = async function(id) {
 
   try {
     const payload = {
-      tenantId: API.session.tenantId || 'demo-tenant',
+      tenantId: API.session.tenantId || '00000000-0000-0000-0000-000000000001',
       outletId: outletId || null,
       amount,
       category,

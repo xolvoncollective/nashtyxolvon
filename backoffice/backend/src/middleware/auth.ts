@@ -97,7 +97,7 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
     req.user = {
       id: decoded.userId,
       role: decoded.role,
-      tenantId: 'demo-tenant', // Will be included in token payload in future
+      tenantId: '00000000-0000-0000-0000-000000000001', // Will be included in token payload in future
       outletId: decoded.outletId
     };
     

@@ -6,7 +6,7 @@ const router = Router();
 // Route 50: GET /api/activity-logs — Activity logs with filters
 router.get('/', async (req, res) => {
   try {
-    const { tenantId, userId, entityType, action, dateFrom, dateTo, page = 1, limit = 50 } = req.query;
+    const { tenantId, userId, entityType, action, dateFrom, dateTo, search, page = 1, limit = 50 } = req.query;
 
     if (!tenantId) {
       return res.status(400).json({ error: 'tenantId required' });
@@ -24,12 +24,12 @@ router.get('/', async (req, res) => {
       params.push(userId);
     }
 
-    if (entityType) {
+    if (entityType && entityType !== 'all') {
       whereClause += ' AND al.entity_type = ?';
       params.push(entityType);
     }
 
-    if (action) {
+    if (action && action !== 'all') {
       whereClause += ' AND al.action = ?';
       params.push(action);
     }
@@ -42,6 +42,11 @@ router.get('/', async (req, res) => {
     if (dateTo) {
       whereClause += ' AND DATE(al.created_at) <= DATE(?)';
       params.push(dateTo);
+    }
+
+    if (search) {
+      whereClause += ' AND (al.description LIKE ? OR al.entity_id LIKE ?)';
+      params.push(`%${search}%`, `%${search}%`);
     }
 
     // Get total count

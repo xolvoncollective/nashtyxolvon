@@ -18,14 +18,14 @@ const API_BASE = 'https://nashty-backoffice-backend-production.up.railway.app/ap
 const API = {
   // Current session data (HARDCODED FOR DEV)
   session: {
-    admin: { id: 'admin', role: 'admin', tenantId: 'demo-tenant' },
+    admin: { id: 'admin', role: 'admin', tenantId: '00000000-0000-0000-0000-000000000001' },
     adminToken: 'dev-token',
     currentApp: null,
     
     token: 'dev-token',
-    user: { id: 'admin', name: 'Admin Demo', role: 'admin', tenantId: 'demo-tenant', outletId: 'demo-outlet' },
-    tenantId: 'demo-tenant',
-    outletId: 'demo-outlet',
+    user: { id: 'admin', name: 'Admin Demo', role: 'admin', tenantId: '00000000-0000-0000-0000-000000000001', outletId: '00000000-0000-0000-0000-000000000002' },
+    tenantId: '00000000-0000-0000-0000-000000000001',
+    outletId: '00000000-0000-0000-0000-000000000002',
     shiftId: null
   },
 

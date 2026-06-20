@@ -104,8 +104,8 @@ const API = {
     // Get KDS queue (all pending/preparing orders)
     async getKDSQueue(outletId) {
       const params = new URLSearchParams({
-        tenantId: API.session.tenantId || 'demo-tenant',
-        outletId: outletId || API.session.outletId || 'demo-outlet'
+        tenantId: API.session.tenantId || '00000000-0000-0000-0000-000000000001',
+        outletId: outletId || API.session.outletId || '00000000-0000-0000-0000-000000000002'
       });
 
       const response = await API.request(`/orders/kitchen/queue?${params}`);

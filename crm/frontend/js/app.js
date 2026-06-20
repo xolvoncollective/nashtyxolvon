@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Update API session
         API.session.token = authData.token;
         API.session.user = authData.user;
-        API.session.tenantId = authData.user.tenantId || 'demo-tenant';
+        API.session.tenantId = authData.user.tenantId || '00000000-0000-0000-0000-000000000001';
         
         // Update UI with user info
         document.getElementById('userName').textContent = authData.user.name || authData.user.username;

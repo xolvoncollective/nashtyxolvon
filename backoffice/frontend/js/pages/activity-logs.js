@@ -352,3 +352,9 @@ activityStyles.textContent = `
 }
 `;
 document.head.appendChild(activityStyles);
+
+
+// Register page
+PAGES.activityLogs = function() {
+  return activityLogsPage();
+};

@@ -150,8 +150,8 @@
     /* ── INIT ── */
     async function fetchMenuData(forceRefresh = false) {
       if (!API.session.tenantId) {
-        API.session.tenantId = 'demo-tenant';
-        API.session.outletId = 'demo-outlet';
+        API.session.tenantId = '00000000-0000-0000-0000-000000000001';
+        API.session.outletId = '00000000-0000-0000-0000-000000000002';
       }
 
       try {

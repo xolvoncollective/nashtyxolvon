@@ -160,7 +160,9 @@ router.post('/', async (req, res) => {
     const totalPaid = (payments && payments.length > 0) ? payments.reduce((sum, p) => sum + p.amount - (p.change || 0), 0) : 0;
     const paymentStatus = isOpenBill ? 'pending' : (totalPaid >= calculatedTotal ? 'paid' : 'pending');
     const orderStatus = isOpenBill ? 'open_bill' : 'confirmed';
-    const kitchenStatus = isOpenBill ? 'pending' : 'pending';
+    // CRITICAL FIX: Orders that are paid should immediately go to KDS with 'pending' status
+    // Open bills should NOT go to kitchen until paid
+    const kitchenStatus = isOpenBill ? 'on_hold' : 'pending';
 
     // Map order type
     const orderTypeMap: Record<string, string> = {
@@ -231,11 +233,12 @@ router.post('/', async (req, res) => {
       // Insert order items
       for (const item of items) {
         const itemId = randomUUID();
+        // CRITICAL FIX: Add kitchen_status to order_items so they inherit parent order's kitchen status
         await run(`
           INSERT INTO order_items (
-            id, order_id, product_id, product_name, quantity, unit_price, subtotal, notes
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `, [itemId, orderId, item.productId, item.productName, item.quantity, item.unitPrice, item.subtotal, item.notes || null]);
+            id, order_id, product_id, product_name, quantity, unit_price, subtotal, notes, kitchen_status
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [itemId, orderId, item.productId, item.productName, item.quantity, item.unitPrice, item.subtotal, item.notes || null, kitchenStatus]);
 
         // Insert modifiers if any
         if (item.modifiers && item.modifiers.length > 0) {
@@ -347,14 +350,21 @@ router.patch('/:id/close-bill', async (req, res) => {
     }
 
     const now = new Date().toISOString();
+    // CRITICAL FIX: When closing open bill, also update kitchen_status to 'pending' so order goes to KDS
     await run(`
       UPDATE orders SET
         order_status = 'confirmed',
         payment_status = 'paid',
         payment_method = ?,
+        kitchen_status = 'pending',
         updated_at = ?
       WHERE id = ?
     `, [paymentMethod || (billPayments?.[0]?.method) || 'tunai', now, id]);
+
+    // CRITICAL FIX: Also update all order items to 'pending' status so they appear in KDS
+    await run(`
+      UPDATE order_items SET kitchen_status = 'pending' WHERE order_id = ?
+    `, [id]);
 
     // Insert payment records
     if (billPayments && Array.isArray(billPayments)) {

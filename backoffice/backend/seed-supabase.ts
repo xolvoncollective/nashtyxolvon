@@ -33,7 +33,8 @@ async function seedDatabase() {
   try {
     // 1. Create Tenant
     console.log('1️⃣  Creating tenant...');
-    const tenantId = randomUUID();
+    // Use consistent UUID (not random) for demo tenant
+    let tenantId = '00000000-0000-0000-0000-000000000001';
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
       .insert({
@@ -58,7 +59,7 @@ async function seedDatabase() {
         if (existingTenant) {
           console.log('   📌 Using existing tenant:', existingTenant.id);
           // Use existing tenant ID
-          Object.assign({ tenantId: existingTenant.id });
+          tenantId = existingTenant.id;
         }
       } else {
         console.error('   ❌ Tenant creation error:', tenantError);
@@ -70,7 +71,8 @@ async function seedDatabase() {
 
     // 2. Create Outlet
     console.log('2️⃣  Creating outlet...');
-    const outletId = randomUUID();
+    // Use consistent UUID (not random) for demo outlet
+    let outletId = '00000000-0000-0000-0000-000000000002';
     const { data: outlet, error: outletError } = await supabase
       .from('outlets')
       .insert({
@@ -88,6 +90,17 @@ async function seedDatabase() {
     if (outletError) {
       if (outletError.message.includes('duplicate key')) {
         console.log('   ⚠️  Outlet already exists');
+        // Try to fetch existing outlet
+        const { data: existingOutlet } = await supabase
+          .from('outlets')
+          .select()
+          .eq('tenant_id', tenantId)
+          .eq('slug', 'main-branch')
+          .single();
+        if (existingOutlet) {
+          console.log('   📌 Using existing outlet:', existingOutlet.id);
+          outletId = existingOutlet.id;
+        }
       } else {
         console.error('   ❌ Outlet creation error:', outletError);
         throw outletError;
@@ -100,7 +113,7 @@ async function seedDatabase() {
     console.log('3️⃣  Creating users...');
     
     // Import bcrypt for hashing PINs
-    const bcrypt = await import('bcryptjs');
+    const bcrypt = (await import('bcryptjs')).default;
     
     const users = [
       { id: randomUUID(), tenant_id: tenantId, outlet_id: outletId, name: 'Admin User', pin: '1234', role: 'owner' },

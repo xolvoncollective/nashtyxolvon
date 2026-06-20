@@ -62,8 +62,8 @@
       currentUser = staff;
       if (typeof API !== 'undefined' && API.session) {
         API.session.user = staff;
-        API.session.outletId = staff.outletId || 'demo-outlet';
-        API.session.tenantId = staff.tenantId || 'demo-tenant';
+        API.session.outletId = staff.outletId || '00000000-0000-0000-0000-000000000002';
+        API.session.tenantId = staff.tenantId || '00000000-0000-0000-0000-000000000001';
       }
       document.getElementById('login-screen').style.display = 'none';
       const shell = document.getElementById('app-shell');

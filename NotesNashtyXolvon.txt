@@ -1,0 +1,24 @@
+Notes NashtyXolvon
+
+5 Sistem Restoran POS, KDS, BACKOFFICE, CRM, NASHTYCOST
+
+Login lapis 1 : admin1 - admin
+superadmin@nashty dengan password nashty1111.
+Kasir :8888
+Owner :9999
+Superadmin :0000
+Manager :1212
+
+Github : Xolvoncollective/nashtyxolvon
+
+Railway Project ID : 610491e6-4a5d-433b-ae87-760711f4a04a
+
+CORS_ORIGIN="https://nashtyxolvon2.pages.dev"
+DATABASE_MODE="postgres"
+JWT_SECRET="ZaidunkMargin"
+NODE_ENV="production"
+SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16dWNmbmRpZm5leXRiZXNpcmt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNDA1MzUsImV4cCI6MjA5NjkxNjUzNX0.OWaFhWTRVli8XZfIYmqpfg_aHCxBJYj"
+SUPABASE_SERVICE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16dWNmbmRpZm5leXRiZXNpcmt4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTM0MDUzNSwiZXhwIjoyMDk2OTE2NTM1fQ.blh08pJxW2CNkFjgVtWq_yTuEmTemFZaZuCKl-DM0M4"
+SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16dWNmbmRpZm5leXRiZXNpcmt4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTM0MDUzNSwiZXhwIjoyMDk2OTE2NTM1fQ.blh08pJxW2CNkFjgVtWq_yTuEmTemFZaZuCKl-DM0M4"
+SUPABASE_URL="https://mzucfndifneytbesirkx.supabase.co"
+port:5432

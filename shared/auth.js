@@ -201,8 +201,8 @@
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         console.log('[NASHTY AUTH] DEV MODE — Skipping auth redirect, using demo credentials');
         storeAuthData('dev-token', 
-          { id: 'admin', name: 'Admin Demo', role: 'admin', tenantId: 'demo-tenant', outletId: 'demo-outlet' },
-          { id: 'demo-outlet', name: 'Demo Outlet' }
+          { id: 'admin', name: 'Admin Demo', role: 'admin', tenantId: '00000000-0000-0000-0000-000000000001', outletId: '00000000-0000-0000-0000-000000000002' },
+          { id: '00000000-0000-0000-0000-000000000002', name: 'Demo Outlet' }
         );
         syncAuthWithAPI();
       } else {
@@ -235,8 +235,8 @@
         console.log('[NASHTY AUTH] Syncing auth data with API.session');
         window.API.session.token = authData.token;
         window.API.session.user = authData.user;
-        window.API.session.tenantId = authData.user.tenant_id || authData.user.tenantId || 'demo-tenant';
-        window.API.session.outletId = authData.outlet.id || authData.outlet.outlet_id || 'demo-outlet';
+        window.API.session.tenantId = authData.user.tenant_id || authData.user.tenantId || '00000000-0000-0000-0000-000000000001';
+        window.API.session.outletId = authData.outlet.id || authData.outlet.outlet_id || '00000000-0000-0000-0000-000000000002';
       }
     }
   }
