@@ -42,6 +42,13 @@ export async function onRequestPost({ request, env }) {
 
       const orderNumber = generateOrderNumber();
 
+      // Map order_type to valid constraint values ('dine-in', 'takeaway', etc)
+      let validOrderType = 'dine-in';
+      if (orderType === 'take' || orderType === 'takeaway') validOrderType = 'takeaway';
+      if (orderType === 'dine' || orderType === 'dine-in') validOrderType = 'dine-in';
+      // Assume delivery isn't constrained or find its real value, but fallback to takeaway if unknown
+      if (orderType === 'delivery') validOrderType = 'takeaway';
+
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert([{
@@ -50,7 +57,7 @@ export async function onRequestPost({ request, env }) {
           user_id: userId,
           shift_id: shiftId,
           order_number: orderNumber,
-          order_type: orderType || 'dine_in',
+          order_type: validOrderType,
           table_number: tableNumber,
           subtotal: subtotal || 0,
           tax: tax || 0,

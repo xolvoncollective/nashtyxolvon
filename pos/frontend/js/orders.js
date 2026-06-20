@@ -454,17 +454,7 @@
           } else {
             try {
               if (navigator.onLine) {
-                await fetch('https://nashty-backoffice-backend-production.up.railway.app/api/orders/payment-failed', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    tenantId: API.session.tenantId || '00000000-0000-0000-0000-000000000001',
-                    userId: API.session.user ? API.session.user.id : null,
-                    paymentMethod: pmSel,
-                    amount: grand,
-                    error: errorMsg || 'Transaksi dibatalkan'
-                  })
-                });
+                // Removed legacy railway endpoint for payment-failed
               }
             } catch (e) {
               console.error('Failed to log payment failure:', e);

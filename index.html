@@ -680,12 +680,12 @@
         openModule('/kds/frontend/', 'Kitchen Display', null);
       } 
       else if (app === 'pos' || app === 'crm') {
-        document.getElementById('pinSubtitle').innerText = `Requesting Authorization for ${app.toUpperCase()}...`;
-        document.getElementById('pinError').style.display = 'none';
-        document.getElementById('pinInput').value = '';
-        pinModal.style.display = 'flex';
-        document.getElementById('pinInput').focus();
-      } 
+        openModule(
+          app === 'pos' ? '/pos/frontend/' : '/crm/frontend/', 
+          app.toUpperCase(), 
+          { token: mainSession.token, user: mainSession.user, outlet: { id: mainSession.outletId, name: mainSession.outletName } }
+        );
+      }
       else if (app === 'backoffice' || app === 'cost') {
         document.getElementById('superadminSubtitle').innerText = `Requesting Authorization for ${app.toUpperCase()}...`;
         document.getElementById('superadminError').style.display = 'none';

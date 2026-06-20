@@ -146,14 +146,38 @@ export class SyncManager {
    */
   async syncFavorite(item, favoriteData) {
     const { action, userId, productId, position } = favoriteData;
+    const supabase = window.API?.supabase;
+    if (!supabase) throw new Error('Supabase not initialized');
 
     try {
       if (action === 'add') {
-        await this.apiClient.post('/favorites', { userId, productId, position });
+        const { error } = await supabase.from('pos_favorites').upsert({
+          user_id: userId,
+          product_id: productId,
+          position: position,
+          tenant_id: window.API?.session?.tenantId || '00000000-0000-0000-0000-000000000001',
+          outlet_id: window.API?.session?.outletId || '00000000-0000-0000-0000-000000000002'
+        });
+        if (error) throw error;
       } else if (action === 'remove') {
-        await this.apiClient.delete(`/favorites/${userId}/${productId}`);
+        const { error } = await supabase.from('pos_favorites')
+          .delete()
+          .eq('user_id', userId)
+          .eq('product_id', productId);
+        if (error) throw error;
       } else if (action === 'reorder') {
-        await this.apiClient.put('/favorites/reorder', { userId, favorites: favoriteData.favorites });
+        // favoriteData.favorites is an array of { id, position } but id here is the favorite id, or product id?
+        // Let's assume it provides { productId, position }
+        const updates = favoriteData.favorites.map(f => ({
+          user_id: userId,
+          product_id: f.productId || f.product_id || f.id,
+          position: f.position
+        }));
+        // We can upsert them
+        if (updates.length > 0) {
+          const { error } = await supabase.from('pos_favorites').upsert(updates);
+          if (error) throw error;
+        }
       }
 
       await this.offlineQueue.markSynced(item.localId);

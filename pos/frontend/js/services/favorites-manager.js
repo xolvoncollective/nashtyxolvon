@@ -29,20 +29,22 @@ class FavoritesManager {
   }
 
   async loadFromServer() {
-    const token = sessionStorage.getItem('token');
-    const apiBase = window.API_BASE || 'http://localhost:3099';
+    try {
+      const { data, error } = await window.API.supabase
+        .from('pos_favorites')
+        .select('*, products(*)')
+        .eq('user_id', this.userId)
+        .order('position', { ascending: true });
 
-    const response = await fetch(`${apiBase}/api/favorites?userId=${this.userId}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+      if (error) {
+        console.warn('Failed to load favorites from Supabase (table might not exist):', error.message);
+        throw error;
       }
-    });
-
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    const data = await response.json();
-    this.favorites = data.favorites || [];
+      
+      this.favorites = data || [];
+    } catch (e) {
+      throw e;
+    }
 
     // Cache to IndexedDB
     await this.cacheToIndexedDB();

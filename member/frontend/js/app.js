@@ -1,5 +1,5 @@
-﻿// CONFIG
-const API_BASE = 'https://nashty-backoffice-backend-production.up.railway.app/api';
+// CONFIG
+const API_BASE = '/api';
 
 // STATE
 let STATE = {

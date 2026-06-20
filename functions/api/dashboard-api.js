@@ -22,20 +22,22 @@ export async function onRequestPost({ request, env }) {
     }
 
     if (action === 'kpi') {
+      const todayDateObj = new Date();
+      const todayString = todayDateObj.toISOString().split('T')[0];
+      const startOfDay = `${todayString}T00:00:00.000Z`;
+      
       let q = supabase
         .from('orders')
         .select('*')
         .eq('tenant_id', tenantId)
         .eq('payment_status', 'paid')
-        .neq('order_status', 'cancelled');
+        .neq('order_status', 'cancelled')
+        .gte('created_at', startOfDay);
 
       if (outletId) q = q.eq('outlet_id', outletId);
       
-      const { data: allOrders, error } = await q;
+      const { data: todayOrders, error } = await q;
       if (error) throw error;
-
-      const today = new Date().toISOString().split('T')[0];
-      const todayOrders = allOrders.filter(o => o.created_at.startsWith(today));
       
       const grossRevenue = todayOrders.reduce((sum, o) => sum + (o.subtotal || 0), 0);
       const totalDiscounts = todayOrders.reduce((sum, o) => sum + (o.discount || 0), 0);
@@ -85,12 +87,17 @@ export async function onRequestPost({ request, env }) {
     }
 
     if (action === 'weekly-chart') {
+      const todayDateObj = new Date();
+      const sevenDaysAgo = new Date(todayDateObj.getTime() - (7 * 24 * 60 * 60 * 1000));
+      const startOfSevenDaysAgo = `${sevenDaysAgo.toISOString().split('T')[0]}T00:00:00.000Z`;
+
       let q = supabase
         .from('orders')
-        .select('*')
+        .select('total, created_at')
         .eq('tenant_id', tenantId)
         .eq('payment_status', 'paid')
-        .neq('order_status', 'cancelled');
+        .neq('order_status', 'cancelled')
+        .gte('created_at', startOfSevenDaysAgo);
         
       if (outletId) q = q.eq('outlet_id', outletId);
       const { data, error } = await q;

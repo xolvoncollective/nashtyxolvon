@@ -4,15 +4,46 @@
     async function initLogin() {
       if (typeof NASHTY_AUTH !== 'undefined' && NASHTY_AUTH.hasValidAuth()) {
         const user = NASHTY_AUTH.getUser();
-        if (user) doLogin(user);
+        const outlet = NASHTY_AUTH.getOutlet();
+        if (user && outlet) {
+          API.session.tenantId = user.tenantId || user.tenant_id || '00000000-0000-0000-0000-000000000001';
+          API.session.outletId = outlet.id || outlet.outlet_id || '00000000-0000-0000-0000-000000000002';
+          loadStaff();
+        }
       }
     }
     
     window.onAuthReceived = function(authData) {
-      if (authData && authData.user) {
-        doLogin(authData.user);
+      if (authData && authData.outlet) {
+        API.session.tenantId = authData.user.tenantId || authData.user.tenant_id || '00000000-0000-0000-0000-000000000001';
+        API.session.outletId = authData.outlet.id || authData.outlet.outlet_id || '00000000-0000-0000-0000-000000000002';
+        loadStaff();
       }
     };
+
+    async function loadStaff() {
+      if (!API.session.outletId) return;
+      const grid = document.getElementById('staff-grid');
+      if (!grid) return;
+      grid.innerHTML = '<div style="color:var(--txt3);grid-column:1/-1;text-align:center;padding:20px">Memuat data kasir...</div>';
+      try {
+        const res = await API.users.getAll({ outletId: API.session.outletId });
+        if (res && res.users && res.users.length > 0) {
+          grid.innerHTML = res.users.map(s => `
+            <div class="staff-btn" id="sbtn-${s.id}" onclick="selectStaff({id:'${s.id}', name:'${s.name}', role:'${s.role}', tenantId:'${s.tenant_id}', outletId:'${s.outlet_id}'})">
+              <div class="staff-av">${s.name[0].toUpperCase()}</div>
+              <div class="staff-n">${s.name}</div>
+              <div class="staff-r">${s.role === 'admin' ? 'Manager' : 'Kasir'}</div>
+            </div>
+          `).join('');
+        } else {
+          grid.innerHTML = '<div style="color:var(--txt3);grid-column:1/-1;text-align:center;padding:20px">Tidak ada data kasir untuk outlet ini</div>';
+        }
+      } catch (err) {
+        console.error("Gagal memuat kasir:", err);
+        grid.innerHTML = '<div style="color:var(--rd);grid-column:1/-1;text-align:center;padding:20px">Gagal memuat kasir. Cek koneksi.</div>';
+      }
+    }
     function selectStaff(s) {
       loginSel = s; loginPinArr = [];
       document.querySelectorAll('.staff-btn').forEach(b => b.classList.remove('selected'));
@@ -38,7 +69,7 @@
       for (let i = 0; i < 4; i++) { const d = document.getElementById('ld' + i); if (d) d.classList.toggle('on', i < loginPinArr.length); }
       if (loginPinArr.length === 4) {
         try {
-          const res = await API.auth.login(loginPinArr.join(''), '00000000-0000-0000-0000-000000000002');
+          const res = await API.auth.login(loginPinArr.join(''), API.session.outletId);
           if (res.success && res.user && res.user.id === loginSel.id) {
             doLogin(res.user);
           } else {

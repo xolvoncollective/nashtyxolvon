@@ -121,7 +121,11 @@ PAGES['pos-receipt'] = async () => {
     receiptCopies: '2',
     receiptLoyalty: true,
     receiptReview: true,
-    receiptWa: false
+    receiptWa: false,
+    font_size: 'medium',
+    social_instagram: '@nashtychicken',
+    social_tiktok: '@nashtychicken',
+    promo_messages: 'Dapatkan diskon 10% di pembelian berikutnya!'
   };
   try {
     const res = await API.request('/settings/' + API.session.outletId);
@@ -140,7 +144,11 @@ PAGES['pos-receipt'] = async () => {
       receiptCopies: document.getElementById('receiptCopies').value,
       receiptLoyalty: document.getElementById('receiptLoyalty').checked,
       receiptReview: document.getElementById('receiptReview').checked,
-      receiptWa: document.getElementById('receiptWa').checked
+      receiptWa: document.getElementById('receiptWa').checked,
+      font_size: document.getElementById('font_size').value,
+      social_instagram: document.getElementById('social_instagram').value,
+      social_tiktok: document.getElementById('social_tiktok').value,
+      promo_messages: document.getElementById('promo_messages').value
     };
     try {
       await API.request('/settings/' + API.session.outletId, { method: 'PUT', body: JSON.stringify({ settings: s }) });
@@ -168,11 +176,22 @@ PAGES['pos-receipt'] = async () => {
  </div>
  </div>
  <div class="card">
- <div class="card-h"><div class="card-t">Cetak & Logo</div></div>
+ <div class="card-h"><div class="card-t">Promo & Sosial Media</div></div>
  <div class="card-b" style="display:flex;flex-direction:column;gap:12px">
+ <div class="fld"><label>Pesan Promo (Tampil di bagian bawah struk)</label><input id="promo_messages" value="${settings.promo_messages || ''}"></div>
+ <div class="form-grid form-2">
+ <div class="fld"><label>Instagram</label><input id="social_instagram" value="${settings.social_instagram || ''}" placeholder="@username"></div>
+ <div class="fld"><label>TikTok</label><input id="social_tiktok" value="${settings.social_tiktok || ''}" placeholder="@username"></div>
+ </div>
+ </div>
+ </div>
+ <div class="card">
+ <div class="card-h"><div class="card-t">Cetak & Tampilan</div></div>
+ <div class="card-b" style="display:flex;flex-direction:column;gap:12px">
+ <div class="fld"><label>Ukuran Font</label><select id="font_size"><option value="small" ${settings.font_size==='small'?'selected':''}>Kecil (Small)</option><option value="medium" ${settings.font_size==='medium'?'selected':''}>Sedang (Medium)</option><option value="large" ${settings.font_size==='large'?'selected':''}>Besar (Large)</option></select></div>
  <div class="fld"><label>Jumlah Salinan</label><select id="receiptCopies"><option ${settings.receiptCopies==='1'?'selected':''}>1</option><option ${settings.receiptCopies==='2'?'selected':''}>2</option><option ${settings.receiptCopies==='3'?'selected':''}>3</option></select></div>
  <div class="fld"><label>Logo Struk</label>
- <div class="upload-zone" onclick="toast('Upload logo')">
+ <div class="upload-zone" onclick="toast('Upload logo belum tersedia, menggunakan logo default')">
  <div class="upload-zone-ico"></div>
  <div class="upload-zone-t">Upload logo untuk struk</div>
  <div class="upload-zone-s">PNG transparan · Maks 1MB</div>
@@ -188,10 +207,11 @@ PAGES['pos-receipt'] = async () => {
  <label class="toggle"><input id="receiptReview" type="checkbox" ${settings.receiptReview?'checked':''}><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
  </div>
  <div class="toggle-row">
- <div class="toggle-info"><div class="tl">QR WhatsApp</div></div>
+ <div class="toggle-info"><div class="tl">Nomor Antrian/WA</div></div>
  <label class="toggle"><input id="receiptWa" type="checkbox" ${settings.receiptWa?'checked':''}><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
  </div>
  </div>
+ <button class="btn btn-primary" style="margin-top:8px" onclick="savePosReceipt()">Simpan Pengaturan</button>
  </div>
  </div>
  </div>

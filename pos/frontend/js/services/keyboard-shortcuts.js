@@ -38,22 +38,69 @@ export class KeyboardShortcutHandler {
   getDefaultShortcuts() {
     return {
       // Navigation
-      'Ctrl+P': { action: 'openPayment', description: 'Open payment dialog' },
-      'Ctrl+S': { action: 'saveDraft', description: 'Save cart as draft' },
-      'Ctrl+N': { action: 'newOrder', description: 'Clear cart, start new order' },
-      'Ctrl+D': { action: 'showDrafts', description: 'Show saved drafts' },
-      'Ctrl+H': { action: 'showHistory', description: 'Show order history' },
-      'Alt+F': { action: 'focusSearch', description: 'Focus product search' },
-      'Escape': { action: 'cancelDialog', description: 'Close dialog/cancel' },
+      'Ctrl+P': { 
+        action: 'openPayment', 
+        description: 'Open payment dialog',
+        requiresPermission: 'pos.create_order'
+      },
+      'Ctrl+S': { 
+        action: 'saveDraft', 
+        description: 'Save cart as draft',
+        requiresPermission: 'pos.create_order'
+      },
+      'Ctrl+N': { 
+        action: 'newOrder', 
+        description: 'Clear cart, start new order'
+      },
+      'Ctrl+D': { 
+        action: 'showDrafts', 
+        description: 'Show saved drafts',
+        requiresPermission: 'pos.view'
+      },
+      'Ctrl+H': { 
+        action: 'showHistory', 
+        description: 'Show order history',
+        requiresPermission: 'pos.view'
+      },
+      'Alt+F': { 
+        action: 'focusSearch', 
+        description: 'Focus product search'
+      },
+      'Escape': { 
+        action: 'cancelDialog', 
+        description: 'Close dialog/cancel'
+      },
       
       // Cart manipulation
-      'ArrowUp': { action: 'selectPreviousItem', description: 'Select previous cart item' },
-      'ArrowDown': { action: 'selectNextItem', description: 'Select next cart item' },
-      'Delete': { action: 'removeSelectedItem', description: 'Remove selected item' },
-      'Plus': { action: 'incrementQuantity', description: 'Increase quantity by 1' },
-      'Minus': { action: 'decrementQuantity', description: 'Decrease quantity by 1' },
-      'Enter': { action: 'openModifiers', description: 'Open modifiers for selected item' },
-      'Ctrl+A': { action: 'selectAllItems', description: 'Select all cart items' },
+      'ArrowUp': { 
+        action: 'selectPreviousItem', 
+        description: 'Select previous cart item'
+      },
+      'ArrowDown': { 
+        action: 'selectNextItem', 
+        description: 'Select next cart item'
+      },
+      'Delete': { 
+        action: 'removeSelectedItem', 
+        description: 'Remove selected item',
+        requiresPermission: 'pos.edit_order'
+      },
+      'Plus': { 
+        action: 'incrementQuantity', 
+        description: 'Increase quantity by 1'
+      },
+      'Minus': { 
+        action: 'decrementQuantity', 
+        description: 'Decrease quantity by 1'
+      },
+      'Enter': { 
+        action: 'openModifiers', 
+        description: 'Open modifiers for selected item'
+      },
+      'Ctrl+A': { 
+        action: 'selectAllItems', 
+        description: 'Select all cart items'
+      },
       
       // Function keys (F1-F12) - product shortcuts
       'F1': { action: 'addProduct', description: 'Add assigned product', productSlot: 1 },
@@ -69,19 +116,19 @@ export class KeyboardShortcutHandler {
       'F11': { action: 'addProduct', description: 'Add assigned product', productSlot: 11 },
       'F12': { action: 'addProduct', description: 'Add assigned product', productSlot: 12 },
       
-      // Shift+Function keys - assign products
-      'Shift+F1': { action: 'assignProduct', description: 'Assign product to F1', productSlot: 1 },
-      'Shift+F2': { action: 'assignProduct', description: 'Assign product to F2', productSlot: 2 },
-      'Shift+F3': { action: 'assignProduct', description: 'Assign product to F3', productSlot: 3 },
-      'Shift+F4': { action: 'assignProduct', description: 'Assign product to F4', productSlot: 4 },
-      'Shift+F5': { action: 'assignProduct', description: 'Assign product to F5', productSlot: 5 },
-      'Shift+F6': { action: 'assignProduct', description: 'Assign product to F6', productSlot: 6 },
-      'Shift+F7': { action: 'assignProduct', description: 'Assign product to F7', productSlot: 7 },
-      'Shift+F8': { action: 'assignProduct', description: 'Assign product to F8', productSlot: 8 },
-      'Shift+F9': { action: 'assignProduct', description: 'Assign product to F9', productSlot: 9 },
-      'Shift+F10': { action: 'assignProduct', description: 'Assign product to F10', productSlot: 10 },
-      'Shift+F11': { action: 'assignProduct', description: 'Assign product to F11', productSlot: 11 },
-      'Shift+F12': { action: 'assignProduct', description: 'Assign product to F12', productSlot: 12 }
+      // Shift+Function keys - assign products (supervisor+ only)
+      'Shift+F1': { action: 'assignProduct', description: 'Assign product to F1', productSlot: 1, requiresPermission: 'settings.edit' },
+      'Shift+F2': { action: 'assignProduct', description: 'Assign product to F2', productSlot: 2, requiresPermission: 'settings.edit' },
+      'Shift+F3': { action: 'assignProduct', description: 'Assign product to F3', productSlot: 3, requiresPermission: 'settings.edit' },
+      'Shift+F4': { action: 'assignProduct', description: 'Assign product to F4', productSlot: 4, requiresPermission: 'settings.edit' },
+      'Shift+F5': { action: 'assignProduct', description: 'Assign product to F5', productSlot: 5, requiresPermission: 'settings.edit' },
+      'Shift+F6': { action: 'assignProduct', description: 'Assign product to F6', productSlot: 6, requiresPermission: 'settings.edit' },
+      'Shift+F7': { action: 'assignProduct', description: 'Assign product to F7', productSlot: 7, requiresPermission: 'settings.edit' },
+      'Shift+F8': { action: 'assignProduct', description: 'Assign product to F8', productSlot: 8, requiresPermission: 'settings.edit' },
+      'Shift+F9': { action: 'assignProduct', description: 'Assign product to F9', productSlot: 9, requiresPermission: 'settings.edit' },
+      'Shift+F10': { action: 'assignProduct', description: 'Assign product to F10', productSlot: 10, requiresPermission: 'settings.edit' },
+      'Shift+F11': { action: 'assignProduct', description: 'Assign product to F11', productSlot: 11, requiresPermission: 'settings.edit' },
+      'Shift+F12': { action: 'assignProduct', description: 'Assign product to F12', productSlot: 12, requiresPermission: 'settings.edit' }
     };
   }
 
@@ -105,6 +152,29 @@ export class KeyboardShortcutHandler {
     // Check if shortcut exists
     const shortcut = this.shortcuts.get(keyCombo);
     if (!shortcut) return;
+    
+    // Check permission if required
+    if (shortcut.requiresPermission) {
+      if (!window.NASHTY_AUTH?.hasPermission(shortcut.requiresPermission)) {
+        e.preventDefault();
+        if (window.toast) {
+          window.toast(`⛔ Unauthorized: You need '${shortcut.requiresPermission}' permission`, 'err');
+        }
+        console.warn(`[Shortcuts] Permission denied: ${shortcut.requiresPermission} for ${keyCombo}`);
+        
+        // Log audit event
+        if (window.NASHTY_AUTH?.logAuditEvent) {
+          window.NASHTY_AUTH.logAuditEvent('shortcut_permission_denied', {
+            shortcut: keyCombo,
+            permission: shortcut.requiresPermission,
+            description: shortcut.description,
+            userId: window.NASHTY_AUTH.getUser()?.id,
+            timestamp: new Date().toISOString()
+          });
+        }
+        return;
+      }
+    }
     
     // Prevent default for registered shortcuts
     e.preventDefault();
