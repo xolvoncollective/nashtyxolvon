@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,700;9..40,900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/app.css">
+<!-- Supabase Client for Realtime -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="shell">
@@ -21,7 +23,10 @@
   <div class="tb-sep"></div>
   <div class="tb-station">Dapur Utama</div>
   <div class="tb-sep"></div>
-  <div class="live-pill"><div class="live-dot"></div><span class="live-txt">Live</span></div>
+  <div class="live-pill" id="realtime-status">
+    <div class="live-dot"></div>
+    <span class="live-txt">Connecting...</span>
+  </div>
 
   <!-- Queue Summary: Orders · Items · Urgent -->
   <div class="queue-summary" id="queue-summary">
@@ -40,17 +45,13 @@
   </div>
 
   <div class="tb-right">
-    <button class="tb-btn" onclick="location.reload()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
-      ↻ Refresh
+    <button class="tb-btn" onclick="playTestSound()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+      🔊 Test
     </button>
     <div class="tb-clock" id="kds-clock">00:00:00</div>
     <div class="tb-btn" id="mode-btn" onclick="toggleMode()">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       Day
-    </div>
-    <div class="tb-btn" onclick="addDemoOrder()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Order
     </div>
   </div>
 </header>
@@ -109,6 +110,7 @@
 <script src="js/timer.js"></script>
 <script src="js/render.js"></script>
 <script src="js/interactions.js"></script>
+<script src="js/realtime.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
