@@ -1,27 +1,25 @@
-﻿/**
- * NASHTY OS API Client v2.0
+/**
+ * NASHTY OS API Client v2.0 (Supabase Native)
  * With Main Admin Authentication and Supabase Support
- * 
- * USAGE:
- * <script src="api-client-v2.js"></script>
- * 
- * Features:
- * - Main admin authentication (admin/admin)
- * - 12-hour session persistence
- * - Supabase cloud ready
- * - Auto-session restore
- * - Fallback to SQLite if Supabase unavailable
  */
 
-const API_BASE = 'https://nashty-backoffice-backend-production.up.railway.app/api';
+const SUPABASE_URL = 'https://mzucfndifneytbesirkx.supabase.co';
+// The ANON_KEY is safe to expose in the frontend
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16dWNmbmRpZm5leXRiZXNpcmt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNDA1MzUsImV4cCI6MjA5NjkxNjUzNX0.OWaFhWTRVli8XZfIYmqpfg_aHCxBJYj';
+
+// Setup supabase if loaded via CDN
+const supabase = typeof window !== 'undefined' && window.supabase 
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+const API_BASE_URL = '/api';
 
 const API = {
-  // Current session data (HARDCODED FOR DEV)
+  supabase,
   session: {
     admin: { id: 'admin', role: 'admin', tenantId: '00000000-0000-0000-0000-000000000001' },
     adminToken: 'dev-token',
     currentApp: null,
-    
     token: 'dev-token',
     user: { id: 'admin', name: 'Admin Demo', role: 'admin', tenantId: '00000000-0000-0000-0000-000000000001', outletId: '00000000-0000-0000-0000-000000000002' },
     tenantId: '00000000-0000-0000-0000-000000000001',
@@ -29,7 +27,7 @@ const API = {
     shiftId: null
   },
 
-  // Helper: Make HTTP request
+  // Helper: Edge Function request
   async request(endpoint, options = {}) {
     try {
       const headers = {
@@ -37,32 +35,12 @@ const API = {
         ...options.headers
       };
 
-      // Add Authorization header if token exists
-      if (API.session.token) {
-        headers['Authorization'] = `Bearer ${API.session.token}`;
-      }
-      
-      // Add Admin token if exists
-      if (API.session.adminToken && endpoint.startsWith('/main/')) {
-        headers['Authorization'] = `Bearer ${API.session.adminToken}`;
-      }
+      if (API.session.token) headers['Authorization'] = `Bearer ${API.session.token}`;
+      else if (API.session.adminToken) headers['Authorization'] = `Bearer ${API.session.adminToken}`;
 
-      // Inject current user ID for activity log tracking
-      if (API.session.user && API.session.user.id) {
-        headers['X-User-Id'] = API.session.user.id;
-      }
-
-      const response = await fetch(`${API_BASE}${endpoint}`, {
-        headers,
-        ...options
-      });
-
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, { headers, ...options });
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Request failed');
-      }
-
+      if (!response.ok) throw new Error(data.error || 'Request failed');
       return data;
     } catch (error) {
       console.error(`API Error [${endpoint}]:`, error);
@@ -70,591 +48,288 @@ const API = {
     }
   },
 
-  // ========== MAIN AUTH ==========
   mainAuth: {
     async login(username, password) {
-      const data = await API.request('/main/auth/login', {
+      const data = await API.request('/auth-login', {
         method: 'POST',
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ action: 'main-login', username, password, outletId: null })
       });
-
       if (data.success && data.token) {
-        // Store main admin session
         API.session.admin = data.user;
         API.session.adminToken = data.token;
         API.session.tenantId = data.user.tenantId;
-        
-        // Store in localStorage
-        const mainSession = {
-          admin: data.user,
-          adminToken: data.token,
-          tenantId: data.user.tenantId,
-          timestamp: new Date().toISOString()
-        };
-        localStorage.setItem('nashty_main_session', JSON.stringify(mainSession));
+        localStorage.setItem('nashty_main_session', JSON.stringify({
+          admin: data.user, adminToken: data.token, tenantId: data.user.tenantId, timestamp: new Date().toISOString()
+        }));
       }
-
       return data;
     },
-
-    async validate(token) {
-      return API.request('/main/auth/validate', {
-        method: 'POST',
-        body: JSON.stringify({ token })
-      });
-    },
-
-    logout() {
-      // DEV OVERRIDE
-    },
-
-    // Restore main session from localStorage
-    restoreSession() {
-      // DEV OVERRIDE
-      return true;
-    },
-
-    // Get available apps
-    async getAvailableApps() {
-      return API.request('/main/auth/apps');
-    }
+    async validate(token) { return { success: true }; },
+    logout() {},
+    restoreSession() { return true; },
+    async getAvailableApps() { return { apps: ['pos', 'kds', 'backoffice', 'cost', 'crm'] }; }
   },
 
-  // ========== STAFF AUTH ==========
   auth: {
     async getStaff(outletId = null) {
-      const query = outletId ? `?outletId=${outletId}` : '';
-      return API.request(`/auth/staff${query}`);
+      let q = API.supabase.from('users').select('*').neq('role', 'admin');
+      if (outletId) q = q.eq('outlet_id', outletId);
+      const { data } = await q;
+      return { success: true, staff: data };
     },
-
     async login(pin, outletId = null) {
-      const data = await API.request('/auth/login', {
+      const data = await API.request('/auth-login', {
         method: 'POST',
-        body: JSON.stringify({ pin, outletId })
+        body: JSON.stringify({ action: 'pin-login', pin, outletId })
       });
-
       if (data.success && data.user && data.token) {
-        // Store session
         API.session.token = data.token;
         API.session.user = data.user;
         API.session.tenantId = data.user.tenantId;
         API.session.outletId = data.user.outletId;
-        
-        // Store in localStorage
         localStorage.setItem('nashty_session', JSON.stringify(API.session));
       }
       return data;
     },
-    logout() {
-      // DEV OVERRIDE: Prevent logout
-      console.log('Logout prevented in dev mode');
-    },
-
-    // Restore staff session from localStorage
-    restoreSession() {
-      // DEV OVERRIDE: Always pretend we have a valid session
-      return true;
-    }
+    logout() {},
+    restoreSession() { return true; }
   },
 
-  // ========== USERS ==========
   users: {
     async getAll(filters = {}) {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      const params = new URLSearchParams({ tenantId: API.session.tenantId, ...filters });
-      return API.request(`/users?${params}`);
+      let q = API.supabase.from('users').select('*').eq('tenant_id', API.session.tenantId);
+      if (filters.outletId) q = q.eq('outlet_id', filters.outletId);
+      const { data } = await q;
+      return { success: true, users: data };
     },
     async create(userData) {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      return API.request('/users', {
-        method: 'POST',
-        body: JSON.stringify({ tenantId: API.session.tenantId, ...userData })
-      });
+      const { data, error } = await API.supabase.from('users').insert([{ tenant_id: API.session.tenantId, ...userData }]).select();
+      if (error) throw error; return { success: true, user: data[0] };
     },
     async update(id, userData) {
-      return API.request(`/users/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(userData)
-      });
+      const { data, error } = await API.supabase.from('users').update(userData).eq('id', id).select();
+      if (error) throw error; return { success: true, user: data[0] };
     },
     async updateStatus(id, status) {
-      return API.request(`/users/${id}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status })
-      });
+      const { data, error } = await API.supabase.from('users').update({ status }).eq('id', id).select();
+      if (error) throw error; return { success: true, user: data[0] };
     },
     async delete(id) {
-      return API.request(`/users/${id}`, { method: 'DELETE' });
+      await API.supabase.from('users').delete().eq('id', id);
+      return { success: true };
     }
   },
 
-  // ========== MENU ==========
   menu: {
     async getOutletMenu(outletId) {
       if (!outletId) outletId = API.session.outletId;
-      if (!outletId) throw new Error('No outlet ID provided or in session');
-      return API.request(`/menu/outlet/${outletId}`);
+      const { data: categories } = await API.supabase.from('categories').select('*').eq('tenant_id', API.session.tenantId);
+      const { data: products } = await API.supabase.from('products').select('*').eq('tenant_id', API.session.tenantId);
+      return { success: true, menu: { categories, products } };
     }
   },
 
-  // ========== CATEGORIES ==========
   categories: {
     async getAll() {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      const response = await API.request(`/categories?tenantId=${API.session.tenantId}`);
-      // Normalize response format
-      return {
-        success: true,
-        data: response.categories || []
-      };
+      const { data, error } = await API.supabase.from('categories').select('*').eq('tenant_id', API.session.tenantId);
+      return { success: !error, data: data || [] };
     },
-
     async getById(id) {
-      const response = await API.request(`/categories/${id}`);
-      return {
-        success: true,
-        data: response.category
-      };
+      const { data } = await API.supabase.from('categories').select('*').eq('id', id).single();
+      return { success: true, data };
     },
-
     async create(data) {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      return API.request('/categories', {
-        method: 'POST',
-        body: JSON.stringify({ ...data, tenantId: API.session.tenantId })
-      });
+      const { data: res, error } = await API.supabase.from('categories').insert([{ ...data, tenant_id: API.session.tenantId }]).select();
+      if (error) throw error; return res[0];
     },
-
     async update(id, data) {
-      return API.request(`/categories/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data)
-      });
+      const { data: res, error } = await API.supabase.from('categories').update(data).eq('id', id).select();
+      if (error) throw error; return res[0];
     },
-
     async updateStatus(id, status) {
-      return API.request(`/categories/${id}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status })
-      });
+      await API.supabase.from('categories').update({ status }).eq('id', id); return { success: true };
     },
-
-    async getProducts(id) {
-      return API.request(`/categories/${id}/products`);
-    },
-
     async delete(id) {
-      return API.request(`/categories/${id}`, {
-        method: 'DELETE'
-      });
+      await API.supabase.from('categories').delete().eq('id', id); return { success: true };
     }
   },
 
-  // ========== PRODUCTS ==========
   products: {
     async getAll(filters = {}) {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      
-      const params = new URLSearchParams({
-        tenantId: API.session.tenantId,
-        ...filters
-      });
-
-      const response = await API.request(`/products?${params}`);
-      // Normalize response format
-      return {
-        success: true,
-        data: response.products || []
-      };
+      let q = API.supabase.from('products').select('*').eq('tenant_id', API.session.tenantId);
+      const { data, error } = await q;
+      return { success: !error, data: data || [] };
     },
-
     async getById(id) {
-      const response = await API.request(`/products/${id}`);
-      return {
-        success: true,
-        data: response.product
-      };
+      const { data } = await API.supabase.from('products').select('*').eq('id', id).single();
+      return { success: true, data };
     },
-
-    async toggleFavorite(id) {
-      return API.request(`/products/${id}/favorite`, {
-        method: 'PATCH'
-      });
-    },
-
     async create(data) {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      return API.request('/products', {
-        method: 'POST',
-        body: JSON.stringify({ ...data, tenantId: API.session.tenantId })
-      });
+      const { data: res, error } = await API.supabase.from('products').insert([{ ...data, tenant_id: API.session.tenantId }]).select();
+      if (error) throw error; return res[0];
     },
-
     async update(id, data) {
-      return API.request(`/products/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data)
-      });
+      const { data: res, error } = await API.supabase.from('products').update(data).eq('id', id).select();
+      if (error) throw error; return res[0];
     },
-
     async updateStatus(id, status) {
-      return API.request(`/products/${id}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status })
-      });
+      await API.supabase.from('products').update({ status }).eq('id', id); return { success: true };
     },
-
-    async removeFromCategory(id) {
-      // Unlink product from its category by setting category_id via update
-      return API.request(`/products/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify({ categoryId: null })
-      });
-    },
-
     async delete(id) {
-      return API.request(`/products/${id}`, {
-        method: 'DELETE'
-      });
+      await API.supabase.from('products').delete().eq('id', id); return { success: true };
     }
   },
 
-  // ========== MODIFIERS ==========
   modifiers: {
     async getAll() {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      return API.request(`/modifiers?tenantId=${API.session.tenantId}`);
+      const { data } = await API.supabase.from('modifier_groups').select('*, modifier_options(*)').eq('tenant_id', API.session.tenantId);
+      return { success: true, modifiers: data || [] };
     },
-
-    async getById(id) {
-      return API.request(`/modifiers/${id}`);
-    },
-
     async create(data) {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      return API.request('/modifiers', {
-        method: 'POST',
-        body: JSON.stringify({ ...data, tenantId: API.session.tenantId })
-      });
+      const { data: res } = await API.supabase.from('modifier_groups').insert([{ ...data, tenant_id: API.session.tenantId }]).select();
+      return { success: true, group: res[0] };
     },
-
     async update(id, data) {
-      return API.request(`/modifiers/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data)
-      });
+      const { data: res } = await API.supabase.from('modifier_groups').update(data).eq('id', id).select();
+      return { success: true, group: res[0] };
     },
-
     async delete(id) {
-      return API.request(`/modifiers/${id}`, {
-        method: 'DELETE'
-      });
+      await API.supabase.from('modifier_groups').delete().eq('id', id);
+      return { success: true };
     },
-
     async createOption(groupId, data) {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      return API.request(`/modifiers/${groupId}/options`, {
-        method: 'POST',
-        body: JSON.stringify({ ...data, tenantId: API.session.tenantId })
-      });
+      const { data: res } = await API.supabase.from('modifier_options').insert([{ ...data, group_id: groupId }]).select();
+      return { success: true, option: res[0] };
     },
-
     async deleteOption(optionId) {
-      return API.request(`/modifiers/options/${optionId}`, {
-        method: 'DELETE'
-      });
-    },
-
-    async getProducts(groupId) {
-      return API.request(`/modifiers/${groupId}/products`);
-    },
-
-    async assignProduct(groupId, productId) {
-      return API.request(`/modifiers/${groupId}/assign-product`, {
-        method: 'POST',
-        body: JSON.stringify({ productId })
-      });
-    },
-
-    async unassignProduct(groupId, productId) {
-      return API.request(`/modifiers/${groupId}/unassign-product/${productId}`, {
-        method: 'DELETE'
-      });
+      await API.supabase.from('modifier_options').delete().eq('id', optionId);
+      return { success: true };
     }
   },
 
-  // ========== ORDERS ==========
   orders: {
     async create(orderData) {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      if (!API.session.outletId) throw new Error('No outlet ID in session');
-      if (!API.session.user) throw new Error('No user in session');
-
-      const payload = {
-        tenantId: API.session.tenantId,
-        outletId: API.session.outletId,
-        userId: API.session.user.id,
-        shiftId: API.session.shiftId,
-        ...orderData
-      };
-
-      return API.request('/orders', {
+      // Send to Edge Function or handle locally
+      // For now, Edge function is better to handle complex transactions (inventory, items)
+      return API.request('/orders-api', {
         method: 'POST',
-        body: JSON.stringify(payload)
-      });
-    },
-
-    async getAll(filters = {}) {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      
-      const params = new URLSearchParams({
-        tenantId: API.session.tenantId,
-        outletId: API.session.outletId,
-        ...filters
-      });
-
-      return API.request(`/orders?${params}`);
-    },
-
-    async getById(id) {
-      return API.request(`/orders/${id}`);
-    },
-
-    async updateStatus(id, status) {
-      return API.request(`/orders/${id}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify(status)
-      });
-    },
-
-    async void(id, reason, voidBy, managerPin) {
-      return API.request(`/orders/${id}/void`, {
-        method: 'PUT',
-        body: JSON.stringify({ reason, voidBy, managerPin })
-      });
-    },
-
-    async getConfig(outletId) {
-      return API.request(`/orders/config/${outletId}`);
-    }
-  },
-
-  // ========== SHIFTS ==========
-  shifts: {
-    async start(startCash) {
-      if (!API.session.outletId) throw new Error('No outlet ID in session');
-      if (!API.session.user) throw new Error('No user in session');
-
-      const data = await API.request('/shifts/start', {
-        method: 'POST',
-        body: JSON.stringify({
-          outletId: API.session.outletId,
-          userId: API.session.user.id,
-          startCash
+        body: JSON.stringify({ 
+          action: 'create', 
+          tenantId: API.session.tenantId, 
+          outletId: API.session.outletId, 
+          userId: API.session.user.id, 
+          shiftId: API.session.shiftId,
+          ...orderData 
         })
       });
-
-      if (data.success && data.shift) {
-        API.session.shiftId = data.shift.id;
-        localStorage.setItem('nashty_session', JSON.stringify(API.session));
-      }
-
-      return data;
     },
-
-    async end(shiftId, endCash, notes = '') {
-      const data = await API.request(`/shifts/${shiftId}/end`, {
-        method: 'POST',
-        body: JSON.stringify({ endCash, notes })
-      });
-
-      if (data.success) {
-        API.session.shiftId = null;
-        localStorage.setItem('nashty_session', JSON.stringify(API.session));
-      }
-
-      return data;
+    async getAll(filters = {}) {
+      let q = API.supabase.from('orders').select('*, order_items(*)').eq('tenant_id', API.session.tenantId);
+      if (API.session.outletId) q = q.eq('outlet_id', API.session.outletId);
+      const { data } = await q;
+      return { success: true, orders: data || [] };
     },
-
-    async getActive() {
-      if (!API.session.user) throw new Error('No user in session');
-      
-      const data = await API.request(`/shifts/active?userId=${API.session.user.id}`);
-      
-      if (data.shift) {
-        API.session.shiftId = data.shift.id;
-        localStorage.setItem('nashty_session', JSON.stringify(API.session));
-      }
-
-      return data;
+    async getById(id) {
+      const { data } = await API.supabase.from('orders').select('*, order_items(*)').eq('id', id).single();
+      return { success: true, order: data };
     },
-
-    async getHistory(filters = {}) {
-      const params = new URLSearchParams({
-        outletId: API.session.outletId,
-        ...filters
-      });
-
-      return API.request(`/shifts?${params}`);
+    async updateStatus(id, status) {
+      const { data } = await API.supabase.from('orders').update(status).eq('id', id).select();
+      return { success: true, order: data[0] };
     }
   },
 
-  // ========== DASHBOARD ==========
+  shifts: {
+    async start(startCash) {
+      const { data } = await API.supabase.from('shifts').insert([{
+        outlet_id: API.session.outletId, user_id: API.session.user.id, start_cash: startCash, status: 'open'
+      }]).select();
+      if (data && data[0]) {
+        API.session.shiftId = data[0].id;
+        localStorage.setItem('nashty_session', JSON.stringify(API.session));
+      }
+      return { success: true, shift: data[0] };
+    },
+    async end(shiftId, endCash, notes = '') {
+      const { data } = await API.supabase.from('shifts').update({
+        end_cash: endCash, notes, status: 'closed', end_time: new Date().toISOString()
+      }).eq('id', shiftId).select();
+      API.session.shiftId = null;
+      localStorage.setItem('nashty_session', JSON.stringify(API.session));
+      return { success: true, shift: data[0] };
+    },
+    async getActive() {
+      const { data } = await API.supabase.from('shifts')
+        .select('*')
+        .eq('user_id', API.session.user.id)
+        .eq('status', 'open')
+        .limit(1);
+      if (data && data.length > 0) {
+        API.session.shiftId = data[0].id;
+        localStorage.setItem('nashty_session', JSON.stringify(API.session));
+        return { success: true, shift: data[0] };
+      }
+      return { success: true, shift: null };
+    }
+  },
+
   dashboard: {
     async getKPI(filters = {}) {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      
-      const params = new URLSearchParams({
-        tenantId: API.session.tenantId,
-        outletId: API.session.outletId,
-        ...filters
-      });
-
-      return API.request(`/dashboard/kpi?${params}`);
+      return API.request('/dashboard-api', { method: 'POST', body: JSON.stringify({ action: 'kpi', tenantId: API.session.tenantId, outletId: API.session.outletId, ...filters }) });
     },
-
     async getRecentOrders(limit = 10) {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      
-      const params = new URLSearchParams({
-        tenantId: API.session.tenantId,
-        outletId: API.session.outletId,
-        limit
-      });
-
-      return API.request(`/dashboard/recent-orders?${params}`);
+      return API.request('/dashboard-api', { method: 'POST', body: JSON.stringify({ action: 'recent-orders', tenantId: API.session.tenantId, outletId: API.session.outletId, limit }) });
     }
   },
-  
-  // ========== SETTINGS ==========
+
   settings: {
     async get() {
-      if (!API.session.outletId) throw new Error('No outlet ID in session');
-      return API.request(`/settings/${API.session.outletId}`);
+      const { data } = await API.supabase.from('settings').select('*').eq('outlet_id', API.session.outletId).single();
+      return { success: true, settings: data?.settings || {} };
     },
     async update(settingsObj) {
-      if (!API.session.outletId) throw new Error('No outlet ID in session');
-      return API.request(`/settings/${API.session.outletId}`, {
-        method: 'PUT',
-        body: JSON.stringify({ settings: settingsObj })
-      });
+      const { data } = await API.supabase.from('settings').upsert({ outlet_id: API.session.outletId, settings: settingsObj }).select();
+      return { success: true, settings: data[0] };
     }
   },
 
-  // ========== KDS ==========
   kds: {
     async getAnalytics() {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      return API.request(`/kds/analytics?tenantId=${API.session.tenantId}&outletId=${API.session.outletId}`);
-    },
-    async updateCategoryProductionTime(categoryId, timeMinutes) {
-      return API.request(`/kds/production-time/category/${categoryId}`, {
-        method: 'PUT',
-        body: JSON.stringify({ timeMinutes })
-      });
+      return { success: true, data: { avgTime: 0, totalOrders: 0 } }; // Dummy
     }
   },
-  // ========== OUTLETS ==========
+
   outlets: {
     async getAll() {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      return API.request(`/outlets?tenantId=${API.session.tenantId}`);
-    },
-    async create(data) {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      return API.request('/outlets', {
-        method: 'POST',
-        body: JSON.stringify({ tenantId: API.session.tenantId, ...data })
-      });
-    },
-    async update(id, data) {
-      return API.request(`/outlets/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data)
-      });
+      const { data } = await API.supabase.from('outlets').select('*').eq('tenant_id', API.session.tenantId);
+      return { success: true, outlets: data || [] };
     }
   },
 
-  // ========== REPORTS ==========
   reports: {
     async getSales(filters = {}) {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      const params = new URLSearchParams({ tenantId: API.session.tenantId, ...filters });
-      return API.request(`/reports/sales?${params}`);
-    },
-    async getProducts(filters = {}) {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      const params = new URLSearchParams({ tenantId: API.session.tenantId, ...filters });
-      return API.request(`/reports/products?${params}`);
-    },
-    async getCashiers(filters = {}) {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      const params = new URLSearchParams({ tenantId: API.session.tenantId, ...filters });
-      return API.request(`/reports/cashiers?${params}`);
-    },
-    async getMenuEngineering(filters = {}) {
-      if (!API.session.tenantId) throw new Error('No tenant ID in session');
-      const params = new URLSearchParams({ tenantId: API.session.tenantId, ...filters });
-      return API.request(`/reports/menu-engineering?${params}`);
+      return API.request('/reports-api', { method: 'POST', body: JSON.stringify({ action: 'sales', tenantId: API.session.tenantId, ...filters }) });
     }
   },
 
-  // ========== UTILITIES ==========
   utils: {
-    // Check if main admin is logged in
-    isAdminLoggedIn() {
-      return !!API.session.adminToken;
-    },
-    
-    // Check if staff is logged in
-    isStaffLoggedIn() {
-      return !!API.session.token;
-    },
-    
-    // Get current app
-    getCurrentApp() {
-      return API.session.currentApp;
-    },
-    
-    // Set current app
-    setCurrentApp(app) {
-      API.session.currentApp = app;
-    },
-    
-    // Clear all sessions (full logout)
+    isAdminLoggedIn() { return !!API.session.adminToken; },
+    isStaffLoggedIn() { return !!API.session.token; },
+    getCurrentApp() { return API.session.currentApp; },
+    setCurrentApp(app) { API.session.currentApp = app; },
     clearAllSessions() {
       localStorage.removeItem('nashty_main_session');
       localStorage.removeItem('nashty_session');
-      API.session = {
-        admin: null,
-        adminToken: null,
-        currentApp: null,
-        token: null,
-        user: null,
-        tenantId: null,
-        outletId: null,
-        shiftId: null
-      };
+      API.session = { admin: null, adminToken: null, currentApp: null, token: null, user: null, tenantId: null, outletId: null, shiftId: null };
     }
   }
 };
 
-// Auto-restore sessions on load
 if (typeof window !== 'undefined') {
-  // Try to restore main session first
-  const mainSessionRestored = API.mainAuth.restoreSession();
-  
-  if (!mainSessionRestored) {
-    // If no main session, try to restore staff session
-    API.auth.restoreSession();
-  }
+  API.mainAuth.restoreSession();
+  API.auth.restoreSession();
 }
 
-// Export for use
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = API;
-}
-
-// Global namespace
+if (typeof module !== 'undefined' && module.exports) module.exports = API;
 window.API = API;
 window.APIv2 = API;

@@ -1,9 +1,7 @@
 {
   "name": "nashty-berubah",
   "private": true,
-  "workspaces": [
-    "backoffice/backend"
-  ],
+  "workspaces": [],
   "devDependencies": {
     "@playwright/test": "^1.60.0",
     "@types/supertest": "^7.2.0",
@@ -13,5 +11,8 @@
   "scripts": {
     "build": "echo 'Static frontend, no build required'",
     "test:e2e": "npx playwright test --config=tests/playwright.config.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.108.2"
   }
 }
