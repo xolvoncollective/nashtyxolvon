@@ -1,70 +1,140 @@
-const CACHE_NAME = 'nashty-pos-v6';
-const ASSETS = [
-  './',
-  './index.html',
-  './css/components.css',
-  './css/pos.css',
-  './js/utils.js',
-  './js/state.js',
-  './js/printer.js',
-  './js/auth.js',
-  './js/app.js',
-  './js/products.js',
-  './js/cart.js',
-  './js/modal.js',
-  './js/orders.js',
-  './js/history.js',
-  './manifest.json',
-  '../api-client.js'
+/**
+ * NASHTY OS - Service Worker with Workbox
+ * Provides offline-first caching with advanced strategies
+ */
+
+// Import Workbox from CDN
+importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.0.0/workbox-sw.js');
+
+const { registerRoute, setDefaultHandler, setCatchHandler } = workbox.routing;
+const { CacheFirst, NetworkFirst, StaleWhileRevalidate } = workbox.strategies;
+const { CacheableResponsePlugin } = workbox.cacheableResponse;
+const { ExpirationPlugin } = workbox.expiration;
+const { BackgroundSyncPlugin } = workbox.backgroundSync;
+const { precacheAndRoute } = workbox.precaching;
+
+console.log('Workbox loaded:', workbox ? 'YES' : 'NO');
+
+// Precache critical assets
+const PRECACHE_ASSETS = [
+  { url: '/pos/frontend/index.html', revision: '1.0.0' },
+  { url: '/pos/frontend/css/components.css', revision: '1.0.0' },
+  { url: '/pos/frontend/js/app.js', revision: '1.0.0' },
+  { url: '/pos/frontend/js/auth.js', revision: '1.0.0' },
+  { url: '/pos/frontend/js/cart.js', revision: '1.0.0' },
+  { url: '/pos/frontend/js/state.js', revision: '1.0.0' },
+  { url: '/pos/frontend/js/utils.js', revision: '1.0.0' },
+  { url: '/pos/frontend/js/sync-manager.js', revision: '1.0.0' },
+  { url: '/pos/frontend/js/db-schema.js', revision: '1.0.0' },
+  { url: '/pos/frontend/js/services/encryption-service.js', revision: '1.0.0' },
+  { url: '/pos/frontend/js/services/cache-manager.js', revision: '1.0.0' },
+  { url: '/api-client.js', revision: '1.0.0' }
 ];
 
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
-  );
-  self.skipWaiting();
+precacheAndRoute(PRECACHE_ASSETS);
+
+// ── CACHING STRATEGIES ──
+
+// Static assets: Cache First (HTML, CSS, JS, fonts)
+registerRoute(
+  ({ request }) => request.destination === 'style' ||
+                   request.destination === 'script' ||
+                   request.destination === 'font' ||
+                   request.destination === 'document',
+  new CacheFirst({
+    cacheName: 'static-assets-v1',
+    plugins: [
+      new CacheableResponsePlugin({ 
+        statuses: [0, 200] 
+      }),
+      new ExpirationPlugin({ 
+        maxEntries: 60, 
+        maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
+      })
+    ]
+  })
+);
+
+// Product images: Stale While Revalidate
+registerRoute(
+  ({ request }) => request.destination === 'image',
+  new StaleWhileRevalidate({
+    cacheName: 'images-v1',
+    plugins: [
+      new CacheableResponsePlugin({ 
+        statuses: [0, 200] 
+      }),
+      new ExpirationPlugin({ 
+        maxEntries: 200, 
+        maxAgeSeconds: 7 * 24 * 60 * 60 // 7 days
+      })
+    ]
+  })
+);
+
+// API calls: Network First with Background Sync
+const bgSyncPlugin = new BackgroundSyncPlugin('orders-queue', {
+  maxRetentionTime: 24 * 60 // Retry for up to 24 hours (in minutes)
 });
 
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-      );
-    })
-  );
-  self.clients.claim();
-});
+registerRoute(
+  ({ url }) => url.pathname.startsWith('/api/'),
+  new NetworkFirst({
+    cacheName: 'api-cache-v1',
+    networkTimeoutSeconds: 10,
+    plugins: [
+      new CacheableResponsePlugin({ 
+        statuses: [0, 200] 
+      }),
+      new ExpirationPlugin({
+        maxEntries: 50,
+        maxAgeSeconds: 5 * 60 // 5 minutes
+      }),
+      bgSyncPlugin
+    ]
+  })
+);
 
-self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET') return;
-  if (e.request.url.includes('/api/')) {
-    // API calls: Network first, fallback to cached data if possible, else fail
-    e.respondWith(
-      fetch(e.request)
-        .then((res) => {
-          const clone = res.clone();
-          caches.open('nashty-api-cache').then(cache => {
-            cache.put(e.request, clone);
-          });
-          return res;
-        })
-        .catch(() => caches.match(e.request))
-    );
-  } else {
-    // Static assets: Network first, fallback to cache for development
-    e.respondWith(
-      fetch(e.request)
-        .then((res) => {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(e.request, clone);
-          });
-          return res;
-        })
-        .catch(() => caches.match(e.request))
-    );
+// ── EVENT HANDLERS ──
+
+// Listen for skip waiting message (for updates)
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    console.log('Service Worker: Received SKIP_WAITING message');
+    self.skipWaiting();
   }
+});
+
+// Clean up old caches on activation
+self.addEventListener('activate', (event) => {
+  console.log('Service Worker: Activating...');
+  
+  const cacheWhitelist = [
+    'static-assets-v1', 
+    'images-v1', 
+    'api-cache-v1',
+    'workbox-precache-v2-' + self.location.origin
+  ];
+  
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (!cacheWhitelist.some(name => cacheName.includes(name))) {
+            console.log('Service Worker: Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => {
+      console.log('Service Worker: Activated');
+      return self.clients.claim();
+    })
+  );
+});
+
+// Installation event
+self.addEventListener('install', (event) => {
+  console.log('Service Worker: Installing...');
+  self.skipWaiting();
 });

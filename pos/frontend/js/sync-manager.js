@@ -1,14 +1,13 @@
 /**
- * NASHTY OS - POS Offline Sync Manager
- * Uses IndexedDB to store and queue orders offline when internet is unavailable.
+ * NASHTY OS - POS Offline Sync Manager (Enhanced)
+ * Integrates with encryption service and new IndexedDB schema
  */
 
 class OfflineSyncManager {
   constructor() {
-    this.dbName = 'NashtyPOSOfflineDB';
-    this.dbVersion = 1;
     this.db = null;
-    this.initPromise = this.initDB();
+    this.encryptionService = null;
+    this.initPromise = null;
     
     // Bind network events
     window.addEventListener('online', () => this.handleNetworkChange(true));
@@ -20,6 +19,39 @@ class OfflineSyncManager {
         this.syncOfflineOrders();
       }
     }, 30000);
+  }
+
+  /**
+   * Initialize with database schema and encryption service
+   */
+  async init() {
+    if (this.initPromise) return this.initPromise;
+
+    this.initPromise = (async () => {
+      try {
+        // Wait for DBSchema and EncryptionService to be available
+        if (window.DBSchema) {
+          this.db = await window.DBSchema.init();
+          console.log('OfflineSyncManager: Database initialized');
+        }
+
+        if (window.EncryptionService) {
+          this.encryptionService = window.EncryptionService;
+          console.log('OfflineSyncManager: Encryption service connected');
+        }
+
+        await this.updateUIStatus();
+        
+        // Automatically attempt to sync if online on load
+        if (navigator.onLine) {
+          this.syncOfflineOrders();
+        }
+      } catch (error) {
+        console.error('OfflineSyncManager: Initialization failed:', error);
+      }
+    })();
+
+    return this.initPromise;
   }
 
   // Initialize IndexedDB
