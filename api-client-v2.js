@@ -97,11 +97,10 @@ const API = {
     }
   },
 
-  // ─── Edge Function Request ─────────────────────────────────────────────────
+  // ─── Edge Function Request (Rerouted to Backend) ─────────────────────────
   async edgeRequest(functionName, options = {}) {
     const headers = {
       'Content-Type': 'application/json',
-      'apikey': SUPABASE_ANON_KEY,
       ...(options.headers || {})
     };
 
@@ -109,16 +108,39 @@ const API = {
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
     try {
+      // Intercept and route to Express Backend
+      if (functionName === 'auth-login') {
+        return await API.backendRequest('/api/auth/login', { ...options, headers });
+      }
+      
+      if (functionName === 'orders-api') {
+        const body = options.body ? JSON.parse(options.body) : {};
+        if (body.action === 'create') {
+          return await API.backendRequest('/api/orders', { ...options, headers });
+        }
+      }
+      
+      if (functionName === 'reports-api') {
+        const body = options.body ? JSON.parse(options.body) : {};
+        const params = new URLSearchParams(body).toString();
+        if (body.action === 'sales') {
+          return await API.backendRequest(`/api/reports/sales?${params}`, { method: 'GET', headers });
+        } else if (body.action === 'top-products') {
+          return await API.backendRequest(`/api/reports/products?${params}`, { method: 'GET', headers });
+        }
+      }
+
+      // Fallback to actual edge function (if deployed)
       const response = await fetch(`${EDGE_FUNCTIONS_URL}/${functionName}`, {
         method: 'POST',
         ...options,
-        headers
+        headers: { ...headers, 'apikey': SUPABASE_ANON_KEY }
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
       return data;
     } catch (error) {
-      console.error(`[Edge Function] ${functionName}:`, error);
+      console.error(`[Edge/Backend Intercept] ${functionName}:`, error);
       throw error;
     }
   },

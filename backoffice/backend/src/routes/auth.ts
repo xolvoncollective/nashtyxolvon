@@ -12,6 +12,89 @@ const router = Router();
 // Apply auth rate limiter to all auth routes
 router.use(authLimiter);
 
+// ─── Login (Fallback for Edge Function) ───────────────────────────────────────
+router.post('/login', async (req, res) => {
+  try {
+    const { action, username, password, pin, outletId } = req.body;
+
+    // ─── Main Login (manager/superadmin) ───
+    if (action === 'main-login' || action === 'superadmin-login') {
+      const loginEmail = username === 'admin1' ? 'admin@nashty' : username;
+      const allowedRoles = action === 'superadmin-login'
+        ? ['superadmin', 'owner', 'manager', 'admin']
+        : ['manager', 'superadmin', 'owner', 'admin'];
+
+      const { data: user, error } = await supabase
+        .from('users')
+        .select('id, name, email, role, tenant_id, outlet_id, status, password')
+        .eq('email', loginEmail)
+        .in('role', allowedRoles)
+        .single();
+
+      if (error || !user || user.password !== password) {
+        return res.status(401).json({ success: false, error: 'Invalid credentials' });
+      }
+
+      if (user.status === 'inactive') {
+        return res.status(403).json({ success: false, error: 'Account is inactive' });
+      }
+
+      const effectiveOutletId = outletId || user.outlet_id;
+
+      const token = jwt.sign({
+        sub: user.id, name: user.name, role: user.role, tenantId: user.tenant_id, outletId: effectiveOutletId
+      }, config.jwt.secret, { expiresIn: '1h' });
+
+      const refreshToken = jwt.sign({ sub: user.id, type: 'refresh' }, config.jwt.refreshSecret, { expiresIn: '30d' });
+
+      await supabase.from('activity_logs').insert({
+        tenant_id: user.tenant_id, user_id: user.id, action_type: 'user_login', entity_type: 'auth',
+        metadata: { action, ip: req.ip || 'unknown' }
+      });
+
+      return res.json({
+        success: true, token, refreshToken, expiresIn: '1h',
+        user: { id: user.id, name: user.name, email: user.email, role: user.role, tenantId: user.tenant_id, outletId: effectiveOutletId }
+      });
+    }
+
+    // ─── PIN Login (cashier/staff) ───
+    if (action === 'pin-login') {
+      if (!pin) return res.status(400).json({ success: false, error: 'PIN is required' });
+
+      let q = supabase.from('users').select('id, name, role, tenant_id, outlet_id, status, pin').eq('pin', pin);
+      if (outletId) q = q.eq('outlet_id', outletId);
+      const { data: user, error } = await q.single();
+
+      if (error || !user) return res.status(401).json({ success: false, error: 'Invalid PIN' });
+      if (user.status === 'inactive') return res.status(403).json({ success: false, error: 'User account is inactive' });
+
+      const effectiveOutletId = outletId || user.outlet_id;
+
+      const token = jwt.sign({
+        sub: user.id, name: user.name, role: user.role, tenantId: user.tenant_id, outletId: effectiveOutletId
+      }, config.jwt.secret, { expiresIn: '12h' });
+
+      const refreshToken = jwt.sign({ sub: user.id, type: 'refresh' }, config.jwt.refreshSecret, { expiresIn: '30d' });
+
+      await supabase.from('activity_logs').insert({
+        tenant_id: user.tenant_id, user_id: user.id, action_type: 'pin_login', entity_type: 'auth',
+        metadata: { outletId: effectiveOutletId }
+      });
+
+      return res.json({
+        success: true, token, refreshToken, expiresIn: '12h',
+        user: { id: user.id, name: user.name, role: user.role, tenantId: user.tenant_id, outletId: effectiveOutletId }
+      });
+    }
+
+    return res.status(400).json({ error: 'Invalid action' });
+  } catch (err) {
+    logger.error('Login error', { error: err });
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // ─── Token Refresh ────────────────────────────────────────────────────────────
 router.post('/refresh', async (req, res) => {
   const { refreshToken } = req.body;
