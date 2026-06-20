@@ -1,4 +1,4 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
 import { 
   validateAdminCredentials, 
   createAdminSessionToken, 
@@ -19,12 +19,12 @@ router.get('/health', async (req, res) => {
 // Admin login endpoint
 router.post('/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, outletId } = req.body;
 
     // Validate input
-    if (!username || !password) {
+    if (!username || !password || !outletId) {
       return res.status(400).json({ 
-        error: 'Username dan password diperlukan' 
+        error: 'Username, password, dan outlet diperlukan' 
       });
     }
 
@@ -59,7 +59,8 @@ router.post('/login', async (req, res) => {
         id: adminSession.id,
         username: adminSession.username,
         role: adminSession.role,
-        tenantId: adminSession.tenantId
+        tenantId: adminSession.tenantId,
+        outletId: outletId
       }
     });
 
@@ -117,6 +118,26 @@ router.post('/logout', async (req, res) => {
     success: true,
     message: 'Logout berhasil'
   });
+});
+
+// Superadmin login endpoint
+router.post('/superadmin-login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (username === 'superadmin@nashty' && password === 'nashty1111') {
+      const token = await createAdminSessionToken({
+        id: 'superadmin',
+        username: 'superadmin',
+        role: 'superadmin',
+        tenantId: 'demo-tenant',
+        createdAt: new Date()
+      });
+      return res.json({ success: true, token, role: 'superadmin' });
+    }
+    return res.status(401).json({ error: 'Kredensial superadmin tidak valid' });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // Get available apps endpoint

@@ -1,669 +1,786 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NASHTY OS - Launcher</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NASHTY OS | Authentication Gateway</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+    :root {
+      --bg-base: #010100;
+      --bg-surface: #0A0A09;
+      --bg-input: #121210;
+      --border-dim: #2A2A26;
+      --border-focus: #E4540C;
+      --accent: #E4540C;
+      --accent-hover: #C4420A;
+      --text-main: #FAFAFA;
+      --text-muted: #82827C;
+      --text-danger: #D93025;
+      
+      /* Base fluid scaling factor */
+      --fluid-base: clamp(0.875rem, 1vw + 0.5rem, 1.125rem);
+    }
 
-        .container {
-            width: 100%;
-            max-width: 450px;
-        }
+    html {
+      font-size: 16px;
+    }
 
-        .card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            animation: slideIn 0.3s ease-out;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      height: 100dvh;
+      width: 100vw;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      padding: 2rem;
+    }
 
-        .logo {
-            text-align: center;
-            margin-bottom: 32px;
-        }
+    .auth-wrapper {
+      width: clamp(20rem, 90vw, 65rem);
+      min-height: clamp(30rem, 70dvh, 45rem);
+      display: flex;
+      border: 1px solid var(--border-dim);
+      background: var(--bg-surface);
+      position: relative;
+    }
 
-        .logo h1 {
-            font-size: 32px;
-            font-weight: 700;
-            color: #1a202c;
-            margin-bottom: 8px;
-        }
+    .auth-sidebar {
+      flex: 0 0 35%;
+      border-right: 1px solid var(--border-dim);
+      padding: 3rem 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: var(--bg-base);
+    }
 
-        .logo p {
-            color: #718096;
-            font-size: 14px;
-        }
+    .brand-block {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
 
-        .login-form {
-            display: block;
-        }
+    .brand-name {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: calc(var(--fluid-base) * 1.8);
+      font-weight: 600;
+      letter-spacing: -0.05rem;
+      color: var(--text-main);
+      text-transform: uppercase;
+    }
 
-        .launcher-buttons {
-            display: none;
-        }
+    .brand-name span {
+      color: var(--accent);
+    }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+    .system-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: calc(var(--fluid-base) * 0.7);
+      color: var(--text-muted);
+      letter-spacing: 0.05rem;
+      text-transform: uppercase;
+      padding: 0.25rem 0.5rem;
+      border: 1px solid var(--border-dim);
+      display: inline-block;
+      width: fit-content;
+    }
 
-        label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 8px;
-        }
+    .security-notice {
+      margin-top: 2rem;
+      margin-bottom: 2rem;
+    }
 
-        input[type="password"],
-        select {
-            width: 100%;
-            padding: 12px 16px;
-            font-size: 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            transition: all 0.2s;
-            font-family: inherit;
-        }
+    .security-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: calc(var(--fluid-base) * 0.75);
+      color: var(--text-danger);
+      text-transform: uppercase;
+      letter-spacing: 0.05rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
 
-        input[type="password"]:focus,
-        select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
+    .security-title svg {
+      width: 1rem;
+      height: 1rem;
+    }
 
-        .btn {
-            width: 100%;
-            padding: 14px;
-            font-size: 16px;
-            font-weight: 600;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: inherit;
-        }
+    .security-text {
+      font-size: calc(var(--fluid-base) * 0.75);
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
+    .meta-data {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: calc(var(--fluid-base) * 0.65);
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
+    .auth-main {
+      flex: 1;
+      padding: clamp(2rem, 5vw, 4rem);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      overflow-y: auto;
+    }
 
-        .btn-primary:active {
-            transform: translateY(0);
-        }
+    .form-header {
+      margin-bottom: 2.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-dim);
+    }
 
-        .btn-primary:disabled {
-            background: #cbd5e0;
-            cursor: not-allowed;
-            transform: none;
-        }
+    .form-title {
+      font-size: calc(var(--fluid-base) * 1.25);
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
 
-        .module-buttons {
-            display: grid;
-            gap: 12px;
-        }
+    .form-subtitle {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: calc(var(--fluid-base) * 0.8);
+      color: var(--text-muted);
+    }
 
-        .btn-module {
-            padding: 20px;
-            text-align: left;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            border: 2px solid #e2e8f0;
-            background: white;
-            color: #2d3748;
-        }
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
 
-        .btn-module:hover {
-            border-color: currentColor;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        }
+    .form-label {
+      display: block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: calc(var(--fluid-base) * 0.75);
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+    }
 
-        .btn-module .icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            flex-shrink: 0;
-        }
+    .form-input, select.form-input {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-dim);
+      color: var(--text-main);
+      padding: 1rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: var(--fluid-base);
+      outline: none;
+      transition: border-color 0.1s ease;
+      border-radius: 0;
+      appearance: none;
+    }
 
-        .btn-module .content {
-            flex: 1;
-        }
+    .form-input:focus {
+      border-color: var(--border-focus);
+    }
 
-        .btn-module .title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
+    .form-input::placeholder {
+      color: #4A4A46;
+    }
 
-        .btn-module .description {
-            font-size: 13px;
-            color: #718096;
-        }
+    .form-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 2.5rem;
+      gap: 1rem;
+    }
 
-        .btn-pos {
-            color: #3b82f6;
-        }
+    .auth-btn {
+      background: var(--accent);
+      color: var(--bg-base);
+      border: none;
+      padding: 1rem 2rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: calc(var(--fluid-base) * 0.85);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05rem;
+      cursor: pointer;
+      border-radius: 0;
+      transition: background 0.1s ease;
+      flex: 0 1 auto; 
+    }
 
-        .btn-pos .icon {
-            background: #dbeafe;
-            color: #3b82f6;
-        }
+    .auth-btn:hover {
+      background: var(--accent-hover);
+    }
 
-        .btn-kds {
-            color: #10b981;
-        }
+    .auth-btn:disabled {
+      background: #4A4A46;
+      cursor: not-allowed;
+    }
 
-        .btn-kds .icon {
-            background: #d1fae5;
-            color: #10b981;
-        }
+    .recovery-link {
+      font-size: calc(var(--fluid-base) * 0.85);
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.1s ease;
+    }
 
-        .btn-backoffice {
-            color: #f59e0b;
-        }
+    .recovery-link:hover {
+      color: var(--text-main);
+    }
 
-        .btn-backoffice .icon {
-            background: #fef3c7;
-            color: #f59e0b;
-        }
+    .diagnostics-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 2rem;
+      background: var(--bg-base);
+      border-top: 1px solid var(--border-dim);
+      display: flex;
+      align-items: center;
+      padding: 0 1rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: calc(var(--fluid-base) * 0.65);
+      color: var(--text-muted);
+      gap: 1.5rem;
+    }
 
-        .btn-crm {
-            color: #ec4899;
-        }
+    .diag-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
 
-        .btn-crm .icon {
-            background: #fce7f3;
-            color: #ec4899;
-        }
+    .diag-dot {
+      width: 0.4rem;
+      height: 0.4rem;
+      background: #22C55E;
+    }
 
-        .btn-cost {
-            color: #8b5cf6;
-        }
+    /* Launcher / App Selection Styles */
+    #launcherButtons {
+      display: none;
+    }
 
-        .btn-cost .icon {
-            background: #ede9fe;
-            color: #8b5cf6;
-        }
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
 
-        .error-message {
-            background: #fee;
-            color: #c33;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            font-size: 14px;
-            display: none;
-        }
+    .app-card {
+      background: var(--bg-base);
+      border: 1px solid var(--border-dim);
+      padding: 1.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
 
-        .success-message {
-            background: #d1fae5;
-            color: #065f46;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            font-size: 14px;
-            display: none;
-        }
+    .app-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
 
-        .user-info {
-            text-align: center;
-            padding: 16px;
-            background: #f7fafc;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
+    .app-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
 
-        .user-info .name {
-            font-size: 18px;
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 4px;
-        }
+    .app-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: calc(var(--fluid-base) * 0.9);
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      color: var(--text-main);
+    }
 
-        .user-info .role {
-            font-size: 14px;
-            color: #718096;
-        }
+    .app-desc {
+      font-size: calc(var(--fluid-base) * 0.7);
+      color: var(--text-muted);
+    }
 
-        .logout-btn {
-            width: 100%;
-            padding: 10px;
-            margin-top: 20px;
-            background: #f7fafc;
-            color: #4a5568;
-            border: 1px solid #e2e8f0;
-        }
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100dvh;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
 
-        .logout-btn:hover {
-            background: #edf2f7;
-            border-color: #cbd5e0;
-        }
+    .modal-content {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-dim);
+      padding: 2.5rem;
+      width: clamp(20rem, 90vw, 30rem);
+    }
 
-        .loading {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 0.6s linear infinite;
-            margin-left: 8px;
-            vertical-align: middle;
-        }
+    .modal-close {
+      float: right;
+      cursor: pointer;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+    }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+    .modal-close:hover {
+      color: var(--text-main);
+    }
 
-        @media (max-width: 480px) {
-            .card {
-                padding: 24px;
-            }
+    .error-box {
+      background: rgba(217, 48, 37, 0.1);
+      border: 1px solid var(--text-danger);
+      color: var(--text-danger);
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: calc(var(--fluid-base) * 0.75);
+      display: none;
+    }
 
-            .logo h1 {
-                font-size: 28px;
-            }
-
-            .btn-module {
-                padding: 16px;
-            }
-
-            .btn-module .icon {
-                width: 40px;
-                height: 40px;
-                font-size: 20px;
-            }
-        }
-    </style>
+    @media (max-width: 55rem) {
+      body { padding: 1rem; }
+      .auth-wrapper { flex-direction: column; min-height: auto; }
+      .auth-sidebar { flex: none; border-right: none; border-bottom: 1px solid var(--border-dim); padding: 2rem; flex-direction: row; flex-wrap: wrap; gap: 1.5rem; }
+      .security-notice { margin: 0; flex: 1 1 15rem; }
+      .meta-data { width: 100%; flex-direction: row; justify-content: space-between; border-top: 1px dashed var(--border-dim); padding-top: 1rem; }
+      .form-actions { flex-direction: column-reverse; align-items: stretch; }
+      .auth-btn, .recovery-link { width: 100%; text-align: center; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <div class="logo">
-                <h1>🍔 NASHTY OS</h1>
-                <p>Restaurant Management System</p>
-            </div>
 
-            <!-- Login Form -->
-            <div class="login-form" id="loginForm">
-                <div class="error-message" id="errorMessage"></div>
-                
-                <form id="pinForm">
-                    <div class="form-group">
-                        <label for="outletSelect">Select Outlet</label>
-                        <select id="outletSelect" required>
-                            <option value="">Loading outlets...</option>
-                        </select>
-                    </div>
+  <div class="auth-wrapper">
+    <!-- Corporate / System Info Pane -->
+    <aside class="auth-sidebar">
+      <div class="brand-block">
+        <div class="brand-name">NASHTY<span>OS</span></div>
+        <div class="system-label">ENTERPRISE GATEWAY</div>
+      </div>
 
-                    <div class="form-group">
-                        <label for="pinInput">Enter PIN</label>
-                        <input 
-                            type="password" 
-                            id="pinInput" 
-                            placeholder="Enter your 4-6 digit PIN"
-                            maxlength="6"
-                            pattern="[0-9]{4,6}"
-                            required
-                            autocomplete="off"
-                        >
-                    </div>
-
-                    <button type="submit" class="btn btn-primary" id="loginBtn">
-                        Login
-                    </button>
-                </form>
-            </div>
-
-            <!-- Launcher Buttons (shown after login) -->
-            <div class="launcher-buttons" id="launcherButtons">
-                <div class="success-message" id="successMessage"></div>
-                
-                <div class="user-info" id="userInfo">
-                    <div class="name" id="userName">User Name</div>
-                    <div class="role" id="userRole">Role</div>
-                </div>
-
-                <div class="module-buttons">
-                    <button class="btn btn-module btn-pos" id="openPosBtn">
-                        <div class="icon">🧾</div>
-                        <div class="content">
-                            <div class="title">Open POS</div>
-                            <div class="description">Point of Sale Terminal</div>
-                        </div>
-                    </button>
-
-                    <button class="btn btn-module btn-kds" id="openKdsBtn">
-                        <div class="icon">👨‍🍳</div>
-                        <div class="content">
-                            <div class="title">Open KDS</div>
-                            <div class="description">Kitchen Display System</div>
-                        </div>
-                    </button>
-
-                    <button class="btn btn-module btn-backoffice" id="openBackofficeBtn">
-                        <div class="icon">⚙️</div>
-                        <div class="content">
-                            <div class="title">Open Backoffice</div>
-                            <div class="description">Management & Reports</div>
-                        </div>
-                    </button>
-
-                    <button class="btn btn-module btn-crm" id="openCrmBtn">
-                        <div class="icon">👥</div>
-                        <div class="content">
-                            <div class="title">Open CRM</div>
-                            <div class="description">Customer Relationship</div>
-                        </div>
-                    </button>
-
-                    <button class="btn btn-module btn-cost" id="openCostBtn">
-                        <div class="icon">💰</div>
-                        <div class="content">
-                            <div class="title">Open Cost</div>
-                            <div class="description">Cost Management</div>
-                        </div>
-                    </button>
-                </div>
-
-                <button class="btn logout-btn" id="logoutBtn">
-                    Logout
-                </button>
-            </div>
+      <div class="security-notice">
+        <div class="security-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          RESTRICTED ACCESS
         </div>
+        <p class="security-text">Akses otorisasi wajib. Seluruh sesi dan state environment akan direkam, dipantau, dan mengalami system reset secara otomatis sesuai protokol keamanan.</p>
+      </div>
+
+      <div class="meta-data">
+        <div>NODE_ID: NSH-Jkt-01</div>
+        <div>IP_ADDR: <span id="ipDisplay">DETECTING...</span></div>
+      </div>
+    </aside>
+
+    <!-- Functional Form Pane -->
+    <main class="auth-main">
+      
+      <!-- Stage 1: Main Gateway Login -->
+      <div id="loginSection">
+        <div class="form-header">
+          <h1 class="form-title">Authentication Required</h1>
+          <div class="form-subtitle">Please enter your credentials to proceed.</div>
+        </div>
+
+        <div class="error-box" id="mainError"></div>
+
+        <form id="mainLoginForm" onsubmit="handleMainLogin(event)">
+          <div class="form-group">
+            <label class="form-label">Identifier</label>
+            <input type="text" id="usernameInput" class="form-input" placeholder="admin1" required autocomplete="username">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Access Key</label>
+            <input type="password" id="passwordInput" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Outlet Protocol</label>
+            <select id="outletSelect" class="form-input" required>
+              <option value="" disabled selected>Retrieving Outlets...</option>
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <a href="#" class="recovery-link" onclick="alert('Contact System Administrator to reset your Access Key.')">Recover Access</a>
+            <button type="submit" class="auth-btn" id="mainLoginBtn">Authenticate</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Stage 2: App Launcher -->
+      <div id="launcherButtons">
+        <div class="form-header">
+          <h1 class="form-title">System Granted</h1>
+          <div class="form-subtitle" id="welcomeUser">Welcome, User</div>
+          <a href="#" class="recovery-link" onclick="handleLogout()" style="margin-top: 0.5rem; display: inline-block;">[TERMINATE SESSION]</a>
+        </div>
+
+        <div class="module-grid">
+          <div class="app-card" onclick="triggerApp('pos')">
+            <div class="app-icon">🧾</div>
+            <div class="app-title">POS Terminal</div>
+            <div class="app-desc">Point of Sale (Requires PIN)</div>
+          </div>
+          <div class="app-card" onclick="triggerApp('kds')">
+            <div class="app-icon">👨‍🍳</div>
+            <div class="app-title">KDS Kitchen</div>
+            <div class="app-desc">Kitchen Display System</div>
+          </div>
+          <div class="app-card" onclick="triggerApp('crm')">
+            <div class="app-icon">👥</div>
+            <div class="app-title">CRM</div>
+            <div class="app-desc">Customer Relations (Requires PIN)</div>
+          </div>
+          <div class="app-card" onclick="triggerApp('backoffice')">
+            <div class="app-icon">⚙️</div>
+            <div class="app-title">Backoffice</div>
+            <div class="app-desc">Management (Requires Superadmin)</div>
+          </div>
+          <div class="app-card" onclick="triggerApp('cost')">
+            <div class="app-icon">💰</div>
+            <div class="app-title">Cost Module</div>
+            <div class="app-desc">Finance (Requires Superadmin)</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Pop-ups for Stage 2 Authentication -->
+  
+  <!-- Staff PIN Modal for POS/CRM -->
+  <div class="modal-overlay" id="pinModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModals()">×</button>
+      <div class="form-header">
+        <h2 class="form-title">Shift Authorization</h2>
+        <div class="form-subtitle" id="pinSubtitle">Accessing POS...</div>
+      </div>
+      <div class="error-box" id="pinError"></div>
+      <form onsubmit="handlePinLogin(event)">
+        <div class="form-group">
+          <label class="form-label">Passcode (4 Digits)</label>
+          <input type="password" id="pinInput" class="form-input" placeholder="••••" required maxlength="6" pattern="[0-9]{4,6}">
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="auth-btn" id="pinBtn" style="width: 100%">Authorize</button>
+        </div>
+      </form>
     </div>
+  </div>
 
-    <script>
-        // Configuration
-        const API_BASE_URL = 'https://nashty-backoffice-backend-production.up.railway.app/api';
+  <!-- Superadmin Modal for Backoffice/Cost -->
+  <div class="modal-overlay" id="superadminModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModals()">×</button>
+      <div class="form-header">
+        <h2 class="form-title">Elevated Privileges Required</h2>
+        <div class="form-subtitle" id="superadminSubtitle">Accessing Backoffice...</div>
+      </div>
+      <div class="error-box" id="superadminError"></div>
+      <form onsubmit="handleSuperadminLogin(event)">
+        <div class="form-group">
+          <label class="form-label">Root Identifier</label>
+          <input type="email" id="superadminUsername" class="form-input" placeholder="superadmin@nashty" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Root Key</label>
+          <input type="password" id="superadminPassword" class="form-input" placeholder="••••••••" required>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="auth-btn" id="superadminBtn" style="width: 100%">Escalate Privileges</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Global Diagnostic Footer -->
+  <div class="diagnostics-bar">
+    <div class="diag-item">
+      <div class="diag-dot"></div>
+      SYS_STATUS: ONLINE
+    </div>
+    <div class="diag-item">
+      LATENCY: <span id="latencyDisplay">0</span>ms
+    </div>
+    <div class="diag-item" style="margin-left: auto;">
+      <script>document.write(new Date().toISOString().split('T')[0] + ' ' + new Date().toLocaleTimeString('en-GB'));</script> WIB
+    </div>
+  </div>
+
+  <script>
+    // Configuration
+    const API_BASE_URL = 'https://nashty-backoffice-backend-production.up.railway.app/api';
+    
+    // State
+    let mainSession = null;
+    let currentTargetApp = null;
+
+    // Elements
+    const outletSelect = document.getElementById('outletSelect');
+    const mainError = document.getElementById('mainError');
+    const loginSection = document.getElementById('loginSection');
+    const launcherButtons = document.getElementById('launcherButtons');
+    const welcomeUser = document.getElementById('welcomeUser');
+
+    // Modals
+    const pinModal = document.getElementById('pinModal');
+    const superadminModal = document.getElementById('superadminModal');
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchIP();
+      loadOutlets();
+      checkMainSession();
+    });
+
+    async function fetchIP() {
+      try {
+        const start = Date.now();
+        const res = await fetch('https://api.ipify.org?format=json');
+        const data = await res.json();
+        document.getElementById('ipDisplay').innerText = data.ip;
+        document.getElementById('latencyDisplay').innerText = (Date.now() - start);
+      } catch (e) {
+        document.getElementById('ipDisplay').innerText = 'UNKNOWN';
+      }
+    }
+
+    async function loadOutlets() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/outlets`);
+        const data = await response.json();
         
-        // State
-        let authToken = null;
-        let currentUser = null;
-        let currentOutlet = null;
+        outletSelect.innerHTML = '<option value="" disabled selected>Select Protocol Outlet</option>';
+        if (data.outlets && data.outlets.length > 0) {
+          data.outlets.forEach(outlet => {
+            const option = document.createElement('option');
+            option.value = outlet.id;
+            option.textContent = `[${outlet.id.substring(0,4).toUpperCase()}] ${outlet.name}`;
+            option.dataset.name = outlet.name;
+            outletSelect.appendChild(option);
+          });
+        }
+      } catch (error) {
+        outletSelect.innerHTML = '<option value="" disabled>API Unreachable</option>';
+      }
+    }
 
-        // DOM Elements
-        const loginForm = document.getElementById('loginForm');
-        const launcherButtons = document.getElementById('launcherButtons');
-        const pinForm = document.getElementById('pinForm');
-        const outletSelect = document.getElementById('outletSelect');
-        const pinInput = document.getElementById('pinInput');
-        const loginBtn = document.getElementById('loginBtn');
-        const errorMessage = document.getElementById('errorMessage');
-        const successMessage = document.getElementById('successMessage');
-        const userInfo = document.getElementById('userInfo');
-        const userName = document.getElementById('userName');
-        const userRole = document.getElementById('userRole');
-        const openPosBtn = document.getElementById('openPosBtn');
-        const openKdsBtn = document.getElementById('openKdsBtn');
-        const openBackofficeBtn = document.getElementById('openBackofficeBtn');
-        const openCrmBtn = document.getElementById('openCrmBtn');
-        const openCostBtn = document.getElementById('openCostBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
+    function checkMainSession() {
+      const sessionData = localStorage.getItem('nashty_main_session');
+      if (sessionData) {
+        try {
+          mainSession = JSON.parse(sessionData);
+          showLauncher();
+        } catch (e) {
+          localStorage.removeItem('nashty_main_session');
+        }
+      }
+    }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadOutlets();
-            checkExistingSession();
+    async function handleMainLogin(e) {
+      e.preventDefault();
+      mainError.style.display = 'none';
+      const btn = document.getElementById('mainLoginBtn');
+      btn.disabled = true;
+      btn.textContent = 'AUTHENTICATING...';
+
+      const username = document.getElementById('usernameInput').value;
+      const password = document.getElementById('passwordInput').value;
+      const outletId = outletSelect.value;
+      const outletName = outletSelect.options[outletSelect.selectedIndex].dataset.name;
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/main-auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, outletId })
         });
+        
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Authentication Failed');
 
-        // Load outlets from API
-        async function loadOutlets() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/auth/outlets`);
-                if (!response.ok) throw new Error('Failed to load outlets');
-                
-                const data = await response.json();
-                const outlets = data.outlets || [];
-                
-                outletSelect.innerHTML = '<option value="">Select an outlet</option>';
-                outlets.forEach(outlet => {
-                    const option = document.createElement('option');
-                    option.value = outlet.id;
-                    option.textContent = outlet.name;
-                    outletSelect.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Failed to load outlets:', error);
-                outletSelect.innerHTML = '<option value="">Failed to load outlets</option>';
-            }
-        }
+        mainSession = {
+          token: data.token,
+          user: data.user,
+          outletId: outletId,
+          outletName: outletName
+        };
 
-        // Check for existing session
-        function checkExistingSession() {
-            const token = localStorage.getItem('nashty_token');
-            const user = localStorage.getItem('nashty_user');
-            const outlet = localStorage.getItem('nashty_outlet');
-            
-            if (token && user && outlet) {
-                authToken = token;
-                currentUser = JSON.parse(user);
-                currentOutlet = JSON.parse(outlet);
-                showLauncher();
-            }
-        }
+        localStorage.setItem('nashty_main_session', JSON.stringify(mainSession));
+        showLauncher();
 
-        // Handle login form submission
-        pinForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const pin = pinInput.value.trim();
-            const outletId = outletSelect.value;
-            
-            if (!outletId) {
-                showError('Please select an outlet');
-                return;
-            }
-            
-            if (!pin || pin.length < 4) {
-                showError('Please enter a valid PIN (4-6 digits)');
-                return;
-            }
-            
-            await login(pin, outletId);
+      } catch (err) {
+        mainError.innerText = err.message;
+        mainError.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Authenticate';
+      }
+    }
+
+    function showLauncher() {
+      loginSection.style.display = 'none';
+      launcherButtons.style.display = 'block';
+      welcomeUser.innerText = `Identifier: ${mainSession.user.username} | Outlet: ${mainSession.outletName}`;
+    }
+
+    function handleLogout() {
+      mainSession = null;
+      localStorage.removeItem('nashty_main_session');
+      localStorage.removeItem('nashty_token'); // Staff pin
+      localStorage.removeItem('nashty_super_token'); // Superadmin token
+      loginSection.style.display = 'block';
+      launcherButtons.style.display = 'none';
+    }
+
+    function closeModals() {
+      pinModal.style.display = 'none';
+      superadminModal.style.display = 'none';
+    }
+
+    function triggerApp(app) {
+      currentTargetApp = app;
+      
+      if (app === 'kds') {
+        openModule('/kds/frontend/', 'Kitchen Display', null);
+      } 
+      else if (app === 'pos' || app === 'crm') {
+        document.getElementById('pinSubtitle').innerText = `Requesting Authorization for ${app.toUpperCase()}...`;
+        document.getElementById('pinError').style.display = 'none';
+        document.getElementById('pinInput').value = '';
+        pinModal.style.display = 'flex';
+        document.getElementById('pinInput').focus();
+      } 
+      else if (app === 'backoffice' || app === 'cost') {
+        document.getElementById('superadminSubtitle').innerText = `Requesting Authorization for ${app.toUpperCase()}...`;
+        document.getElementById('superadminError').style.display = 'none';
+        document.getElementById('superadminPassword').value = '';
+        superadminModal.style.display = 'flex';
+        document.getElementById('superadminUsername').focus();
+      }
+    }
+
+    async function handlePinLogin(e) {
+      e.preventDefault();
+      const pinError = document.getElementById('pinError');
+      pinError.style.display = 'none';
+      const btn = document.getElementById('pinBtn');
+      btn.disabled = true;
+      btn.textContent = 'VERIFYING...';
+
+      const pin = document.getElementById('pinInput').value;
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin, outletId: mainSession.outletId })
         });
+        
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Invalid PIN');
 
-        // Login function
-        async function login(pin, outletId) {
-            try {
-                setLoading(true);
-                hideError();
-                
-                const response = await fetch(`${API_BASE_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ pin, outletId })
-                });
-                
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.message || 'Login failed');
-                }
-                
-                // Store session data
-                authToken = data.token;
-                currentUser = data.user;
-                currentOutlet = { id: outletId, name: outletSelect.options[outletSelect.selectedIndex].text };
-                
-                localStorage.setItem('nashty_token', authToken);
-                localStorage.setItem('nashty_user', JSON.stringify(currentUser));
-                localStorage.setItem('nashty_outlet', JSON.stringify(currentOutlet));
-                
-                // Show launcher
-                showLauncher();
-                showSuccess('Login successful! Select a module to open.');
-                
-            } catch (error) {
-                console.error('Login error:', error);
-                showError(error.message || 'Login failed. Please check your PIN and try again.');
-            } finally {
-                setLoading(false);
+        // Success - Open the app
+        closeModals();
+        
+        // Pass staff auth to POS/CRM
+        openModule(
+          currentTargetApp === 'pos' ? '/pos/frontend/' : '/crm/', 
+          currentTargetApp.toUpperCase(), 
+          { token: data.token, user: data.user, outlet: { id: mainSession.outletId, name: mainSession.outletName } }
+        );
+
+      } catch (err) {
+        pinError.innerText = err.message;
+        pinError.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Authorize';
+      }
+    }
+
+    async function handleSuperadminLogin(e) {
+      e.preventDefault();
+      const sError = document.getElementById('superadminError');
+      sError.style.display = 'none';
+      const btn = document.getElementById('superadminBtn');
+      btn.disabled = true;
+      btn.textContent = 'ESCALATING...';
+
+      const username = document.getElementById('superadminUsername').value;
+      const password = document.getElementById('superadminPassword').value;
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/main-auth/superadmin-login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Access Denied');
+
+        // Success - Open the app
+        closeModals();
+        openModule(
+          currentTargetApp === 'backoffice' ? '/backoffice/frontend/' : '/cost/', 
+          currentTargetApp.toUpperCase(), 
+          { superToken: data.token, role: 'superadmin' }
+        );
+
+      } catch (err) {
+        sError.innerText = err.message;
+        sError.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Escalate Privileges';
+      }
+    }
+
+    function openModule(path, title, authPayload) {
+        const url = `https://nashtyxolvon2.pages.dev${path}`;
+        const windowFeatures = 'width=1280,height=800,menubar=no,toolbar=no,location=no,status=no';
+        const newWindow = window.open(url, title, windowFeatures);
+        
+        if (newWindow) {
+            if (authPayload) {
+              setTimeout(() => {
+                  try {
+                      newWindow.postMessage({
+                          type: 'NASHTY_AUTH',
+                          ...authPayload
+                      }, '*');
+                  } catch (error) {
+                      console.error('Failed to send auth to child window:', error);
+                  }
+              }, 1500);
             }
+        } else {
+            alert('Popup blocked. Please allow popups for NASHTY OS.');
         }
-
-        // Show launcher buttons
-        function showLauncher() {
-            loginForm.style.display = 'none';
-            launcherButtons.style.display = 'block';
-            
-            if (currentUser) {
-                userName.textContent = currentUser.name || currentUser.username || 'User';
-                userRole.textContent = `${currentUser.role || 'Staff'} • ${currentOutlet.name}`;
-            }
-        }
-
-        // Show login form
-        function showLogin() {
-            launcherButtons.style.display = 'none';
-            loginForm.style.display = 'block';
-            pinInput.value = '';
-            hideError();
-            hideSuccess();
-        }
-
-        // Module launchers
-        openPosBtn.addEventListener('click', () => {
-            openModule('/pos/frontend/', 'POS Terminal');
-        });
-
-        openKdsBtn.addEventListener('click', () => {
-            openModule('/kds/frontend/', 'Kitchen Display');
-        });
-
-        openBackofficeBtn.addEventListener('click', () => {
-            openModule('/backoffice/frontend/', 'Backoffice');
-        });
-
-        openCrmBtn.addEventListener('click', () => {
-            openModule('/crm/', 'CRM');
-        });
-
-        openCostBtn.addEventListener('click', () => {
-            openModule('/cost/', 'Cost');
-        });
-
-        // Open module in new window
-        function openModule(path, title) {
-            const url = `https://nashty-backoffice-backend-production.up.railway.app${path}`;
-            const windowFeatures = 'width=1280,height=800,menubar=no,toolbar=no,location=no,status=no';
-            const newWindow = window.open(url, title, windowFeatures);
-            
-            if (newWindow) {
-                // Send auth token to child window via postMessage
-                // This will be implemented in Task 6.2
-                setTimeout(() => {
-                    try {
-                        newWindow.postMessage({
-                            type: 'NASHTY_AUTH',
-                            token: authToken,
-                            user: currentUser,
-                            outlet: currentOutlet
-                        }, 'https://nashty-backoffice-backend-production.up.railway.app');
-                    } catch (error) {
-                        console.error('Failed to send auth to child window:', error);
-                    }
-                }, 1000);
-            } else {
-                showError('Failed to open window. Please allow pop-ups for this site.');
-            }
-        }
-
-        // Logout
-        logoutBtn.addEventListener('click', () => {
-            if (confirm('Are you sure you want to logout?')) {
-                logout();
-            }
-        });
-
-        function logout() {
-            // Clear session data
-            authToken = null;
-            currentUser = null;
-            currentOutlet = null;
-            
-            localStorage.removeItem('nashty_token');
-            localStorage.removeItem('nashty_user');
-            localStorage.removeItem('nashty_outlet');
-            
-            showLogin();
-        }
-
-        // UI Helper functions
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-        }
-
-        function hideError() {
-            errorMessage.style.display = 'none';
-        }
-
-        function showSuccess(message) {
-            successMessage.textContent = message;
-            successMessage.style.display = 'block';
-            setTimeout(() => hideSuccess(), 3000);
-        }
-
-        function hideSuccess() {
-            successMessage.style.display = 'none';
-        }
-
-        function setLoading(loading) {
-            loginBtn.disabled = loading;
-            if (loading) {
-                loginBtn.innerHTML = 'Logging in<span class="loading"></span>';
-            } else {
-                loginBtn.textContent = 'Login';
-            }
-        }
-
-        // Auto-focus PIN input
-        pinInput.addEventListener('input', (e) => {
-            e.target.value = e.target.value.replace(/[^0-9]/g, '');
-        });
-    </script>
+    }
+  </script>
 </body>
 </html>
