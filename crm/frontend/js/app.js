@@ -91,12 +91,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadCustomers() {
         try {
             customersTableBody.innerHTML = '<tr><td colspan="6" class="text-center empty-state">Memuat data pelanggan...</td></tr>';
-            const res = await API.request(`/crm/customers?tenantId=${API.session.tenantId}`);
+            const { data, error } = await API.supabase
+                .from('customers') // assuming the table is customers
+                .select('*')
+                .eq('tenant_id', API.session.tenantId);
             
-            if (res.success) {
-                allCustomers = res.list || [];
-                renderCustomers();
-            }
+            if (error) throw error;
+            
+            allCustomers = data || [];
+            renderCustomers();
         } catch (error) {
             console.error('Failed to load customers:', error);
             customersTableBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Gagal memuat data: ${error.message}</td></tr>`;
@@ -121,9 +124,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     ${customer.phone || '-'}<br>
                     <small class="text-secondary">${customer.email || ''}</small>
                 </td>
-                <td class="font-bold text-success">${formatNumber(customer.points)} Pts</td>
-                <td>${formatCurrency(customer.total_spent)}</td>
-                <td>${formatNumber(customer.visit_count)}x</td>
+                <td class="font-bold text-success">${formatNumber(customer.points || 0)} Pts</td>
+                <td>${formatCurrency(customer.total_spent || 0)}</td>
+                <td>${formatNumber(customer.visit_count || 0)}x</td>
                 <td class="text-center">
                     <button class="btn btn-danger delete-customer-btn" data-id="${customer.id}">Hapus</button>
                 </td>
@@ -137,7 +140,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const id = e.target.getAttribute('data-id');
                 if (confirm('Hapus pelanggan ini beserta poinnya?')) {
                     try {
-                        await API.request(`/crm/customers/${id}?tenantId=${API.session.tenantId}`, { method: 'DELETE' });
+                        const { error } = await API.supabase.from('customers').delete().eq('id', id);
+                        if (error) throw error;
                         loadCustomers();
                     } catch (err) { alert('Error: ' + err.message); }
                 }
@@ -150,11 +154,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadRewards() {
         try {
             rewardsGrid.innerHTML = '<div class="empty-state">Memuat katalog reward...</div>';
-            const res = await API.request(`/crm/rewards?tenantId=${API.session.tenantId}`);
+            const { data, error } = await API.supabase
+                .from('rewards')
+                .select('*')
+                .eq('tenant_id', API.session.tenantId);
             
-            if (res.success) {
-                renderRewards(res.list || []);
-            }
+            if (error) throw error;
+            
+            renderRewards(data || []);
         } catch (error) {
             rewardsGrid.innerHTML = `<div class="text-danger">Gagal memuat data: ${error.message}</div>`;
         }
@@ -186,7 +193,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const id = e.target.getAttribute('data-id');
                 if (confirm('Hapus reward ini dari katalog?')) {
                     try {
-                        await API.request(`/crm/rewards/${id}?tenantId=${API.session.tenantId}`, { method: 'DELETE' });
+                        const { error } = await API.supabase.from('rewards').delete().eq('id', id);
+                        if (error) throw error;
                         loadRewards();
                     } catch (err) { alert('Error: ' + err.message); }
                 }
@@ -197,30 +205,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadTransactions() {
         try {
             transactionsTableBody.innerHTML = '<tr><td colspan="4" class="text-center empty-state">Memuat riwayat poin...</td></tr>';
-            const res = await API.request(`/crm/point-transactions?tenantId=${API.session.tenantId}`);
+            const { data: txs, error } = await API.supabase
+                .from('point_transactions')
+                .select('*')
+                .eq('tenant_id', API.session.tenantId)
+                .order('created_at', { ascending: false });
             
-            if (res.success) {
-                const txs = res.list || [];
-                if (txs.length === 0) {
-                    transactionsTableBody.innerHTML = '<tr><td colspan="4" class="text-center empty-state">Belum ada riwayat transaksi poin</td></tr>';
-                    return;
-                }
-
-                transactionsTableBody.innerHTML = '';
-                txs.forEach(tx => {
-                    const tr = document.createElement('tr');
-                    const isEarn = tx.type === 'earn';
-                    tr.innerHTML = `
-                        <td>${formatDate(tx.created_at)}</td>
-                        <td><span class="badge ${isEarn ? 'gaji' : 'bahan-baku'}">${isEarn ? 'Penambahan' : 'Penukaran'}</span></td>
-                        <td class="font-bold ${isEarn ? 'text-success' : 'text-danger'}">
-                            ${isEarn ? '+' : '-'}${formatNumber(tx.points)}
-                        </td>
-                        <td>${tx.description || '-'}</td>
-                    `;
-                    transactionsTableBody.appendChild(tr);
-                });
+            if (error) throw error;
+            
+            if (!txs || txs.length === 0) {
+                transactionsTableBody.innerHTML = '<tr><td colspan="4" class="text-center empty-state">Belum ada riwayat transaksi poin</td></tr>';
+                return;
             }
+
+            transactionsTableBody.innerHTML = '';
+            txs.forEach(tx => {
+                const tr = document.createElement('tr');
+                const isEarn = tx.type === 'earn';
+                tr.innerHTML = `
+                    <td>${formatDate(tx.created_at)}</td>
+                    <td><span class="badge ${isEarn ? 'gaji' : 'bahan-baku'}">${isEarn ? 'Penambahan' : 'Penukaran'}</span></td>
+                    <td class="font-bold ${isEarn ? 'text-success' : 'text-danger'}">
+                        ${isEarn ? '+' : '-'}${formatNumber(tx.points)}
+                    </td>
+                    <td>${tx.description || '-'}</td>
+                `;
+                transactionsTableBody.appendChild(tr);
+            });
         } catch (error) {
             transactionsTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">Gagal memuat data: ${error.message}</td></tr>`;
         }
@@ -252,15 +263,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         submitBtn.disabled = true;
 
         try {
-            await API.request('/crm/customers', {
-                method: 'POST',
-                body: JSON.stringify({
-                    tenantId: API.session.tenantId,
-                    name: document.getElementById('customerName').value,
-                    phone: document.getElementById('customerPhone').value,
-                    email: document.getElementById('customerEmail').value
-                })
-            });
+            const { error } = await API.supabase.from('customers').insert([{
+                tenant_id: API.session.tenantId,
+                name: document.getElementById('customerName').value,
+                phone: document.getElementById('customerPhone').value,
+                email: document.getElementById('customerEmail').value
+            }]);
+            if (error) throw error;
+            
             customerModal.classList.remove('active');
             e.target.reset();
             loadCustomers();
@@ -277,15 +287,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         submitBtn.disabled = true;
 
         try {
-            await API.request('/crm/rewards', {
-                method: 'POST',
-                body: JSON.stringify({
-                    tenantId: API.session.tenantId,
-                    title: document.getElementById('rewardTitle').value,
-                    points_required: Number(document.getElementById('rewardPoints').value),
-                    description: document.getElementById('rewardDesc').value
-                })
-            });
+            const { error } = await API.supabase.from('rewards').insert([{
+                tenant_id: API.session.tenantId,
+                title: document.getElementById('rewardTitle').value,
+                points_required: Number(document.getElementById('rewardPoints').value),
+                description: document.getElementById('rewardDesc').value
+            }]);
+            if (error) throw error;
+            
             rewardModal.classList.remove('active');
             e.target.reset();
             loadRewards();

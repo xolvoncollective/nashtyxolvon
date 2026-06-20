@@ -366,6 +366,7 @@
       .auth-btn, .recovery-link { width: 100%; text-align: center; }
     }
   </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -529,10 +530,15 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // Configuration
-    const API_BASE_URL = 'https://nashty-backoffice-backend-production.up.railway.app/api';
+    const API_BASE_URL = 'https://mzucfndifneytbesirkx.supabase.co/functions/v1/auth-login';
     
+    const SUPABASE_URL = 'https://mzucfndifneytbesirkx.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16dWNmbmRpZm5leXRiZXNpcmt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNDA1MzUsImV4cCI6MjA5NjkxNjUzNX0.OWaFhWTRVli8XZfIYmqpfg_aHCxBJYj';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     // State
     let mainSession = null;
     let currentTargetApp = null;
@@ -569,12 +575,16 @@
 
     async function loadOutlets() {
       try {
-        const response = await fetch(`${API_BASE_URL}/auth/outlets`);
-        const data = await response.json();
+        const { data: outlets, error } = await supabase
+          .from('outlets')
+          .select('id, name')
+          .eq('status', 'active');
+          
+        if (error) throw error;
         
         outletSelect.innerHTML = '<option value="" disabled selected>Select Protocol Outlet</option>';
-        if (data.outlets && data.outlets.length > 0) {
-          data.outlets.forEach(outlet => {
+        if (outlets && outlets.length > 0) {
+          outlets.forEach(outlet => {
             const option = document.createElement('option');
             option.value = outlet.id;
             option.textContent = `[${outlet.id.substring(0,4).toUpperCase()}] ${outlet.name}`;
@@ -583,6 +593,7 @@
           });
         }
       } catch (error) {
+        console.error('Failed to load outlets:', error);
         outletSelect.innerHTML = '<option value="" disabled>API Unreachable</option>';
       }
     }
@@ -612,10 +623,10 @@
       const outletName = outletSelect.options[outletSelect.selectedIndex].dataset.name;
 
       try {
-        const res = await fetch(`${API_BASE_URL}/main/auth/login`, {
+        const res = await fetch(`${API_BASE_URL}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password, outletId })
+          body: JSON.stringify({ action: 'main-login', username, password, outletId })
         });
         
         const data = await res.json();
@@ -693,10 +704,10 @@
       const pin = document.getElementById('pinInput').value;
 
       try {
-        const res = await fetch(`${API_BASE_URL}/auth/login`, {
+        const res = await fetch(`${API_BASE_URL}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pin, outletId: mainSession.outletId })
+          body: JSON.stringify({ action: 'pin-login', pin, outletId: mainSession.outletId })
         });
         
         const data = await res.json();
@@ -733,14 +744,10 @@
       const password = document.getElementById('superadminPassword').value;
 
       try {
-        const res = await fetch(`${API_BASE_URL}/main/auth/superadmin-login`, {
+        const res = await fetch(`${API_BASE_URL}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            username, 
-            password,
-            outletId: mainSession.outletId || 'main-branch'
-          })
+          body: JSON.stringify({ action: 'superadmin-login', username, password, outletId: mainSession.outletId || 'main-branch' })
         });
         
         const data = await res.json();

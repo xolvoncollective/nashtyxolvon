@@ -1,6 +1,6 @@
 /**
  * NASHTY OS - Encryption Service
- * Uses Web Crypto API with AES-256-GCM for encrypting sensitive data
+ * AES-256-GCM encryption for sensitive offline data
  */
 
 class EncryptionService {
@@ -13,13 +13,10 @@ class EncryptionService {
 
   /**
    * Derive encryption key from session token and device ID
-   * Uses PBKDF2 with 100,000 iterations
    */
   async deriveKey(userId, sessionToken) {
     try {
       const deviceId = await this.getDeviceId();
-      
-      // Import key material
       const keyMaterial = await crypto.subtle.importKey(
         'raw',
         new TextEncoder().encode(sessionToken + deviceId),
@@ -28,7 +25,6 @@ class EncryptionService {
         ['deriveBits', 'deriveKey']
       );
 
-      // Derive actual encryption key
       const key = await crypto.subtle.deriveKey(
         {
           name: 'PBKDF2',
@@ -38,15 +34,15 @@ class EncryptionService {
         },
         keyMaterial,
         { name: this.algorithm, length: this.keyLength },
-        false, // Not extractable (security)
+        false, // Not extractable
         ['encrypt', 'decrypt']
       );
 
       this.keys.set(userId, key);
-      console.log('EncryptionService: Key derived for user:', userId);
+      console.log(`✅ Encryption key derived for user ${userId}`);
       return key;
     } catch (error) {
-      console.error('EncryptionService: Key derivation failed:', error);
+      console.error('Failed to derive encryption key:', error);
       throw error;
     }
   }
@@ -59,7 +55,7 @@ class EncryptionService {
     if (!deviceId) {
       deviceId = this.generateUUID();
       localStorage.setItem('deviceId', deviceId);
-      console.log('EncryptionService: New device ID generated:', deviceId);
+      console.log('✅ New device ID generated:', deviceId);
     }
     return deviceId;
   }
@@ -68,19 +64,15 @@ class EncryptionService {
    * Encrypt data (returns base64-encoded string)
    */
   async encrypt(userId, plaintext) {
-    try {
-      const key = this.keys.get(userId);
-      if (!key) {
-        throw new Error('Encryption key not initialized for user: ' + userId);
-      }
+    const key = this.keys.get(userId);
+    if (!key) {
+      throw new Error('Encryption key not initialized for user');
+    }
 
-      // Generate random IV
+    try {
       const iv = crypto.getRandomValues(new Uint8Array(this.ivLength));
-      
-      // Encode plaintext
       const encodedData = new TextEncoder().encode(plaintext);
 
-      // Encrypt
       const ciphertext = await crypto.subtle.encrypt(
         { name: this.algorithm, iv },
         key,
@@ -92,10 +84,10 @@ class EncryptionService {
       combined.set(iv, 0);
       combined.set(new Uint8Array(ciphertext), iv.length);
 
-      // Convert to base64
+      // Convert to base64 for storage
       return this.arrayBufferToBase64(combined);
     } catch (error) {
-      console.error('EncryptionService: Encryption failed:', error);
+      console.error('Encryption failed:', error);
       throw error;
     }
   }
@@ -104,30 +96,25 @@ class EncryptionService {
    * Decrypt data (from base64-encoded string)
    */
   async decrypt(userId, encryptedData) {
-    try {
-      const key = this.keys.get(userId);
-      if (!key) {
-        throw new Error('Decryption key not initialized for user: ' + userId);
-      }
+    const key = this.keys.get(userId);
+    if (!key) {
+      throw new Error('Decryption key not initialized for user');
+    }
 
-      // Convert from base64
+    try {
       const combined = this.base64ToArrayBuffer(encryptedData);
-      
-      // Extract IV and ciphertext
       const iv = combined.slice(0, this.ivLength);
       const ciphertext = combined.slice(this.ivLength);
 
-      // Decrypt
       const decryptedData = await crypto.subtle.decrypt(
         { name: this.algorithm, iv },
         key,
         ciphertext
       );
 
-      // Decode to string
       return new TextDecoder().decode(decryptedData);
     } catch (error) {
-      console.error('EncryptionService: Decryption failed:', error);
+      console.error('Decryption failed:', error);
       throw new Error('Decryption failed: ' + error.message);
     }
   }
@@ -136,117 +123,68 @@ class EncryptionService {
    * Encrypt sensitive order fields
    */
   async encryptOrder(userId, order) {
-    try {
-      // Extract sensitive fields
-      const sensitiveFields = {
-        customerName: order.customerName || null,
-        customerPhone: order.customerPhone || null,
-        customerEmail: order.customerEmail || null,
-        paymentCardLast4: order.paymentCardLast4 || null,
-        paymentDetails: order.paymentDetails || null,
-        notes: order.notes || null
-      };
+    const sensitiveFields = {
+      customerName: order.customerName || '',
+      customerPhone: order.customerPhone || '',
+      customerEmail: order.customerEmail || '',
+      paymentCardLast4: order.paymentCardLast4 || '',
+      paymentDetails: order.paymentDetails || {}
+    };
 
-      // Encrypt sensitive data
-      const encryptedFields = await this.encrypt(
-        userId,
-        JSON.stringify(sensitiveFields)
-      );
+    const encryptedFields = await this.encrypt(
+      userId,
+      JSON.stringify(sensitiveFields)
+    );
 
-      // Return order with encrypted fields
-      return {
-        ...order,
-        customerName: '[ENCRYPTED]',
-        customerPhone: '[ENCRYPTED]',
-        customerEmail: '[ENCRYPTED]',
-        paymentCardLast4: '[ENCRYPTED]',
-        paymentDetails: '[ENCRYPTED]',
-        notes: '[ENCRYPTED]',
-        _encrypted: encryptedFields
-      };
-    } catch (error) {
-      console.error('EncryptionService: Order encryption failed:', error);
-      throw error;
-    }
+    return {
+      ...order,
+      customerName: '[ENCRYPTED]',
+      customerPhone: '[ENCRYPTED]',
+      customerEmail: '[ENCRYPTED]',
+      paymentCardLast4: '[ENCRYPTED]',
+      paymentDetails: '[ENCRYPTED]',
+      _encrypted: encryptedFields
+    };
   }
 
   /**
    * Decrypt sensitive order fields
    */
   async decryptOrder(userId, order) {
-    try {
-      if (!order._encrypted) {
-        return order;
-      }
+    if (!order._encrypted) {
+      return order;
+    }
 
-      // Decrypt sensitive data
+    try {
       const decryptedFields = JSON.parse(
         await this.decrypt(userId, order._encrypted)
       );
 
-      // Return order with decrypted fields
+      const { _encrypted, ...orderWithoutEncrypted } = order;
       return {
-        ...order,
-        ...decryptedFields,
-        _encrypted: undefined
+        ...orderWithoutEncrypted,
+        ...decryptedFields
       };
     } catch (error) {
-      console.error('EncryptionService: Order decryption failed:', error);
-      throw error;
+      console.error('Failed to decrypt order:', error);
+      return order; // Return as-is if decryption fails
     }
   }
 
   /**
-   * Clear keys on logout (security)
+   * Clear keys on logout
    */
-  clearKeys(userId = null) {
+  clearKeys(userId) {
     if (userId) {
       this.keys.delete(userId);
-      console.log('EncryptionService: Keys cleared for user:', userId);
+      console.log(`🔒 Encryption key cleared for user ${userId}`);
     } else {
       this.keys.clear();
-      console.log('EncryptionService: All keys cleared');
+      console.log('🔒 All encryption keys cleared');
     }
   }
 
-  /**
-   * Test encryption/decryption
-   */
-  async test(userId, sessionToken) {
-    try {
-      console.log('EncryptionService: Running test...');
-      
-      // Derive key
-      await this.deriveKey(userId, sessionToken);
-      
-      // Test data
-      const testData = {
-        customerName: 'John Doe',
-        customerPhone: '+62812345678',
-        paymentCardLast4: '1234'
-      };
-      
-      // Encrypt
-      const encrypted = await this.encrypt(userId, JSON.stringify(testData));
-      console.log('EncryptionService: Encrypted:', encrypted.substring(0, 50) + '...');
-      
-      // Decrypt
-      const decrypted = JSON.parse(await this.decrypt(userId, encrypted));
-      console.log('EncryptionService: Decrypted:', decrypted);
-      
-      // Verify
-      const isValid = JSON.stringify(testData) === JSON.stringify(decrypted);
-      console.log('EncryptionService: Test', isValid ? 'PASSED ✓' : 'FAILED ✗');
-      
-      return isValid;
-    } catch (error) {
-      console.error('EncryptionService: Test failed:', error);
-      return false;
-    }
-  }
-
-  // ── Utility Methods ──
-
+  // Utility methods
   arrayBufferToBase64(buffer) {
     const bytes = new Uint8Array(buffer);
     let binary = '';
@@ -274,5 +212,6 @@ class EncryptionService {
   }
 }
 
-// Export singleton instance
+// Initialize and export
 window.EncryptionService = new EncryptionService();
+console.log('✅ EncryptionService module loaded');

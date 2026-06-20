@@ -1,233 +1,164 @@
 /**
- * NASHTY OS - POS Offline Sync Manager (Enhanced)
- * Integrates with encryption service and new IndexedDB schema
+ * NASHTY OS - Enhanced Offline Sync Manager
+ * Integrates encryption and new IndexedDB schema
  */
 
 class OfflineSyncManager {
   constructor() {
-    this.db = null;
-    this.encryptionService = null;
-    this.initPromise = null;
+    this.syncInProgress = false;
     
-    // Bind network events
     window.addEventListener('online', () => this.handleNetworkChange(true));
     window.addEventListener('offline', () => this.handleNetworkChange(false));
     
-    // Periodic sync check every 30 seconds
     setInterval(() => {
-      if (navigator.onLine) {
+      if (navigator.onLine && !this.syncInProgress) {
         this.syncOfflineOrders();
       }
     }, 30000);
+    
+    console.log('✅ OfflineSyncManager initialized');
   }
 
-  /**
-   * Initialize with database schema and encryption service
-   */
-  async init() {
-    if (this.initPromise) return this.initPromise;
-
-    this.initPromise = (async () => {
-      try {
-        // Wait for DBSchema and EncryptionService to be available
-        if (window.DBSchema) {
-          this.db = await window.DBSchema.init();
-          console.log('OfflineSyncManager: Database initialized');
-        }
-
-        if (window.EncryptionService) {
-          this.encryptionService = window.EncryptionService;
-          console.log('OfflineSyncManager: Encryption service connected');
-        }
-
-        await this.updateUIStatus();
-        
-        // Automatically attempt to sync if online on load
-        if (navigator.onLine) {
-          this.syncOfflineOrders();
-        }
-      } catch (error) {
-        console.error('OfflineSyncManager: Initialization failed:', error);
-      }
-    })();
-
-    return this.initPromise;
-  }
-
-  // Initialize IndexedDB
-  async initDB() {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, this.dbVersion);
-      
-      request.onerror = (e) => {
-        console.error('OfflineSyncManager: Database error:', e.target.error);
-        reject(e.target.error);
-      };
-      
-      request.onsuccess = (e) => {
-        this.db = e.target.result;
-        console.log('OfflineSyncManager: Database initialized successfully');
-        this.updateUIStatus();
-        resolve(this.db);
-        // Automatically attempt to sync if online on load
-        if (navigator.onLine) {
-          this.syncOfflineOrders();
-        }
-      };
-      
-      request.onupgradeneeded = (e) => {
-        const db = e.target.result;
-        if (!db.objectStoreNames.contains('offline_orders')) {
-          db.createObjectStore('offline_orders', { keyPath: 'id' });
-          console.log('OfflineSyncManager: Created offline_orders object store');
-        }
-      };
-    });
-  }
-
-  // Helper to get object store
-  async getStore(mode = 'readonly') {
-    await this.initPromise;
-    const transaction = this.db.transaction('offline_orders', mode);
-    return transaction.objectStore('offline_orders');
-  }
-
-  // Save order to IndexedDB queue
   async queueOrder(orderData) {
-    const store = await this.getStore('readwrite');
-    
-    // Generate an offline order ID and temporary order number
-    const tempId = 'off_' + crypto.randomUUID();
-    const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, '');
-    const timestamp = Date.now().toString().slice(-4);
-    const tempOrderNumber = `OFFLINE-${dateStr}-${timestamp}`;
-    
-    const offlineOrder = {
-      id: tempId,
-      order_number: tempOrderNumber,
-      payload: {
-        ...orderData,
-        id: tempId,
-        order_number: tempOrderNumber,
-        created_at: new Date().toISOString()
-      },
-      queued_at: new Date().toISOString(),
-      attempts: 0
-    };
-
-    return new Promise((resolve, reject) => {
-      const request = store.add(offlineOrder);
+    try {
+      const userId = sessionStorage.getItem('userId');
+      const outletId = sessionStorage.getItem('currentOutletId');
       
-      request.onsuccess = () => {
-        console.log('OfflineSyncManager: Order queued successfully:', tempOrderNumber);
-        this.updateUIStatus();
-        resolve(offlineOrder);
-      };
+      // Generate offline ID
+      const tempId = 'off_' + crypto.randomUUID();
+      const timestamp = Date.now();
       
-      request.onerror = (e) => {
-        console.error('OfflineSyncManager: Failed to queue order:', e.target.error);
-        reject(e.target.error);
+      // Encrypt sensitive fields if encryption service available
+      let dataToStore = orderData;
+      if (window.EncryptionService && userId) {
+        dataToStore = await window.EncryptionService.encryptOrder(userId, orderData);
+      }
+
+      const queueItem = {
+        timestamp,
+        status: 'pending',
+        orderType: 'order',
+        data: JSON.stringify(dataToStore),
+        retryCount: 0,
+        lastError: null,
+        userId,
+        outletId
       };
-    });
-  }
 
-  // Get all queued orders
-  async getQueuedOrders() {
-    const store = await this.getStore('readonly');
-    return new Promise((resolve, reject) => {
-      const request = store.getAll();
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = (e) => reject(e.target.error);
-    });
-  }
-
-  // Delete an order from the queue
-  async removeOrder(id) {
-    const store = await this.getStore('readwrite');
-    return new Promise((resolve, reject) => {
-      const request = store.delete(id);
-      request.onsuccess = () => {
-        console.log('OfflineSyncManager: Order removed from queue:', id);
-        this.updateUIStatus();
-        resolve();
-      };
-      request.onerror = (e) => reject(e.target.error);
-    });
-  }
-
-  // Update attempts count for failed syncs
-  async incrementAttempts(id) {
-    const store = await this.getStore('readwrite');
-    return new Promise((resolve, reject) => {
-      const getReq = store.get(id);
-      getReq.onsuccess = () => {
-        const order = getReq.result;
-        if (order) {
-          order.attempts += 1;
-          const putReq = store.put(order);
-          putReq.onsuccess = () => resolve();
-          putReq.onerror = (e) => reject(e.target.error);
-        } else {
-          resolve();
-        }
-      };
-      getReq.onerror = (e) => reject(e.target.error);
-    });
-  }
-
-  // Network status event handler
-  handleNetworkChange(isOnline) {
-    console.log(`OfflineSyncManager: Connection status changed to ${isOnline ? 'ONLINE' : 'OFFLINE'}`);
-    this.updateUIStatus();
-    if (isOnline) {
-      this.syncOfflineOrders();
+      const localId = await window.DatabaseSchema.addToQueue(queueItem);
+      console.log(`✅ Order queued offline (ID: ${localId})`);
+      
+      await this.updateUIStatus();
+      return { localId, tempId };
+    } catch (error) {
+      console.error('Failed to queue order:', error);
+      throw error;
     }
   }
 
-  // Sync queued orders to the server
+  async getQueuedOrders() {
+    return await window.DatabaseSchema.getPendingQueue();
+  }
+
+  async getPendingCount() {
+    const pending = await this.getQueuedOrders();
+    return pending.length;
+  }
+
+  async removeOrder(localId) {
+    const db = await window.DatabaseSchema.getDatabase();
+    const tx = db.transaction('offline_queue', 'readwrite');
+    const store = tx.objectStore('offline_queue');
+    await store.delete(localId);
+    await this.updateUIStatus();
+    console.log(`🗑️ Order ${localId} removed from queue`);
+  }
+
+  async incrementRetry(localId) {
+    const db = await window.DatabaseSchema.getDatabase();
+    const tx = db.transaction('offline_queue', 'readwrite');
+    const store = tx.objectStore('offline_queue');
+    const item = await store.get(localId);
+    if (item) {
+      item.retryCount += 1;
+      await store.put(item);
+    }
+  }
+
+  handleNetworkChange(isOnline) {
+    console.log(`🌐 Network: ${isOnline ? 'ONLINE' : 'OFFLINE'}`);
+    this.updateUIStatus();
+    if (isOnline) {
+      setTimeout(() => this.syncOfflineOrders(), 2000);
+    }
+  }
+
   async syncOfflineOrders() {
-    if (!navigator.onLine) return;
+    if (this.syncInProgress || !navigator.onLine) return;
     
     const queued = await this.getQueuedOrders();
     if (queued.length === 0) return;
     
-    console.log(`OfflineSyncManager: Found ${queued.length} orders to sync...`);
+    this.syncInProgress = true;
+    console.log(`🔄 Syncing ${queued.length} offline orders...`);
     
-    // We import and use global API client from window.API
-    if (!window.API) {
-      console.error('OfflineSyncManager: window.API is not loaded yet');
-      return;
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const item of queued) {
+      try {
+        let orderData = JSON.parse(item.data);
+        
+        // Decrypt if encrypted
+        if (orderData._encrypted && window.EncryptionService && item.userId) {
+          orderData = await window.EncryptionService.decryptOrder(item.userId, orderData);
+        }
+
+        // Remove temp fields before sending
+        delete orderData.id;
+        delete orderData.order_number;
+
+        // Send to server
+        const token = sessionStorage.getItem('token');
+        const response = await fetch(`${window.API_BASE || 'http://localhost:3099'}/api/orders`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(orderData)
+        });
+
+        if (response.ok) {
+          await this.removeOrder(item.localId);
+          successCount++;
+          console.log(`✅ Order ${item.localId} synced successfully`);
+        } else {
+          throw new Error(`HTTP ${response.status}`);
+        }
+      } catch (error) {
+        console.error(`❌ Failed to sync order ${item.localId}:`, error);
+        await this.incrementRetry(item.localId);
+        failCount++;
+        
+        if (item.retryCount >= 3) {
+          console.error(`⚠️ Order ${item.localId} failed after 3 retries`);
+        }
+      }
     }
 
-    for (const order of queued) {
-      try {
-        console.log(`OfflineSyncManager: Syncing order ${order.order_number}...`);
-        
-        // Remove temporary ID and number before sending to server so the server generates clean values
-        const cleanPayload = { ...order.payload };
-        delete cleanPayload.id;
-        delete cleanPayload.order_number;
-
-        // Post order to backend
-        const result = await window.API.orders.create(cleanPayload);
-        
-        if (result.success || result.order) {
-          console.log(`OfflineSyncManager: Successfully synced order ${order.order_number}`);
-          await this.removeOrder(order.id);
-          
-          // Trigger print if possible or update cashier notification
-          if (typeof window.showToast === 'function') {
-            window.showToast(`Order ${order.order_number} berhasil disinkronisasi ke server!`);
-          }
-        }
-      } catch (err) {
-        console.error(`OfflineSyncManager: Failed to sync order ${order.order_number}:`, err);
-        await this.incrementAttempts(order.id);
-      }
+    this.syncInProgress = false;
+    await this.updateUIStatus();
+    
+    if (successCount > 0) {
+      this.showToast(`✅ ${successCount} order${successCount > 1 ? 's' : ''} synced`);
+    }
+    
+    if (failCount > 0) {
+      this.showToast(`⚠️ ${failCount} order${failCount > 1 ? 's' : ''} failed to sync`, 'error');
     }
   }
 
-  // Update indicator chip in topbar
   async updateUIStatus() {
     const chip = document.getElementById('online-status-chip');
     const dot = document.getElementById('online-status-dot');
@@ -236,13 +167,13 @@ class OfflineSyncManager {
     if (!chip || !dot || !text) return;
     
     const isOnline = navigator.onLine;
-    const queued = await this.getQueuedOrders().catch(() => []);
+    const pendingCount = await this.getPendingCount().catch(() => 0);
     
     if (isOnline) {
-      if (queued.length > 0) {
-        chip.className = 'online-chip offline'; // yellow/warning state when unsynced orders remain
-        dot.className = 'ondot offline';
-        text.textContent = `Syncing (${queued.length} pending)`;
+      if (pendingCount > 0) {
+        chip.className = 'online-chip syncing';
+        dot.className = 'ondot syncing';
+        text.textContent = `Syncing (${pendingCount})`;
       } else {
         chip.className = 'online-chip';
         dot.className = 'ondot';
@@ -251,10 +182,18 @@ class OfflineSyncManager {
     } else {
       chip.className = 'online-chip offline';
       dot.className = 'ondot offline';
-      text.textContent = `Offline (${queued.length} unsynced)`;
+      text.textContent = `Offline${pendingCount > 0 ? ` (${pendingCount})` : ''}`;
+    }
+  }
+
+  showToast(message, type = 'success') {
+    if (typeof window.showToast === 'function') {
+      window.showToast(message, type);
+    } else {
+      console.log(`[Toast] ${message}`);
     }
   }
 }
 
-// Instantiate and expose globally
 window.OfflineSyncManager = new OfflineSyncManager();
+console.log('✅ OfflineSyncManager loaded');

@@ -3538,6 +3538,7 @@
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#E4540C">
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
@@ -3884,7 +3885,20 @@
   <script src="../../shared/auth.js"></script>
   
   <script src="../../api-client-v2.js?v=2027"></script>
+  
+  <!-- Offline Infrastructure -->
+  <script src="js/db-schema.js"></script>
+  <script src="js/services/encryption-service.js"></script>
+  <script src="js/services/cache-manager.js"></script>
+  <script src="js/sw-register.js"></script>
   <script src="js/sync-manager.js"></script>
+  <script src="js/services/connection-monitor.js"></script>
+  <script src="js/services/offline-order-handler.js"></script>
+  
+  <!-- Favorites System -->
+  <script src="js/services/favorites-manager.js"></script>
+  <script src="js/services/recent-items-tracker.js"></script>
+  <script src="js/services/quick-access-grid.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/state.js"></script>
   <script src="js/printer.js"></script>
@@ -3897,11 +3911,7 @@
   <script src="js/orders.js"></script>
   <script src="js/history.js"></script>
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').then((registration) => {
-        console.log('Service Worker registered with scope:', registration.scope);
-      });
-    }
+    // Service Worker is now registered via sw-register.js
     
     // START CLOCK & INIT
     function tick() { 
@@ -3911,6 +3921,39 @@
       if (el) el.textContent = pad(n.getHours()) + ':' + pad(n.getMinutes()) + ':' + pad(n.getSeconds()); 
     }
     setInterval(tick, 1000); tick();
+    
+    // Initialize offline infrastructure after login
+    window.addEventListener('userLoggedIn', async (event) => {
+      const { userId, token } = event.detail;
+      console.log('🔐 User logged in, initializing offline infrastructure...');
+      
+      // Derive encryption key
+      if (window.EncryptionService) {
+        await window.EncryptionService.deriveKey(userId, token);
+      }
+      
+      // Start cache sync
+      if (window.CacheManager) {
+        await window.CacheManager.startSync();
+      }
+      
+      console.log('✅ Offline infrastructure initialized');
+    });
+    
+    // Cleanup on logout
+    window.addEventListener('userLoggedOut', () => {
+      console.log('🔒 User logged out, cleaning up...');
+      
+      // Clear encryption keys
+      if (window.EncryptionService) {
+        window.EncryptionService.clearKeys();
+      }
+      
+      // Stop cache sync
+      if (window.CacheManager) {
+        window.CacheManager.stopSync();
+      }
+    });
   </script>
 </body>
 </html>
