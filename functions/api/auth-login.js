@@ -83,11 +83,14 @@ export async function onRequestPost({ request, env }) {
     } 
     
     if (action === 'pin-login') {
-      const { data: user, error } = await supabase
+      let query = supabase
         .from('users')
         .select('*')
-        .eq('pin', pin)
-        .single();
+        .eq('pin', pin);
+      
+      if (outletId) query = query.eq('outlet_id', outletId);
+      
+      const { data: user, error } = await query.single();
 
       if (error || !user || user.status === 'inactive') {
         return new Response(JSON.stringify({ success: false, error: 'Invalid PIN or inactive user' }), {

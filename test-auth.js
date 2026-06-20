@@ -7,7 +7,7 @@ async function test() {
   let res = await fetch(`${API_BASE}/main/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: 'admin1', password: 'password1', outletId: 'demo-outlet' })
+    body: JSON.stringify({ username: 'admin1', password: 'password1', outletId: '00000000-0000-0000-0000-000000000002' })
   });
   let data = await res.json();
   if (!res.ok) {
@@ -21,7 +21,7 @@ async function test() {
   res = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ pin: '0000', outletId: 'demo-outlet' })
+    body: JSON.stringify({ pin: '0000', outletId: '00000000-0000-0000-0000-000000000002' })
   });
   data = await res.json();
   if (!res.ok) {
@@ -32,7 +32,7 @@ async function test() {
   console.log('Staff login success.');
 
   console.log('3. Fetching POS menu with staff token...');
-  res = await fetch(`${API_BASE}/menu/outlet/demo-outlet`, {
+  res = await fetch(`${API_BASE}/menu/outlet/00000000-0000-0000-0000-000000000002`, {
     headers: { 'Authorization': `Bearer ${staffToken}` }
   });
   data = await res.json();

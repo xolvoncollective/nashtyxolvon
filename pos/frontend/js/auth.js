@@ -38,7 +38,7 @@
       for (let i = 0; i < 4; i++) { const d = document.getElementById('ld' + i); if (d) d.classList.toggle('on', i < loginPinArr.length); }
       if (loginPinArr.length === 4) {
         try {
-          const res = await API.auth.login(loginPinArr.join(''), 'demo-outlet');
+          const res = await API.auth.login(loginPinArr.join(''), '00000000-0000-0000-0000-000000000002');
           if (res.success && res.user && res.user.id === loginSel.id) {
             doLogin(res.user);
           } else {
