@@ -81,6 +81,12 @@ app.use('/kds', express.static(path.join(__dirname, '../../../kds/frontend')));
 // Backoffice frontend
 app.use('/backoffice', express.static(path.join(__dirname, '../../../backoffice/frontend')));
 
+// Cost frontend
+app.use('/cost', express.static(path.join(__dirname, '../../../cost/frontend')));
+
+// CRM frontend
+app.use('/crm', express.static(path.join(__dirname, '../../../crm/frontend')));
+
 // Serve root static files (includes index.html launcher)
 app.use(express.static(path.join(__dirname, '../../../')));
 

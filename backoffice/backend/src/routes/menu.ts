@@ -1,4 +1,4 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
 import { query, get, run } from '../db/database';
 import { cacheManager } from '../services/CacheManager';
 import { z } from 'zod';
@@ -58,7 +58,7 @@ router.get('/outlet/:outletId', async (req, res) => {
     console.log(`[INFO] Menu cache MISS for outlet ${outletId} - querying database`);
 
     // Validate outlet exists and get tenant (Requirement 12.5)
-    const outlet = get('SELECT * FROM outlets WHERE id = ?', [outletId]);
+    const outlet = await get('SELECT * FROM outlets WHERE id = ?', [outletId]);
     if (!outlet) {
       return res.status(404).json({ 
         success: false,
@@ -276,7 +276,7 @@ router.post('/items', async (req, res) => {
     console.log(`[INFO] All menu caches invalidated after menu item creation`);
 
     // Retrieve the created item with category information
-    const createdItem = get(`
+    const createdItem = await get(`
       SELECT p.*, c.name as category_name 
       FROM products p 
       LEFT JOIN categories c ON p.category_id = c.id 
@@ -340,7 +340,7 @@ router.patch('/items/:id', async (req, res) => {
     console.log(`[INFO] PATCH /api/menu/items/${itemId} - Updating menu item`);
 
     // Validate itemId exists in database (Requirement 6.7)
-    const existingItem = get('SELECT * FROM products WHERE id = ?', [itemId]);
+    const existingItem = await get('SELECT * FROM products WHERE id = ?', [itemId]);
     
     if (!existingItem) {
       console.log(`[WARN] Menu item not found: ${itemId}`);
@@ -460,7 +460,7 @@ router.patch('/items/:id', async (req, res) => {
     console.log(`[INFO] All menu caches invalidated after menu item update`);
 
     // Retrieve the updated item with category information
-    const updatedItem = get(`
+    const updatedItem = await get(`
       SELECT p.*, c.name as category_name 
       FROM products p 
       LEFT JOIN categories c ON p.category_id = c.id 
