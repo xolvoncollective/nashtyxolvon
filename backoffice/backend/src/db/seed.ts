@@ -92,10 +92,11 @@ const catSql = `
 `;
 
 const categoryIds: Record<string, string> = {};
-categories.forEach((cat, idx) => {
+for (let idx = 0; idx < categories.length; idx++) {
+  const cat = categories[idx];
   const id = randomUUID();
   categoryIds[cat.slug] = id;
-  db.run(catSql, [
+  await db.run(catSql, [
     id,
     tenantId,
     cat.name,
@@ -106,7 +107,7 @@ categories.forEach((cat, idx) => {
     idx,
     'active'
   ]);
-});
+}
 
 // Seed Products
 console.log('Seeding products...');
@@ -141,9 +142,9 @@ const prodSql = `
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `;
 
-products.forEach(prod => {
+for (const prod of products) {
   const slug = prod.name.toLowerCase().replace(/\s+/g, '-');
-  db.run(prodSql, [
+  await db.run(prodSql, [
     randomUUID(),
     tenantId,
     categoryIds[prod.cat],
@@ -156,7 +157,7 @@ products.forEach(prod => {
     0,
     'active'
   ]);
-});
+}
 
   console.log('✓ Seed completed successfully!');
   console.log(`

@@ -473,6 +473,22 @@
       padding: 0 14px
     }
 
+    .btn-refresh {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--brd);
+      color: var(--txt);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-refresh:hover {
+      background: var(--orL);
+      border-color: var(--or);
+      color: var(--or);
+    }
+
     .online-chip {
       display: flex;
       align-items: center;
@@ -3633,6 +3649,9 @@
         </div>
       </div>
       <div class="tb-right">
+        <button class="btn-refresh" onclick="location.reload()">
+          ↻ Refresh
+        </button>
         <div class="online-chip" id="online-status-chip">
           <div class="ondot" id="online-status-dot"></div><span class="online-t" id="online-status-text">Online</span>
         </div>

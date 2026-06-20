@@ -156,7 +156,7 @@ router.get('/outlet/:outletId', async (req, res) => {
     };
 
     // Store in cache with 5-minute TTL (300 seconds) (Requirement 5.6, 10.5)
-    const MENU_CACHE_TTL = 300; // 5 minutes in seconds (300000ms)
+    const MENU_CACHE_TTL = 10; // 10 seconds for real-time updates
     cacheManager.set(cacheKey, menuTree, MENU_CACHE_TTL);
 
     const responseTime = Date.now() - startTime;
