@@ -1,4 +1,4 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
 import { query, get } from '../db/database';
 
 const router = Router();
@@ -73,8 +73,8 @@ router.get('/kpi', async (req, res) => {
     `, params);
 
     // Calculate growth
-    const todayTotal = (todaySales as any).total_sales;
-    const yesterdayTotal = yesterdaySales.total_sales;
+    const todayTotal = (todaySales as any)?.total_sales || 0;
+    const yesterdayTotal = yesterdaySales?.total_sales || 0;
     let growth = 0;
     if (yesterdayTotal > 0) {
       growth = Number(((todayTotal - yesterdayTotal) / yesterdayTotal * 100).toFixed(1));
@@ -121,19 +121,19 @@ router.get('/kpi', async (req, res) => {
       success: true,
       data: {
         date: new Date().toISOString().split('T')[0],
-        totalOrders: (todaySales as any).order_count,
-        grossRevenue: (todaySales as any).gross_sales,
-        netRevenue: (todaySales as any).total_sales,
-        totalDiscounts: (todaySales as any).total_discount,
-        averageOrderValue: (todaySales as any).avg_order_value,
-        totalCosts: todayCosts,
-        grossProfit: (todaySales as any).total_sales - todayCosts,
-        rangeCosts,
+        totalOrders: (todaySales as any)?.order_count || 0,
+        grossRevenue: (todaySales as any)?.gross_sales || 0,
+        netRevenue: (todaySales as any)?.total_sales || 0,
+        totalDiscounts: (todaySales as any)?.total_discount || 0,
+        averageOrderValue: (todaySales as any)?.avg_order_value || 0,
+        totalCosts: todayCosts || 0,
+        grossProfit: ((todaySales as any)?.total_sales || 0) - (todayCosts || 0),
+        rangeCosts: rangeCosts || 0,
         paymentMethods: [],
-        yesterday: yesterdaySales,
+        yesterday: yesterdaySales || { total_sales: 0 },
         growth,
-        topProducts,
-        salesByType
+        topProducts: topProducts || [],
+        salesByType: salesByType || []
       }
     });
   } catch (error: any) {

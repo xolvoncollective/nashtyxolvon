@@ -44,11 +44,12 @@ router.get('/analytics', async (req, res) => {
     const avgPrepTimeSeconds = completedOrders.length > 0 ? totalSeconds / completedOrders.length : 0;
     
     // Total Orders Today
-    const totalOrders = await get(`
+    const totalOrdersResult = await get(`
       SELECT COUNT(*) as count 
       FROM orders 
       WHERE tenant_id = ? AND created_at >= ? ${outletFilter}
-    `, params) as { count: number };
+    `, params) as { count: number } | null | undefined;
+    const totalOrders = totalOrdersResult || { count: 0 };
 
     // Over SLA (We need items to calculate this precisely, or we can just proxy it for now)
     // For analytics proxy: count order items where completed_at > created_at + production_time
@@ -86,12 +87,12 @@ router.get('/analytics', async (req, res) => {
       success: true,
       data: {
         avgPrepTimeSeconds,
-        completedOrders: completedOrders.length,
-        totalOrders: totalOrders.count,
-        overSlaItemsCount,
-        totalItemsCount,
-        fastestProducts: productStats.slice(0, 5),
-        slowestProducts: slowestProducts.slice(0, 5)
+        completedOrders: completedOrders?.length || 0,
+        totalOrders: totalOrders?.count || 0,
+        overSlaItemsCount: overSlaItemsCount || 0,
+        totalItemsCount: totalItemsCount || 0,
+        fastestProducts: (productStats || []).slice(0, 5),
+        slowestProducts: (slowestProducts || []).slice(0, 5)
       }
     });
   } catch (error: any) {
