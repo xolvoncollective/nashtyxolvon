@@ -1,4 +1,4 @@
-const http = require('http');
+﻿const http = require('http');
 
 const endpoints = [
   '/api/health',
@@ -10,7 +10,7 @@ const endpoints = [
 async function run() {
   for (const ep of endpoints) {
     try {
-      const res = await fetch(`http://localhost:3099${ep}`);
+      const res = await fetch(`https://nashty-backoffice-backend-production.up.railway.app${ep}`);
       const text = await res.text();
       console.log(`\n=== GET ${ep} ===`);
       console.log(`Status: ${res.status}`);

@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+﻿const { chromium } = require('playwright');
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
@@ -10,7 +10,7 @@ const { chromium } = require('playwright');
   try {
     // 1. Setup Outlet & Session
     console.log('[1] Logging into Backoffice...');
-    await page.goto('http://localhost:3099/backoffice');
+    await page.goto('https://nashty-backoffice-backend-production.up.railway.app/backoffice');
     await page.fill('input[type="email"]', 'admin@nashty.id');
     await page.fill('input[type="password"]', 'admin123');
     await page.click('button[type="submit"]');
@@ -18,7 +18,7 @@ const { chromium } = require('playwright');
 
     // 2. Open POS
     console.log('[2] Opening POS...');
-    await page.goto('http://localhost:3099/pos');
+    await page.goto('https://nashty-backoffice-backend-production.up.railway.app/pos');
     await page.waitForTimeout(3000);
 
     // Add member
@@ -53,7 +53,7 @@ const { chromium } = require('playwright');
     
     // Open KDS
     console.log('[7] Opening KDS...');
-    await page.goto('http://localhost:3099/kds');
+    await page.goto('https://nashty-backoffice-backend-production.up.railway.app/kds');
     await page.waitForTimeout(2000);
     
     // Complete the order
@@ -69,7 +69,7 @@ const { chromium } = require('playwright');
 
     // Check CRM
     console.log('[9] Checking CRM...');
-    await page.goto('http://localhost:3099/crm');
+    await page.goto('https://nashty-backoffice-backend-production.up.railway.app/crm');
     await page.waitForTimeout(3000);
     
     // Capture screenshot of CRM to verify points

@@ -1,15 +1,15 @@
-/**
+﻿/**
  * Local API Testing Script
  * Tests all major API endpoints in development mode
  * 
  * USAGE: node test-api-local.js
  * 
  * REQUIREMENTS:
- * - Server must be running on http://localhost:3099
+ * - Server must be running on https://nashty-backoffice-backend-production.up.railway.app
  * - NODE_ENV=development (auth bypass enabled)
  */
 
-const API_BASE = 'http://localhost:3099/api';
+const API_BASE = 'https://nashty-backoffice-backend-production.up.railway.app/api';
 
 // Helper function for colored console output
 const colors = {

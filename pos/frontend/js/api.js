@@ -1,4 +1,4 @@
-/**
+﻿/**
  * NASHTY POS API Client
  * Centralized API communication layer
  * 
@@ -8,7 +8,7 @@
  * Then use: API.auth.login(pin), API.products.getAll(), etc.
  */
 
-const API_BASE = 'http://localhost:3099/api';
+const API_BASE = 'https://nashty-backoffice-backend-production.up.railway.app/api';
 
 const API = {
   // Current session data

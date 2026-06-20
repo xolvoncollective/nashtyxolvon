@@ -1,10 +1,10 @@
-const { chromium } = require('playwright');
+﻿const { chromium } = require('playwright');
 
 async function run() {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
   
-  await page.goto('http://localhost:3099/backoffice', { waitUntil: 'networkidle' });
+  await page.goto('https://nashty-backoffice-backend-production.up.railway.app/backoffice', { waitUntil: 'networkidle' });
   await page.evaluate(() => {
     window.localStorage.setItem('session', JSON.stringify({
       token: 'demo-token',
@@ -12,7 +12,7 @@ async function run() {
       user: { name: 'Admin', role: 'owner' }
     }));
   });
-  await page.goto('http://localhost:3099/backoffice', { waitUntil: 'networkidle' });
+  await page.goto('https://nashty-backoffice-backend-production.up.railway.app/backoffice', { waitUntil: 'networkidle' });
   await page.waitForTimeout(1000);
 
   // A1. Profile button clicking

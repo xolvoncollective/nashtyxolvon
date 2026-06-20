@@ -1,4 +1,4 @@
-/**
+﻿/**
  * NASHTY OS API Client v2.0
  * With Main Admin Authentication and Supabase Support
  * 
@@ -13,7 +13,7 @@
  * - Fallback to SQLite if Supabase unavailable
  */
 
-const API_BASE = 'http://localhost:3099/api';
+const API_BASE = 'https://nashty-backoffice-backend-production.up.railway.app/api';
 
 const API = {
   // Current session data (HARDCODED FOR DEV)

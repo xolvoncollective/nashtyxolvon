@@ -1,4 +1,4 @@
-const crypto = require('crypto');
+﻿const crypto = require('crypto');
 
 (async () => {
   try {
@@ -36,7 +36,7 @@ const crypto = require('crypto');
       }]
     };
 
-    const createRes = await fetch('http://localhost:3099/api/orders', {
+    const createRes = await fetch('https://nashty-backoffice-backend-production.up.railway.app/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(orderData)
@@ -47,7 +47,7 @@ const crypto = require('crypto');
     const orderId = orderObj.order.id;
 
     console.log('3. Complete order via KDS status update');
-    const statusRes = await fetch(`http://localhost:3099/api/orders/${orderId}/status`, {
+    const statusRes = await fetch(`https://nashty-backoffice-backend-production.up.railway.app/api/orders/${orderId}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ kitchenStatus: 'served', orderStatus: 'completed' })
@@ -56,7 +56,7 @@ const crypto = require('crypto');
     console.log('Status update:', statusObj.success);
 
     console.log('4. Verify CRM points via API or SQLite');
-    const crmRes = await fetch(`http://localhost:3099/api/crm/${tenantId}/members`);
+    const crmRes = await fetch(`https://nashty-backoffice-backend-production.up.railway.app/api/crm/${tenantId}/members`);
     const crmObj = await crmRes.json();
     const member = crmObj.data.find(m => m.phone === '08999999999');
     console.log('Member points:', member ? member.points : 'Not found');

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Test Task 19: Sold-Out Status Synchronization
  * 
  * This test verifies:
@@ -8,7 +8,7 @@
  * 4. POS correctly disables sold-out items
  */
 
-const API_BASE = 'http://localhost:3099/api';
+const API_BASE = 'https://nashty-backoffice-backend-production.up.railway.app/api';
 
 async function testTask19() {
   console.log('\n========================================');

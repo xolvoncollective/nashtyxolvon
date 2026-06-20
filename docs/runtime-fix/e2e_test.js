@@ -1,4 +1,4 @@
-const db = require('better-sqlite3')('../../data/nashtypos.db');
+﻿const db = require('better-sqlite3')('../../data/nashtypos.db');
 
 async function runTest() {
   console.log("Starting End-to-End Flow Validation...\n");
@@ -30,7 +30,7 @@ async function runTest() {
     payments: [{ method: 'tunai', amount: product.price * 2 }]
   };
 
-  const createRes = await fetch('http://localhost:3099/api/orders', {
+  const createRes = await fetch('https://nashty-backoffice-backend-production.up.railway.app/api/orders', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
@@ -44,14 +44,14 @@ async function runTest() {
   console.log(`[2] Order Created: ${orderId}`);
 
   // Update Status (Complete Order)
-  const statusRes = await fetch(`http://localhost:3099/api/orders/${orderId}/status`, {
+  const statusRes = await fetch(`https://nashty-backoffice-backend-production.up.railway.app/api/orders/${orderId}/status`, {
     method: 'PATCH', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ orderStatus: 'completed', kitchenStatus: 'served' })
   });
   console.log(`[3] Order Completed:`, (await statusRes.json()).success);
 
   // Void Order
-  const voidRes = await fetch(`http://localhost:3099/api/orders/${orderId}/void`, {
+  const voidRes = await fetch(`https://nashty-backoffice-backend-production.up.railway.app/api/orders/${orderId}/void`, {
     method: 'PUT', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ reason: 'Test Void', voidBy: 'admin', managerPin: '0000' })
   });

@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+﻿const { chromium } = require('playwright');
 
 (async () => {
   const browser = await chromium.launch();
@@ -6,7 +6,7 @@ const { chromium } = require('playwright');
   
   try {
     console.log('Navigating to POS...');
-    await page.goto('http://localhost:3099/pos/frontend/index.html');
+    await page.goto('https://nashty-backoffice-backend-production.up.railway.app/pos/frontend/index.html');
     await page.waitForTimeout(1000);
 
     console.log('Logging in...');
@@ -40,7 +40,7 @@ const { chromium } = require('playwright');
     
     // Now verify KDS
     console.log('Checking KDS API...');
-    const kdsRes = await fetch('http://localhost:3099/api/orders/kitchen/queue?tenantId=demo-tenant');
+    const kdsRes = await fetch('https://nashty-backoffice-backend-production.up.railway.app/api/orders/kitchen/queue?tenantId=demo-tenant');
     const kdsData = await kdsRes.json();
     
     const hasPending = kdsData.orders.some(o => o.kitchen_status === 'pending');

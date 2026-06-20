@@ -1,4 +1,4 @@
-const fs = require('fs');
+﻿const fs = require('fs');
 const db = require('better-sqlite3')('../../data/nashtypos.db');
 
 async function runVerification() {
@@ -31,7 +31,7 @@ async function runVerification() {
   // Flow A: Shift Management
   console.log("\n--- FLOW A: Shift Management ---");
   console.log("Before Shift Count:", db.prepare('SELECT COUNT(*) as c FROM shifts').get().c);
-  const shiftRes = await fetch('http://localhost:3099/api/shifts/start', {
+  const shiftRes = await fetch('https://nashty-backoffice-backend-production.up.railway.app/api/shifts/start', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ tenantId, outletId, userId, startCash: 100000 })
   });
@@ -59,7 +59,7 @@ async function runVerification() {
     payments: [{ method: 'tunai', amount: product.price * 2 }]
   };
 
-  const createRes = await fetch('http://localhost:3099/api/orders', {
+  const createRes = await fetch('https://nashty-backoffice-backend-production.up.railway.app/api/orders', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
@@ -72,7 +72,7 @@ async function runVerification() {
     console.log(`[Flow D] Stock after order (should be -2): ${stockAfterOrder}`);
 
     // Complete order
-    await fetch(`http://localhost:3099/api/orders/${orderId}/status`, {
+    await fetch(`https://nashty-backoffice-backend-production.up.railway.app/api/orders/${orderId}/status`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ orderStatus: 'completed', kitchenStatus: 'served' })
     });
@@ -88,7 +88,7 @@ async function runVerification() {
 
   // Flow F: Refund Reversal
   console.log("\n--- FLOW F: Refund Reversal ---");
-  const refundRes = await fetch(`http://localhost:3099/api/orders/${orderId}/refund`, {
+  const refundRes = await fetch(`https://nashty-backoffice-backend-production.up.railway.app/api/orders/${orderId}/refund`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ reason: 'Test Refund', refundAmount: payload.total, refundBy: 'admin' })
   });
@@ -101,7 +101,7 @@ async function runVerification() {
   // Flow E: Void Restoration
   console.log("\n--- FLOW E: Void Restoration ---");
   // Create another order to void
-  const createRes2 = await fetch('http://localhost:3099/api/orders', {
+  const createRes2 = await fetch('https://nashty-backoffice-backend-production.up.railway.app/api/orders', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
@@ -110,7 +110,7 @@ async function runVerification() {
   const stockBeforeVoid = db.prepare('SELECT stock_qty FROM products WHERE id = ?').get(productId).stock_qty;
   console.log(`[Flow E] Stock before void: ${stockBeforeVoid}`);
   
-  const voidRes = await fetch(`http://localhost:3099/api/orders/${orderId2}/void`, {
+  const voidRes = await fetch(`https://nashty-backoffice-backend-production.up.railway.app/api/orders/${orderId2}/void`, {
     method: 'PUT', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ reason: 'Test Void', voidBy: 'admin', managerPin: '0000' })
   });

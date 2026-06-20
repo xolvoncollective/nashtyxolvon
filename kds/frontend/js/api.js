@@ -1,4 +1,4 @@
-/**
+﻿/**
  * NASHTY KDS API Client
  * Centralized API communication layer for Kitchen Display System
  * 
@@ -6,7 +6,7 @@
  * Handles kitchen status updates
  */
 
-const API_BASE = 'http://localhost:3099/api';
+const API_BASE = 'https://nashty-backoffice-backend-production.up.railway.app/api';
 
 const API = {
   // Current session data

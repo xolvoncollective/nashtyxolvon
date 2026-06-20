@@ -1,4 +1,4 @@
-const sqlite3 = require('better-sqlite3');
+﻿const sqlite3 = require('better-sqlite3');
 const db = sqlite3('data/nashtypos.db');
 
 async function run() {
@@ -19,7 +19,7 @@ async function run() {
   db.prepare(`INSERT INTO product_modifiers (product_id, modifier_group_id) VALUES (?, ?)`).run('prod-mod-1', 'mod-grp-1');
 
   // E1. Modifiers in POS
-  const resE1 = await fetch('http://localhost:3099/api/menu/outlet/demo-outlet-3?tenantId=demo-tenant');
+  const resE1 = await fetch('https://nashty-backoffice-backend-production.up.railway.app/api/menu/outlet/demo-outlet-3?tenantId=demo-tenant');
   const dataE1 = await resE1.json();
   const prodsE1 = dataE1.data.items || [];
   const prodMod = prodsE1.find(p => p.id === 'prod-mod-1');
@@ -38,7 +38,7 @@ async function run() {
   db.prepare(`INSERT INTO order_item_modifiers (id, order_item_id, modifier_group_id, modifier_group_name, modifier_option_id, modifier_option_name, price_adjustment) VALUES (?, ?, ?, ?, ?, ?, ?)`)
     .run('item-mod-opt-1', 'item-mod-1', 'mod-grp-1', 'Toppings', 'mod-opt-1', 'Cheese', 2000);
 
-  const resE2 = await fetch('http://localhost:3099/api/orders?tenantId=demo-tenant&outletId=demo-outlet-3');
+  const resE2 = await fetch('https://nashty-backoffice-backend-production.up.railway.app/api/orders?tenantId=demo-tenant&outletId=demo-outlet-3');
   const dataE2 = await resE2.json();
   const orderKds = (dataE2.orders || []).find(o => o.id === 'order-mod-1');
   

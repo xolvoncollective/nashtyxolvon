@@ -1,4 +1,4 @@
-const sqlite3 = require('better-sqlite3');
+﻿const sqlite3 = require('better-sqlite3');
 const db = sqlite3('data/nashtypos.db');
 
 async function run() {
@@ -10,7 +10,7 @@ async function run() {
   db.prepare(`INSERT INTO categories (id, tenant_id, name, slug, status) VALUES (?, ?, ?, ?, ?)`).run('cat-test-1', 'demo-tenant', 'Test Cat', 'test-cat', 'inactive');
   
   // Fetch from API
-  const resC1 = await fetch('http://localhost:3099/api/categories?tenantId=demo-tenant');
+  const resC1 = await fetch('https://nashty-backoffice-backend-production.up.railway.app/api/categories?tenantId=demo-tenant');
   const dataC1 = await resC1.json();
   const foundCat = (dataC1.categories || []).find(c => c.id === 'cat-test-1');
   if (foundCat) {
@@ -25,7 +25,7 @@ async function run() {
   db.prepare(`INSERT INTO products (id, tenant_id, category_id, name, slug, price, status, deleted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run('prod-test-del', 'demo-tenant', 'cat-test-1', 'Deleted Product', 'deleted-prod', 10000, 'active', new Date().toISOString());
   db.prepare(`INSERT INTO products (id, tenant_id, category_id, name, slug, price, status) VALUES (?, ?, ?, ?, ?, ?, ?)`).run('prod-test-dis', 'demo-tenant', 'cat-test-1', 'Disabled Product', 'disabled-prod', 10000, 'inactive');
   
-  const resD1 = await fetch('http://localhost:3099/api/products?tenantId=demo-tenant');
+  const resD1 = await fetch('https://nashty-backoffice-backend-production.up.railway.app/api/products?tenantId=demo-tenant');
   const dataD1 = await resD1.json();
   const foundDel = (dataD1.data || dataD1.products || []).find(p => p.id === 'prod-test-del');
   const foundDis = (dataD1.data || dataD1.products || []).find(p => p.id === 'prod-test-dis');
@@ -43,7 +43,7 @@ async function run() {
   db.prepare(`INSERT INTO products (id, tenant_id, category_id, name, slug, price, status) VALUES (?, ?, ?, ?, ?, ?, ?)`).run('prod-test-dis2', 'demo-tenant', 'cat-test-2', 'Disabled Product 2', 'disabled-prod-2', 10000, 'inactive');
 
   db.prepare(`INSERT INTO outlets (id, tenant_id, name, slug, status) VALUES (?, ?, ?, ?, ?)`).run('demo-outlet-2', 'demo-tenant', 'Demo Outlet 2', 'demo-outlet-2', 'active');
-  const resD3 = await fetch('http://localhost:3099/api/menu/outlet/demo-outlet-2?tenantId=demo-tenant');
+  const resD3 = await fetch('https://nashty-backoffice-backend-production.up.railway.app/api/menu/outlet/demo-outlet-2?tenantId=demo-tenant');
   const dataD3 = await resD3.json();
   
   let d3Pass = true;

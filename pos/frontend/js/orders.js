@@ -1,4 +1,4 @@
-    /* ════════════════════════
+﻿    /* ════════════════════════
        PAYMENT
     ════════════════════════ */
     function showPayModal() {
@@ -432,7 +432,7 @@
           } else {
             try {
               if (navigator.onLine) {
-                await fetch('http://localhost:3099/api/orders/payment-failed', {
+                await fetch('https://nashty-backoffice-backend-production.up.railway.app/api/orders/payment-failed', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Test Task 20: Comprehensive Menu Synchronization Flow Checkpoint
  * 
  * This test verifies the complete menu synchronization flow:
@@ -17,7 +17,7 @@
  * - 10.1-10.10: Caching strategy for performance
  */
 
-const API_BASE = 'http://localhost:3099/api';
+const API_BASE = 'https://nashty-backoffice-backend-production.up.railway.app/api';
 
 // Helper function to wait for a specified time
 function sleep(ms) {
