@@ -11,7 +11,7 @@ const JWT_EXPIRES_IN = '30d'; // Member tokens last longer
 
 // POST /api/members/auth/login
 // Mocking OTP/PIN. If member doesn't exist, auto-create them.
-router.post('/auth/login', (req, res) => {
+router.post('/auth/login', async (req, res) => {
   try {
     const { phone, pin, name } = req.body;
     
@@ -27,21 +27,21 @@ router.post('/auth/login', (req, res) => {
     }
 
     // Find member by phone
-    let member = get('SELECT * FROM members WHERE phone = ?', [phone]) as any;
+    let member = await get('SELECT * FROM members WHERE phone = ?', [phone]) as any;
 
     if (!member) {
       // Auto-register
       const memberId = randomUUID();
       // Assume a default tenant for demo
-      const tenant = get('SELECT id FROM tenants LIMIT 1') as any;
+      const tenant = await get('SELECT id FROM tenants LIMIT 1') as any;
       if (!tenant) return res.status(500).json({ error: 'Sistem belum dikonfigurasi (No tenant found)' });
 
-      run(`
+      await run(`
         INSERT INTO members (id, tenant_id, name, phone, pin_hash, points, segment)
         VALUES (?, ?, ?, ?, ?, 0, 'new')
       `, [memberId, tenant.id, name || 'Member Baru', phone, '1234']); // store plain PIN for demo
 
-      member = get('SELECT * FROM members WHERE id = ?', [memberId]);
+      member = await get('SELECT * FROM members WHERE id = ?', [memberId]);
     }
 
     // Generate JWT
@@ -87,10 +87,10 @@ const requireMemberAuth = (req: any, res: any, next: any) => {
 };
 
 // GET /api/members/profile
-router.get('/profile', requireMemberAuth, (req: any, res) => {
+router.get('/profile', requireMemberAuth, async (req: any, res) => {
   try {
     const memberId = req.member.id;
-    const member = get('SELECT * FROM members WHERE id = ?', [memberId]) as any;
+    const member = await get('SELECT * FROM members WHERE id = ?', [memberId]) as any;
     
     if (!member) {
       return res.status(404).json({ error: 'Member tidak ditemukan' });
@@ -116,12 +116,12 @@ router.get('/profile', requireMemberAuth, (req: any, res) => {
 });
 
 // GET /api/members/history
-router.get('/history', requireMemberAuth, (req: any, res) => {
+router.get('/history', requireMemberAuth, async (req: any, res) => {
   try {
     const phone = req.member.phone;
     
     // We match orders by customer_phone
-    const orders = query(`
+    const orders = await query(`
       SELECT o.id, o.order_number, o.created_at, o.total, o.outlet_id, 
              out.name as outlet_name
       FROM orders o

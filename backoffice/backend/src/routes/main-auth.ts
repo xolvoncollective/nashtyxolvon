@@ -190,7 +190,7 @@ export const requireAdminSession = async (req: any, res: any, next: any) => {
 };
 
 // Protected route example
-router.get('/admin/info', requireAdminSession, (req: any, res) => {
+router.get('/admin/info', requireAdminSession, async (req: any, res) => {
   res.json({
     success: true,
     admin: req.admin,

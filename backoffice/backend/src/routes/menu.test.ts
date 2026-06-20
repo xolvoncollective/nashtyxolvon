@@ -50,7 +50,7 @@ describe('Menu Route - GET /api/menu/outlet/:outletId', () => {
       cacheManager.set(cacheKey, mockMenuTree, 300);
 
       // Retrieve from cache
-      const cached = cacheManager.get(cacheKey);
+      const cached = cacheManager.await get(cacheKey);
 
       expect(cached).toEqual(mockMenuTree);
       expect(mockGet).not.toHaveBeenCalled(); // Database should not be queried
@@ -61,7 +61,7 @@ describe('Menu Route - GET /api/menu/outlet/:outletId', () => {
       const outletId = 'outlet-456';
       const cacheKey = `menu:outlet:${outletId}`;
 
-      const cached = cacheManager.get(cacheKey);
+      const cached = cacheManager.await get(cacheKey);
 
       expect(cached).toBeNull();
     });
@@ -84,7 +84,7 @@ describe('Menu Route - GET /api/menu/outlet/:outletId', () => {
       cacheManager.set(cacheKey, mockMenuTree, ttl);
 
       // Verify data is cached
-      const cached = cacheManager.get(cacheKey);
+      const cached = cacheManager.await get(cacheKey);
       expect(cached).toEqual(mockMenuTree);
     });
 
@@ -107,7 +107,7 @@ describe('Menu Route - GET /api/menu/outlet/:outletId', () => {
       await new Promise(resolve => setTimeout(resolve, 1100));
 
       // Should be expired
-      const cached = cacheManager.get(cacheKey);
+      const cached = cacheManager.await get(cacheKey);
       expect(cached).toBeNull();
     });
   });
@@ -158,7 +158,7 @@ describe('Menu Route - GET /api/menu/outlet/:outletId', () => {
       cacheManager.set(cacheKey, menuTree, 300);
 
       // Verify it was cached
-      const cached = cacheManager.get(cacheKey);
+      const cached = cacheManager.await get(cacheKey);
       expect(cached).toEqual(menuTree);
     });
   });
@@ -188,8 +188,8 @@ describe('Menu Route - GET /api/menu/outlet/:outletId', () => {
       cacheManager.set(`menu:outlet:${outlet2}`, menu2, 300);
 
       // Each outlet should have its own cached data
-      const cached1 = cacheManager.get(`menu:outlet:${outlet1}`);
-      const cached2 = cacheManager.get(`menu:outlet:${outlet2}`);
+      const cached1 = cacheManager.await get(`menu:outlet:${outlet1}`);
+      const cached2 = cacheManager.await get(`menu:outlet:${outlet2}`);
 
       expect(cached1).toEqual(menu1);
       expect(cached2).toEqual(menu2);
@@ -212,13 +212,13 @@ describe('Menu Route - GET /api/menu/outlet/:outletId', () => {
 
       // Cache the menu
       cacheManager.set(cacheKey, menuTree, 300);
-      expect(cacheManager.get(cacheKey)).toEqual(menuTree);
+      expect(cacheManager.await get(cacheKey)).toEqual(menuTree);
 
       // Invalidate cache
       cacheManager.invalidate(cacheKey);
 
       // Should be null after invalidation
-      expect(cacheManager.get(cacheKey)).toBeNull();
+      expect(cacheManager.await get(cacheKey)).toBeNull();
     });
 
     it('should support pattern-based invalidation for all menu caches', () => {
@@ -231,9 +231,9 @@ describe('Menu Route - GET /api/menu/outlet/:outletId', () => {
       cacheManager.invalidatePattern('menu:*');
 
       // All should be invalidated
-      expect(cacheManager.get('menu:outlet:1')).toBeNull();
-      expect(cacheManager.get('menu:outlet:2')).toBeNull();
-      expect(cacheManager.get('menu:outlet:3')).toBeNull();
+      expect(cacheManager.await get('menu:outlet:1')).toBeNull();
+      expect(cacheManager.await get('menu:outlet:2')).toBeNull();
+      expect(cacheManager.await get('menu:outlet:3')).toBeNull();
     });
   });
 
@@ -312,7 +312,7 @@ describe('Menu Route - GET /api/menu/outlet/:outletId', () => {
       cacheManager.set(cacheKey, menuTree, 300);
 
       const startTime = Date.now();
-      const cached = cacheManager.get(cacheKey);
+      const cached = cacheManager.await get(cacheKey);
       const responseTime = Date.now() - startTime;
 
       expect(cached).toEqual(menuTree);
@@ -550,13 +550,13 @@ describe('Menu Route - PATCH /api/menu/items/:id', () => {
       cacheManager.set(cacheKey, menuTree, 300);
 
       // Verify cache exists
-      expect(cacheManager.get(cacheKey)).toEqual(menuTree);
+      expect(cacheManager.await get(cacheKey)).toEqual(menuTree);
 
       // Simulate cache invalidation after item update
       cacheManager.invalidate(cacheKey);
 
       // Cache should be cleared
-      expect(cacheManager.get(cacheKey)).toBeNull();
+      expect(cacheManager.await get(cacheKey)).toBeNull();
     });
 
     it('should use tenant_id to determine cache key', () => {
@@ -674,7 +674,7 @@ describe('Menu Route - PATCH /api/menu/items/:id', () => {
         stations: []
       };
       cacheManager.set(cacheKey, oldMenu, 300);
-      expect(cacheManager.get(cacheKey)).toEqual(oldMenu);
+      expect(cacheManager.await get(cacheKey)).toEqual(oldMenu);
 
       // Step 2: Validate item exists
       mockGet.mockReturnValueOnce({
@@ -692,7 +692,7 @@ describe('Menu Route - PATCH /api/menu/items/:id', () => {
 
       // Step 4: Invalidate cache
       cacheManager.invalidate(cacheKey);
-      expect(cacheManager.get(cacheKey)).toBeNull();
+      expect(cacheManager.await get(cacheKey)).toBeNull();
 
       // Step 5: Next GET request will fetch fresh data
       const updatedMenu = {
@@ -704,7 +704,7 @@ describe('Menu Route - PATCH /api/menu/items/:id', () => {
       };
       cacheManager.set(cacheKey, updatedMenu, 300);
 
-      const freshMenu = cacheManager.get(cacheKey);
+      const freshMenu = cacheManager.await get(cacheKey);
       expect(freshMenu).toEqual(updatedMenu);
       expect((freshMenu as any)?.items[0].price).toBe(7000);
     });
@@ -892,13 +892,13 @@ describe('Menu Route - POST /api/menu/items', () => {
       cacheManager.set(cacheKey, menuTree, 300);
 
       // Verify cache exists
-      expect(cacheManager.get(cacheKey)).toEqual(menuTree);
+      expect(cacheManager.await get(cacheKey)).toEqual(menuTree);
 
       // Simulate cache invalidation after item creation
       cacheManager.invalidate(cacheKey);
 
       // Cache should be cleared
-      expect(cacheManager.get(cacheKey)).toBeNull();
+      expect(cacheManager.await get(cacheKey)).toBeNull();
     });
 
     it('should use correct cache key format', () => {
@@ -988,11 +988,11 @@ describe('Menu Route - POST /api/menu/items', () => {
         stations: []
       };
       cacheManager.set(cacheKey, menuTree, 300);
-      expect(cacheManager.get(cacheKey)).toEqual(menuTree);
+      expect(cacheManager.await get(cacheKey)).toEqual(menuTree);
 
       // Step 2: POST endpoint creates new item and invalidates cache
       cacheManager.invalidate(cacheKey);
-      expect(cacheManager.get(cacheKey)).toBeNull();
+      expect(cacheManager.await get(cacheKey)).toBeNull();
 
       // Step 3: Next GET request will fetch fresh data from database
       const updatedMenuTree = {
@@ -1004,7 +1004,7 @@ describe('Menu Route - POST /api/menu/items', () => {
       };
       cacheManager.set(cacheKey, updatedMenuTree, 300);
       
-      const freshMenu = cacheManager.get(cacheKey);
+      const freshMenu = cacheManager.await get(cacheKey);
       expect(freshMenu).toEqual(updatedMenuTree);
       expect((freshMenu as any)?.items).toHaveLength(2);
     });

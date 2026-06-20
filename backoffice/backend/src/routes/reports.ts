@@ -50,7 +50,7 @@ router.get('/sales', async (req, res) => {
     `, params);
 
     // Summary totals
-    const summary = get(`
+    const summary = await get(`
       SELECT 
         COUNT(*) as total_orders,
         COALESCE(SUM(o.subtotal), 0) as gross_sales,

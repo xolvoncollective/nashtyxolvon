@@ -28,7 +28,7 @@ router.post('/', async (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
     `, [userId, tenantId, outletId || null, name, email || null, phone || null, role, pinHash]);
 
-    const user = get('SELECT id, name, email, phone, role, outlet_id, status, created_at FROM users WHERE id = ?', [userId]);
+    const user = await get('SELECT id, name, email, phone, role, outlet_id, status, created_at FROM users WHERE id = ?', [userId]);
 
     // Log activity
     await run(`
@@ -49,7 +49,7 @@ router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const { name, email, phone, role, pin, outletId } = req.body;
 
-    const existing = get('SELECT * FROM users WHERE id = ?', [id]);
+    const existing = await get('SELECT * FROM users WHERE id = ?', [id]);
     if (!existing) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -77,7 +77,7 @@ router.put('/:id', async (req, res) => {
       await run(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
     }
 
-    const user = get('SELECT id, name, email, phone, role, outlet_id, status, created_at FROM users WHERE id = ?', [id]);
+    const user = await get('SELECT id, name, email, phone, role, outlet_id, status, created_at FROM users WHERE id = ?', [id]);
 
     res.json({ success: true, user });
   } catch (error: any) {
@@ -96,7 +96,7 @@ router.patch('/:id/status', async (req, res) => {
       return res.status(400).json({ error: 'status must be "active" or "inactive"' });
     }
 
-    const existing = get('SELECT * FROM users WHERE id = ?', [id]);
+    const existing = await get('SELECT * FROM users WHERE id = ?', [id]);
     if (!existing) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -115,7 +115,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const existing = get('SELECT * FROM users WHERE id = ?', [id]);
+    const existing = await get('SELECT * FROM users WHERE id = ?', [id]);
     if (!existing) {
       return res.status(404).json({ error: 'User not found' });
     }

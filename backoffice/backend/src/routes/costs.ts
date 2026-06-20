@@ -66,7 +66,7 @@ router.post('/', async (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?)
     `, [costId, tenantId, outletId || null, Number(amount), category, description || null]);
 
-    const cost = get('SELECT * FROM nashtycosts WHERE id = ?', [costId]);
+    const cost = await get('SELECT * FROM nashtycosts WHERE id = ?', [costId]);
 
     // Log activity
     await run(`
@@ -87,7 +87,7 @@ router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const { amount, category, description, outletId } = req.body;
 
-    const existing = get('SELECT * FROM nashtycosts WHERE id = ?', [id]) as any;
+    const existing = await get('SELECT * FROM nashtycosts WHERE id = ?', [id]) as any;
     if (!existing) {
       return res.status(404).json({ error: 'Cost not found' });
     }
@@ -112,7 +112,7 @@ router.put('/:id', async (req, res) => {
       await run(`UPDATE nashtycosts SET ${updates.join(', ')} WHERE id = ?`, params);
     }
 
-    const cost = get('SELECT * FROM nashtycosts WHERE id = ?', [id]);
+    const cost = await get('SELECT * FROM nashtycosts WHERE id = ?', [id]);
 
     res.json({ success: true, cost });
   } catch (error: any) {
@@ -125,7 +125,7 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const existing = get('SELECT * FROM nashtycosts WHERE id = ?', [id]) as any;
+    const existing = await get('SELECT * FROM nashtycosts WHERE id = ?', [id]) as any;
     if (!existing) {
       return res.status(404).json({ error: 'Cost not found' });
     }

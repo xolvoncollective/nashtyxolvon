@@ -35,7 +35,7 @@ router.get('/:id/products', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const category = get('SELECT * FROM categories WHERE id = ?', [id]);
+    const category = await get('SELECT * FROM categories WHERE id = ?', [id]);
     if (!category) {
       return res.status(404).json({ error: 'Category not found' });
     }
@@ -60,7 +60,7 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const category = get('SELECT * FROM categories WHERE id = ?', [id]);
+    const category = await get('SELECT * FROM categories WHERE id = ?', [id]);
 
     if (!category) {
       return res.status(404).json({ error: 'Category not found' });
@@ -86,7 +86,7 @@ router.post('/', async (req, res) => {
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
     // Get next display order
-    const lastOrder = get('SELECT MAX(display_order) as max_order FROM categories WHERE tenant_id = ?', [tenantId]);
+    const lastOrder = await get('SELECT MAX(display_order) as max_order FROM categories WHERE tenant_id = ?', [tenantId]);
     const nextOrder = ((lastOrder as any)?.max_order || 0) + 1;
 
     await run(`
@@ -94,7 +94,7 @@ router.post('/', async (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
     `, [categoryId, tenantId, name, slug, description || null, icon || null, color || null, nextOrder]);
 
-    const category = get('SELECT * FROM categories WHERE id = ?', [categoryId]);
+    const category = await get('SELECT * FROM categories WHERE id = ?', [categoryId]);
 
     // Log activity
     await run(`
@@ -115,7 +115,7 @@ router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const { name, description, icon, color } = req.body;
 
-    const existing = get('SELECT * FROM categories WHERE id = ?', [id]);
+    const existing = await get('SELECT * FROM categories WHERE id = ?', [id]);
     if (!existing) {
       return res.status(404).json({ error: 'Category not found' });
     }
@@ -139,7 +139,7 @@ router.put('/:id', async (req, res) => {
 
     await run(`UPDATE categories SET ${updates.join(', ')} WHERE id = ?`, params);
 
-    const category = get('SELECT * FROM categories WHERE id = ?', [id]);
+    const category = await get('SELECT * FROM categories WHERE id = ?', [id]);
 
     res.json({ success: true, category });
   } catch (error: any) {
@@ -158,7 +158,7 @@ router.patch('/:id/status', async (req, res) => {
       return res.status(400).json({ error: 'status must be "active" or "inactive"' });
     }
 
-    const existing = get('SELECT * FROM categories WHERE id = ?', [id]);
+    const existing = await get('SELECT * FROM categories WHERE id = ?', [id]);
     if (!existing) {
       return res.status(404).json({ error: 'Category not found' });
     }
@@ -177,7 +177,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const existing = get('SELECT * FROM categories WHERE id = ?', [id]);
+    const existing = await get('SELECT * FROM categories WHERE id = ?', [id]);
     if (!existing) {
       return res.status(404).json({ error: 'Category not found' });
     }

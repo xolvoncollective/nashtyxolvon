@@ -9,7 +9,7 @@ router.get('/:outletId', async (req, res) => {
   try {
     const { outletId } = req.params;
 
-    const outlet = get('SELECT * FROM outlets WHERE id = ?', [outletId]);
+    const outlet = await get('SELECT * FROM outlets WHERE id = ?', [outletId]);
     if (!outlet) {
       return res.status(404).json({ error: 'Outlet not found' });
     }
@@ -75,7 +75,7 @@ router.put('/:outletId', async (req, res) => {
       return res.status(400).json({ error: 'settings object required' });
     }
 
-    const outlet = get('SELECT * FROM outlets WHERE id = ?', [outletId]);
+    const outlet = await get('SELECT * FROM outlets WHERE id = ?', [outletId]);
     if (!outlet) {
       return res.status(404).json({ error: 'Outlet not found' });
     }
@@ -100,7 +100,7 @@ router.put('/:outletId', async (req, res) => {
       }
 
       // Upsert setting
-      const existing = get(
+      const existing = await get(
         'SELECT id FROM settings WHERE tenant_id = ? AND outlet_id = ? AND key = ?',
         [tenantId, outletId, key]
       );

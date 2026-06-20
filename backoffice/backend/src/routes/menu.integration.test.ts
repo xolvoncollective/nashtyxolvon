@@ -39,7 +39,7 @@ describe('Menu Route Integration Tests', () => {
   describe('GET /api/menu/outlet/:outletId', () => {
     it('should return 404 for non-existent outlet', async () => {
       const response = await request(app)
-        .get('/api/menu/outlet/non-existent-outlet')
+        .await get('/api/menu/outlet/non-existent-outlet')
         .expect(404);
 
       expect(response.body).toHaveProperty('success', false);
@@ -48,7 +48,7 @@ describe('Menu Route Integration Tests', () => {
 
     it('should return 400 for invalid outlet ID', async () => {
       const response = await request(app)
-        .get('/api/menu/outlet/')
+        .await get('/api/menu/outlet/')
         .expect(404); // Express returns 404 for missing parameter
 
       // No outletId parameter provided
@@ -59,7 +59,7 @@ describe('Menu Route Integration Tests', () => {
       const outletId = 'demo-outlet';
 
       const response = await request(app)
-        .get(`/api/menu/outlet/${outletId}`)
+        .await get(`/api/menu/outlet/${outletId}`)
         .expect(200);
 
       expect(response.body).toHaveProperty('success', true);
@@ -98,7 +98,7 @@ describe('Menu Route Integration Tests', () => {
 
       // First request - cache miss
       const firstResponse = await request(app)
-        .get(`/api/menu/outlet/${outletId}`)
+        .await get(`/api/menu/outlet/${outletId}`)
         .expect(200);
 
       expect(firstResponse.body.cached).toBe(false);
@@ -106,7 +106,7 @@ describe('Menu Route Integration Tests', () => {
 
       // Second request - should hit cache
       const secondResponse = await request(app)
-        .get(`/api/menu/outlet/${outletId}`)
+        .await get(`/api/menu/outlet/${outletId}`)
         .expect(200);
 
       expect(secondResponse.body.cached).toBe(true);
@@ -129,12 +129,12 @@ describe('Menu Route Integration Tests', () => {
       const responseTimes: number[] = [];
 
       // Warm up cache
-      await request(app).get(`/api/menu/outlet/${outletId}`);
+      await request(app).await get(`/api/menu/outlet/${outletId}`);
 
       // Make multiple requests
       for (let i = 0; i < numRequests; i++) {
         const response = await request(app)
-          .get(`/api/menu/outlet/${outletId}`)
+          .await get(`/api/menu/outlet/${outletId}`)
           .expect(200);
 
         const timeStr = response.body.responseTime.replace('ms', '');
@@ -156,7 +156,7 @@ describe('Menu Route Integration Tests', () => {
       const outletId = 'demo-outlet';
 
       const response = await request(app)
-        .get(`/api/menu/outlet/${outletId}`)
+        .await get(`/api/menu/outlet/${outletId}`)
         .expect(200);
 
       const { data } = response.body;
@@ -187,7 +187,7 @@ describe('Menu Route Integration Tests', () => {
       const outletId = 'demo-outlet';
 
       const response = await request(app)
-        .get(`/api/menu/outlet/${outletId}`)
+        .await get(`/api/menu/outlet/${outletId}`)
         .expect(200);
 
       const { data } = response.body;
@@ -210,7 +210,7 @@ describe('Menu Route Integration Tests', () => {
       const outletId = 'demo-outlet';
 
       const response = await request(app)
-        .get(`/api/menu/outlet/${outletId}`)
+        .await get(`/api/menu/outlet/${outletId}`)
         .expect(200);
 
       const { data } = response.body;
@@ -226,7 +226,7 @@ describe('Menu Route Integration Tests', () => {
       const outletId = 'demo-outlet';
 
       const response = await request(app)
-        .get(`/api/menu/outlet/${outletId}`)
+        .await get(`/api/menu/outlet/${outletId}`)
         .expect(200);
 
       const { data } = response.body;
@@ -249,7 +249,7 @@ describe('Menu Route Integration Tests', () => {
       // First request - database query
       const startUncached = Date.now();
       const uncachedResponse = await request(app)
-        .get(`/api/menu/outlet/${outletId}`)
+        .await get(`/api/menu/outlet/${outletId}`)
         .expect(200);
       const uncachedTime = Date.now() - startUncached;
 
@@ -258,7 +258,7 @@ describe('Menu Route Integration Tests', () => {
       // Second request - cache hit
       const startCached = Date.now();
       const cachedResponse = await request(app)
-        .get(`/api/menu/outlet/${outletId}`)
+        .await get(`/api/menu/outlet/${outletId}`)
         .expect(200);
       const cachedTime = Date.now() - startCached;
 

@@ -19,7 +19,7 @@ describe('Costs Route Integration Tests', () => {
   beforeAll(async () => {
     await initDatabase();
     try {
-      run(`INSERT OR IGNORE INTO tenants (id, name, slug) VALUES (?, 'Test Tenant', 'costs-test-tenant')`, [tenantId]);
+      await run(`INSERT OR IGNORE INTO tenants (id, name, slug) VALUES (?, 'Test Tenant', 'costs-test-tenant')`, [tenantId]);
     } catch (e) {
       console.error('Failed to seed mock tenant in costs.test.ts:', e);
     }
@@ -47,7 +47,7 @@ describe('Costs Route Integration Tests', () => {
       expect(res.body.cost.description).toBe('Beli cabai dan ayam');
 
       // Check log
-      const log = get(`
+      const log = await get(`
         SELECT * FROM activity_logs 
         WHERE tenant_id = ? AND action = 'create_cost' 
         ORDER BY created_at DESC LIMIT 1
@@ -77,7 +77,7 @@ describe('Costs Route Integration Tests', () => {
   describe('GET /api/costs', () => {
     it('should list all costs for tenant', async () => {
       const res = await request(app)
-        .get(`/api/costs?tenantId=${tenantId}`)
+        .await get(`/api/costs?tenantId=${tenantId}`)
         .expect(200);
 
       expect(res.body.success).toBe(true);
@@ -89,7 +89,7 @@ describe('Costs Route Integration Tests', () => {
   describe('PUT /api/costs/:id', () => {
     it('should update an existing cost', async () => {
       // Find the cost created in the first test
-      const latestCost = get('SELECT id FROM nashtycosts WHERE tenant_id = ? LIMIT 1', [tenantId]) as any;
+      const latestCost = await get('SELECT id FROM nashtycosts WHERE tenant_id = ? LIMIT 1', [tenantId]) as any;
       expect(latestCost).toBeDefined();
 
       const payload = {
@@ -110,7 +110,7 @@ describe('Costs Route Integration Tests', () => {
 
   describe('DELETE /api/costs/:id', () => {
     it('should delete a cost and log it', async () => {
-      const latestCost = get('SELECT id FROM nashtycosts WHERE tenant_id = ? LIMIT 1', [tenantId]) as any;
+      const latestCost = await get('SELECT id FROM nashtycosts WHERE tenant_id = ? LIMIT 1', [tenantId]) as any;
       expect(latestCost).toBeDefined();
 
       const res = await request(app)
@@ -119,7 +119,7 @@ describe('Costs Route Integration Tests', () => {
 
       expect(res.body.success).toBe(true);
 
-      const deletedCost = get('SELECT * FROM nashtycosts WHERE id = ?', [latestCost.id]);
+      const deletedCost = await get('SELECT * FROM nashtycosts WHERE id = ?', [latestCost.id]);
       expect(deletedCost).toBeNull();
     });
   });

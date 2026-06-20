@@ -10,7 +10,7 @@ const router = express.Router();
 router.get('/customers', async (req, res) => {
   const tenantId = req.query.tenantId;
   if (!tenantId) return res.status(400).json({ error: 'tenantId is required' });
-  const list = db.query('SELECT * FROM crm_customers WHERE tenant_id = ? AND deleted_at IS NULL ORDER BY created_at DESC', [tenantId]);
+  const list = await db.query('SELECT * FROM crm_customers WHERE tenant_id = ? AND deleted_at IS NULL ORDER BY created_at DESC', [tenantId]);
   res.json({ success: true, list });
 });
 
@@ -18,7 +18,7 @@ router.post('/customers', async (req, res) => {
   const { tenantId, name, phone, email, points, total_spent, visit_count } = req.body;
   if (!tenantId || !name) return res.status(400).json({ error: 'tenantId and name are required' });
   const id = nanoid();
-  db.run(`INSERT INTO crm_customers (id, tenant_id, name, phone, email, points, total_spent, visit_count) 
+  await db.run(`INSERT INTO crm_customers (id, tenant_id, name, phone, email, points, total_spent, visit_count) 
           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
           [id, tenantId, name, phone, email, points || 0, total_spent || 0, visit_count || 0]);
   res.json({ success: true, message: 'Customer added', id });
@@ -27,7 +27,7 @@ router.post('/customers', async (req, res) => {
 router.put('/customers/:id', async (req, res) => {
   const { tenantId, name, phone, email, points, total_spent, visit_count } = req.body;
   const { id } = req.params;
-  db.run(`UPDATE crm_customers SET 
+  await db.run(`UPDATE crm_customers SET 
           name = COALESCE(?, name), 
           phone = COALESCE(?, phone), 
           email = COALESCE(?, email), 
@@ -42,7 +42,7 @@ router.put('/customers/:id', async (req, res) => {
 
 router.delete('/customers/:id', async (req, res) => {
   const tId = req.query.tenantId || req.body?.tenantId;
-  db.run('UPDATE crm_customers SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND tenant_id = ?', [req.params.id, tId]);
+  await db.run('UPDATE crm_customers SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND tenant_id = ?', [req.params.id, tId]);
   res.json({ success: true, message: 'Customer deleted' });
 });
 
@@ -52,7 +52,7 @@ router.delete('/customers/:id', async (req, res) => {
 router.get('/rewards', async (req, res) => {
   const tenantId = req.query.tenantId;
   if (!tenantId) return res.status(400).json({ error: 'tenantId is required' });
-  const list = db.query('SELECT * FROM crm_rewards WHERE tenant_id = ? AND deleted_at IS NULL ORDER BY created_at DESC', [tenantId]);
+  const list = await db.query('SELECT * FROM crm_rewards WHERE tenant_id = ? AND deleted_at IS NULL ORDER BY created_at DESC', [tenantId]);
   res.json({ success: true, list });
 });
 
@@ -60,7 +60,7 @@ router.post('/rewards', async (req, res) => {
   const { tenantId, title, points_required, description, is_active } = req.body;
   if (!tenantId || !title) return res.status(400).json({ error: 'tenantId and title are required' });
   const id = nanoid();
-  db.run(`INSERT INTO crm_rewards (id, tenant_id, title, points_required, description, is_active) 
+  await db.run(`INSERT INTO crm_rewards (id, tenant_id, title, points_required, description, is_active) 
           VALUES (?, ?, ?, ?, ?, ?)`, 
           [id, tenantId, title, points_required || 0, description, is_active !== undefined ? is_active : 1]);
   res.json({ success: true, message: 'Reward added', id });
@@ -69,7 +69,7 @@ router.post('/rewards', async (req, res) => {
 router.put('/rewards/:id', async (req, res) => {
   const { tenantId, title, points_required, description, is_active } = req.body;
   const { id } = req.params;
-  db.run(`UPDATE crm_rewards SET 
+  await db.run(`UPDATE crm_rewards SET 
           title = COALESCE(?, title), 
           points_required = COALESCE(?, points_required), 
           description = COALESCE(?, description), 
@@ -81,7 +81,7 @@ router.put('/rewards/:id', async (req, res) => {
 
 router.delete('/rewards/:id', async (req, res) => {
   const tId = req.query.tenantId || req.body?.tenantId;
-  db.run('UPDATE crm_rewards SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND tenant_id = ?', [req.params.id, tId]);
+  await db.run('UPDATE crm_rewards SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND tenant_id = ?', [req.params.id, tId]);
   res.json({ success: true, message: 'Reward deleted' });
 });
 
@@ -94,9 +94,9 @@ router.get('/point-transactions', async (req, res) => {
   
   let list;
   if (customerId) {
-      list = db.query('SELECT * FROM crm_point_transactions WHERE tenant_id = ? AND customer_id = ? AND deleted_at IS NULL ORDER BY created_at DESC', [tenantId, customerId]);
+      list = await db.query('SELECT * FROM crm_point_transactions WHERE tenant_id = ? AND customer_id = ? AND deleted_at IS NULL ORDER BY created_at DESC', [tenantId, customerId]);
   } else {
-      list = db.query('SELECT * FROM crm_point_transactions WHERE tenant_id = ? AND deleted_at IS NULL ORDER BY created_at DESC', [tenantId]);
+      list = await db.query('SELECT * FROM crm_point_transactions WHERE tenant_id = ? AND deleted_at IS NULL ORDER BY created_at DESC', [tenantId]);
   }
   
   res.json({ success: true, list });

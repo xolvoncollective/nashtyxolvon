@@ -14,7 +14,7 @@ router.post('/start', async (req, res) => {
     }
 
     // Check if user already has an open shift
-    const existingShift = get(`
+    const existingShift = await get(`
       SELECT id FROM shifts WHERE user_id = ? AND status = 'open' ORDER BY started_at DESC LIMIT 1
     `, [userId]);
 
@@ -28,7 +28,7 @@ router.post('/start', async (req, res) => {
       INSERT INTO shifts (id, outlet_id, user_id, start_cash, status) VALUES (?, ?, ?, ?, 'open')
     `, [shiftId, outletId, userId, startCash || 0]);
 
-    const shift = get(`
+    const shift = await get(`
       SELECT s.*, u.name as user_name, o.name as outlet_name
       FROM shifts s LEFT JOIN users u ON s.user_id = u.id LEFT JOIN outlets o ON s.outlet_id = o.id
       WHERE s.id = ?
@@ -47,12 +47,12 @@ router.post('/:id/end', async (req, res) => {
     const { id } = req.params;
     const { endCash, notes } = req.body;
 
-    const shift = get('SELECT * FROM shifts WHERE id = ?', [id]) as any;
+    const shift = await get('SELECT * FROM shifts WHERE id = ?', [id]) as any;
     if (!shift) return res.status(404).json({ error: 'Shift not found' });
     if (shift.status === 'closed') return res.status(400).json({ error: 'Shift already closed' });
 
     // Check if there are unclosed orders
-    const pendingOrders = get(`
+    const pendingOrders = await get(`
       SELECT COUNT(*) as count FROM orders
       WHERE shift_id = ? AND (payment_status = 'pending' OR order_status IN ('pending', 'confirmed', 'preparing'))
     `, [id]);
@@ -63,7 +63,7 @@ router.post('/:id/end', async (req, res) => {
 
     // Calculate expected cash
     // Check payments table first
-    let result = get(`
+    let result = await get(`
       SELECT COALESCE(SUM(p.amount), 0) as total_sales
       FROM payments p
       JOIN orders o ON p.order_id = o.id
@@ -72,7 +72,7 @@ router.post('/:id/end', async (req, res) => {
 
     // Fallback to orders table if no payments table records
     if (!result || result.total_sales === 0) {
-      result = get(`
+      result = await get(`
         SELECT COALESCE(SUM(total), 0) as total_sales
         FROM orders WHERE shift_id = ? AND payment_method = 'tunai' AND payment_status = 'paid' AND order_status != 'cancelled'
       `, [id]) as any;
@@ -87,7 +87,7 @@ router.post('/:id/end', async (req, res) => {
       WHERE id = ?
     `, [endCash, expectedCash, variance, notes, new Date().toISOString(), id]);
 
-    const updatedShift = get(`
+    const updatedShift = await get(`
       SELECT s.*, u.name as user_name, o.name as outlet_name
       FROM shifts s LEFT JOIN users u ON s.user_id = u.id LEFT JOIN outlets o ON s.outlet_id = o.id
       WHERE s.id = ?
@@ -106,7 +106,7 @@ router.get('/active', async (req, res) => {
     const { userId } = req.query;
     if (!userId) return res.status(400).json({ error: 'userId required' });
 
-    const shift = get(`
+    const shift = await get(`
       SELECT s.*, u.name as user_name, o.name as outlet_name
       FROM shifts s LEFT JOIN users u ON s.user_id = u.id LEFT JOIN outlets o ON s.outlet_id = o.id
       WHERE s.user_id = ? AND s.status = 'open' ORDER BY s.started_at DESC LIMIT 1
@@ -153,7 +153,7 @@ router.get('/:id/summary', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const shift = get(`
+    const shift = await get(`
       SELECT s.*, u.name as user_name, o.name as outlet_name
       FROM shifts s LEFT JOIN users u ON s.user_id = u.id LEFT JOIN outlets o ON s.outlet_id = o.id
       WHERE s.id = ?
@@ -162,7 +162,7 @@ router.get('/:id/summary', async (req, res) => {
     if (!shift) return res.status(404).json({ error: 'Shift not found' });
 
     // Order summary
-    const orderSummary = get(`
+    const orderSummary = await get(`
       SELECT
         COUNT(*) as total_orders,
         COUNT(CASE WHEN payment_status = 'paid' AND order_status != 'cancelled' THEN 1 END) as completed_orders,
@@ -326,7 +326,7 @@ router.get('/report/daily', async (req, res) => {
     `, [outletId, targetDate]);
 
     // Daily totals
-    const dailyTotal = get(`
+    const dailyTotal = await get(`
       SELECT
         COUNT(*) as total_orders,
         COALESCE(SUM(total), 0) as total_revenue,

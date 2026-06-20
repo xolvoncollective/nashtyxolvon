@@ -68,7 +68,7 @@ router.post('/', async (req, res) => {
       `, [randomUUID(), tenantId, outletId, setting.key, setting.value, setting.type]);
     }
 
-    const outlet = get('SELECT * FROM outlets WHERE id = ?', [outletId]);
+    const outlet = await get('SELECT * FROM outlets WHERE id = ?', [outletId]);
 
     // Log activity
     await run(`
@@ -89,7 +89,7 @@ router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const { name, address, phone, status } = req.body;
 
-    const existing = get('SELECT * FROM outlets WHERE id = ?', [id]);
+    const existing = await get('SELECT * FROM outlets WHERE id = ?', [id]);
     if (!existing) {
       return res.status(404).json({ error: 'Outlet not found' });
     }
@@ -108,7 +108,7 @@ router.put('/:id', async (req, res) => {
 
     await run(`UPDATE outlets SET ${updates.join(', ')} WHERE id = ?`, params);
 
-    const outlet = get('SELECT * FROM outlets WHERE id = ?', [id]);
+    const outlet = await get('SELECT * FROM outlets WHERE id = ?', [id]);
 
     res.json({ success: true, outlet });
   } catch (error: any) {

@@ -85,7 +85,7 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const product = get(`
+    const product = await get(`
       SELECT p.*, c.name as category_name
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
@@ -127,7 +127,7 @@ router.patch('/:id/favorite', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const product = get('SELECT is_favorite FROM products WHERE id = ?', [id]) as any;
+    const product = await get('SELECT is_favorite FROM products WHERE id = ?', [id]) as any;
 
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
@@ -187,7 +187,7 @@ router.post('/', async (req, res) => {
       }
     }
 
-    const product = get('SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?', [productId]);
+    const product = await get('SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?', [productId]);
 
     // Log activity (Requirement 14.5)
     console.log(`[INFO] Product created - product_id: ${productId}, name: "${name}", price: ${price}`);
@@ -213,7 +213,7 @@ router.put('/:id', async (req, res) => {
 
     console.log(`[INFO] PUT /api/products/${id} - Updating product`);
 
-    const existing = get('SELECT * FROM products WHERE id = ?', [id]);
+    const existing = await get('SELECT * FROM products WHERE id = ?', [id]);
     if (!existing) {
       console.log(`[WARN] Product not found: ${id}`);
       return res.status(404).json({ 
@@ -279,7 +279,7 @@ router.put('/:id', async (req, res) => {
       }
     }
 
-    const product = get('SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?', [id]);
+    const product = await get('SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?', [id]);
 
     // Log activity (Requirement 14.5)
     console.log(`[INFO] Product updated - product_id: ${id}, name: "${(existing as any).name}"`);
@@ -308,7 +308,7 @@ router.patch('/:id/status', async (req, res) => {
       return res.status(400).json({ error: 'status must be "active", "inactive", or "soldout"' });
     }
 
-    const existing = get('SELECT * FROM products WHERE id = ?', [id]);
+    const existing = await get('SELECT * FROM products WHERE id = ?', [id]);
     if (!existing) {
       return res.status(404).json({ error: 'Product not found' });
     }
@@ -335,7 +335,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const existing = get('SELECT * FROM products WHERE id = ?', [id]);
+    const existing = await get('SELECT * FROM products WHERE id = ?', [id]);
     if (!existing) {
       return res.status(404).json({ error: 'Product not found' });
     }
@@ -354,7 +354,7 @@ router.post('/:id/duplicate', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const original = get('SELECT * FROM products WHERE id = ?', [id]) as any;
+    const original = await get('SELECT * FROM products WHERE id = ?', [id]) as any;
     if (!original) {
       return res.status(404).json({ error: 'Product not found' });
     }
@@ -377,7 +377,7 @@ router.post('/:id/duplicate', async (req, res) => {
       `, [newId, link.modifier_group_id, link.display_order]);
     }
 
-    const product = get('SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?', [newId]);
+    const product = await get('SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?', [newId]);
 
     res.status(201).json({ success: true, product });
   } catch (error: any) {

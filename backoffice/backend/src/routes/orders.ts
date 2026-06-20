@@ -88,7 +88,7 @@ router.post('/', async (req, res) => {
     } = validationResult.data;
 
     // Generate sequential order number
-    const seqResult = get(`
+    const seqResult = await get(`
       SELECT COUNT(*) as count FROM orders 
       WHERE outlet_id = ? AND DATE(created_at, 'localtime') = DATE('now', 'localtime')
     `, [outletId]) as any;
@@ -305,7 +305,7 @@ router.post('/', async (req, res) => {
     const orderItems = await query('SELECT * FROM order_items WHERE order_id = ?', [orderId]);
 
     for (const item of orderItems as any[]) {
-      item.modifiers = query('SELECT * FROM order_item_modifiers WHERE order_item_id = ?', [item.id]);
+      item.modifiers = await query('SELECT * FROM order_item_modifiers WHERE order_item_id = ?', [item.id]);
     }
 
     (order as any).items = orderItems;
@@ -384,12 +384,12 @@ router.get('/:id', async (req, res) => {
     // Get items
     const items = await query('SELECT * FROM order_items WHERE order_id = ?', [id]);
     for (const item of items as any[]) {
-      item.modifiers = query('SELECT * FROM order_item_modifiers WHERE order_item_id = ?', [item.id]);
+      item.modifiers = await query('SELECT * FROM order_item_modifiers WHERE order_item_id = ?', [item.id]);
     }
     (order as any).items = items;
 
     // Get payments
-    (order as any).payments = query('SELECT * FROM payments WHERE order_id = ?', [id]);
+    (order as any).payments = await query('SELECT * FROM payments WHERE order_id = ?', [id]);
 
     res.json({ order });
   } catch (error: any) {
@@ -405,7 +405,7 @@ router.patch('/:id/status', async (req, res) => {
     const { orderStatus, kitchenStatus } = req.body;
 
     // Get current status for logging (Task 22.3 - Requirement 14.4)
-    const currentOrder = get('SELECT kitchen_status, order_status FROM orders WHERE id = ?', [id]) as any;
+    const currentOrder = await get('SELECT kitchen_status, order_status FROM orders WHERE id = ?', [id]) as any;
     if (!currentOrder) {
       return res.status(404).json({ success: false, error: 'Order not found' });
     }
@@ -538,7 +538,7 @@ router.get('/config/:outletId', async (req, res) => {
   try {
     const { outletId } = req.params;
 
-    const outlet = get('SELECT * FROM outlets WHERE id = ?', [outletId]) as any;
+    const outlet = await get('SELECT * FROM outlets WHERE id = ?', [outletId]) as any;
     if (!outlet) {
       return res.status(404).json({ error: 'Outlet not found' });
     }
@@ -558,7 +558,7 @@ router.get('/config/:outletId', async (req, res) => {
     }
 
     // Get active payment methods
-    const paymentMethods = query(`
+    const paymentMethods = await query(`
       SELECT id, name, type, icon, display_order
       FROM payment_methods
       WHERE tenant_id = ? AND status = 'active'
@@ -597,10 +597,10 @@ router.patch('/:id/items/:itemId/status', async (req, res) => {
     }
 
     // Update item status
-    run('UPDATE order_items SET kitchen_status = ? WHERE id = ? AND order_id = ?', [status, itemId, id]);
+    await run('UPDATE order_items SET kitchen_status = ? WHERE id = ? AND order_id = ?', [status, itemId, id]);
 
     // Check if all items are ready/served — auto-update order kitchen_status
-    const pendingItems = query(`
+    const pendingItems = await query(`
       SELECT COUNT(*) as count FROM order_items
       WHERE order_id = ? AND kitchen_status IN ('pending', 'preparing')
     `, [id]);
@@ -696,7 +696,7 @@ router.get('/kitchen/stats', async (req, res) => {
     }
 
     // Today's stats
-    const todayStats = get(`
+    const todayStats = await get(`
       SELECT
         COUNT(CASE WHEN o.kitchen_status IN ('pending', 'preparing') AND o.order_status != 'cancelled' THEN 1 END) as active_orders,
         COUNT(CASE WHEN o.kitchen_status = 'ready' AND DATE(o.created_at, 'localtime') = DATE('now', 'localtime') THEN 1 END) as completed_today,
@@ -709,7 +709,7 @@ router.get('/kitchen/stats', async (req, res) => {
     `, params);
 
     // Average completion time today
-    const avgTime = get(`
+    const avgTime = await get(`
       SELECT AVG(
         (julianday(o.completed_at) - julianday(o.created_at)) * 24 * 60
       ) as avg_minutes
@@ -720,7 +720,7 @@ router.get('/kitchen/stats', async (req, res) => {
     `, params);
 
     // Total items in queue
-    const itemStats = get(`
+    const itemStats = await get(`
       SELECT COUNT(oi.id) as total_items
       FROM order_items oi
       JOIN orders o ON oi.order_id = o.id

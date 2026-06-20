@@ -29,7 +29,7 @@ router.get('/kpi', async (req, res) => {
     }
 
     // Today's sales
-    const todaySales = get(`
+    const todaySales = await get(`
       SELECT 
         COUNT(*) as order_count,
         COALESCE(SUM(total), 0) as total_sales,
@@ -41,7 +41,7 @@ router.get('/kpi', async (req, res) => {
     `, params);
 
     // Yesterday's sales for comparison
-    const yesterdaySales = get(`
+    const yesterdaySales = await get(`
       SELECT COALESCE(SUM(total), 0) as total_sales
       FROM orders o
       ${whereClause} AND DATE(o.created_at, 'localtime') = DATE('now', '-1 day', 'localtime')
@@ -89,7 +89,7 @@ router.get('/kpi', async (req, res) => {
       todayCostWhere += ' AND outlet_id = ?';
       todayCostParams.push(outletId);
     }
-    const todayCostsResult = get(`
+    const todayCostsResult = await get(`
       SELECT COALESCE(SUM(amount), 0) as total_cost
       FROM nashtycosts
       ${todayCostWhere}
@@ -110,7 +110,7 @@ router.get('/kpi', async (req, res) => {
       rangeCostWhere += ' AND DATE(created_at) <= DATE(?)';
       rangeCostParams.push(dateTo);
     }
-    const rangeCostsResult = get(`
+    const rangeCostsResult = await get(`
       SELECT COALESCE(SUM(amount), 0) as total_cost
       FROM nashtycosts
       ${rangeCostWhere}

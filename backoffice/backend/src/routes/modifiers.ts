@@ -66,7 +66,7 @@ router.post('/', async (req, res) => {
       }
     }
 
-    const group = get('SELECT * FROM modifier_groups WHERE id = ?', [groupId]);
+    const group = await get('SELECT * FROM modifier_groups WHERE id = ?', [groupId]);
     (group as any).options = await query('SELECT * FROM modifier_options WHERE group_id = ? ORDER BY display_order', [groupId]);
 
     res.status(201).json({ success: true, modifier: group });
@@ -82,7 +82,7 @@ router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const { name, description, type, required, minSelect, maxSelect } = req.body;
 
-    const existing = get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
+    const existing = await get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
     if (!existing) {
       return res.status(404).json({ error: 'Modifier group not found' });
     }
@@ -103,7 +103,7 @@ router.put('/:id', async (req, res) => {
 
     await run(`UPDATE modifier_groups SET ${updates.join(', ')} WHERE id = ?`, params);
 
-    const group = get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
+    const group = await get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
     (group as any).options = await query('SELECT * FROM modifier_options WHERE group_id = ? AND status = \'active\' ORDER BY display_order', [id]);
 
     res.json({ success: true, modifier: group });
@@ -118,7 +118,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const existing = get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
+    const existing = await get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
     if (!existing) {
       return res.status(404).json({ error: 'Modifier group not found' });
     }
@@ -142,13 +142,13 @@ router.post('/:id/options', async (req, res) => {
       return res.status(400).json({ error: 'name is required' });
     }
 
-    const existing = get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
+    const existing = await get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
     if (!existing) {
       return res.status(404).json({ error: 'Modifier group not found' });
     }
 
     // Get next display order
-    const lastOrder = get('SELECT MAX(display_order) as max_order FROM modifier_options WHERE group_id = ?', [id]);
+    const lastOrder = await get('SELECT MAX(display_order) as max_order FROM modifier_options WHERE group_id = ?', [id]);
     const nextOrder = ((lastOrder as any)?.max_order || 0) + 1;
 
     const optionId = randomUUID();
@@ -157,7 +157,7 @@ router.post('/:id/options', async (req, res) => {
       VALUES (?, ?, ?, ?, ?)
     `, [optionId, id, name, priceAdjustment || 0, nextOrder]);
 
-    const option = get('SELECT * FROM modifier_options WHERE id = ?', [optionId]);
+    const option = await get('SELECT * FROM modifier_options WHERE id = ?', [optionId]);
 
     res.status(201).json({ success: true, option });
   } catch (error: any) {
@@ -171,7 +171,7 @@ router.delete('/options/:optionId', async (req, res) => {
   try {
     const { optionId } = req.params;
 
-    const existing = get('SELECT * FROM modifier_options WHERE id = ?', [optionId]);
+    const existing = await get('SELECT * FROM modifier_options WHERE id = ?', [optionId]);
     if (!existing) {
       return res.status(404).json({ error: 'Modifier option not found' });
     }
@@ -190,7 +190,7 @@ router.get('/:id/products', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const existing = get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
+    const existing = await get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
     if (!existing) {
       return res.status(404).json({ error: 'Modifier group not found' });
     }
@@ -221,24 +221,24 @@ router.post('/:id/assign-product', async (req, res) => {
       return res.status(400).json({ error: 'productId is required' });
     }
 
-    const existing = get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
+    const existing = await get('SELECT * FROM modifier_groups WHERE id = ?', [id]);
     if (!existing) {
       return res.status(404).json({ error: 'Modifier group not found' });
     }
 
-    const product = get('SELECT * FROM products WHERE id = ?', [productId]);
+    const product = await get('SELECT * FROM products WHERE id = ?', [productId]);
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }
 
     // Check if already assigned
-    const alreadyLinked = get('SELECT * FROM product_modifiers WHERE product_id = ? AND modifier_group_id = ?', [productId, id]);
+    const alreadyLinked = await get('SELECT * FROM product_modifiers WHERE product_id = ? AND modifier_group_id = ?', [productId, id]);
     if (alreadyLinked) {
       return res.json({ success: true, message: 'Already assigned' });
     }
 
     // Get next display order for this product
-    const lastOrder = get('SELECT MAX(display_order) as max_order FROM product_modifiers WHERE product_id = ?', [productId]);
+    const lastOrder = await get('SELECT MAX(display_order) as max_order FROM product_modifiers WHERE product_id = ?', [productId]);
     const nextOrder = ((lastOrder as any)?.max_order || 0) + 1;
 
     await run('INSERT INTO product_modifiers (product_id, modifier_group_id, display_order) VALUES (?, ?, ?)', [productId, id, nextOrder]);
@@ -261,7 +261,7 @@ router.delete('/:id/unassign-product/:productId', async (req, res) => {
     await run('DELETE FROM product_modifiers WHERE modifier_group_id = ? AND product_id = ?', [id, productId]);
 
     // If product has no more modifiers, set has_modifiers = 0
-    const remaining = get('SELECT COUNT(*) as cnt FROM product_modifiers WHERE product_id = ?', [productId]);
+    const remaining = await get('SELECT COUNT(*) as cnt FROM product_modifiers WHERE product_id = ?', [productId]);
     if ((remaining as any)?.cnt === 0) {
       await run('UPDATE products SET has_modifiers = 0, updated_at = ? WHERE id = ?', [new Date().toISOString(), productId]);
     }
