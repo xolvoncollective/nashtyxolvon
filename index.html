@@ -533,7 +533,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // Configuration
-    const API_BASE_URL = 'https://mzucfndifneytbesirkx.supabase.co/functions/v1/auth-login';
+    const API_BASE_URL = '/api/auth-login';
     
     const SUPABASE_URL = 'https://mzucfndifneytbesirkx.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16dWNmbmRpZm5leXRiZXNpcmt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNDA1MzUsImV4cCI6MjA5NjkxNjUzNX0.fUynF1mfZCyy48aFkwz3_G52-4hd4EE-b5gpG7k0mpg';
@@ -582,8 +582,8 @@
           
         if (error) throw error;
         
-        outletSelect.innerHTML = '<option value="" disabled selected>Select Protocol Outlet</option>';
         if (outlets && outlets.length > 0) {
+          outletSelect.innerHTML = '<option value="" disabled selected>Select Protocol Outlet</option>';
           outlets.forEach(outlet => {
             const option = document.createElement('option');
             option.value = outlet.id;
@@ -591,6 +591,8 @@
             option.dataset.name = outlet.name;
             outletSelect.appendChild(option);
           });
+        } else {
+          outletSelect.innerHTML = '<option value="" disabled>No Outlets Found (Check RLS Policies)</option>';
         }
       } catch (error) {
         console.error('Failed to load outlets:', error);
