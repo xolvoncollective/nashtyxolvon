@@ -1,0 +1,288 @@
+// Format currency/number
+const formatNumber = (num) => {
+    return new Intl.NumberFormat('id-ID').format(num);
+};
+
+const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount);
+};
+
+// Format date
+const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    return new Date(dateString).toLocaleDateString('id-ID', options);
+};
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Check if API is available
+    if (typeof API === 'undefined') {
+        console.error('API client not found!');
+        alert('System Error: API Client missing');
+        return;
+    }
+
+    // Verify authentication
+    if (!API.session || !API.session.token) {
+        alert('Anda belum login. Silakan login dari Launcher.');
+        window.location.href = '/';
+        return;
+    }
+
+    // Update UI with user info
+    document.getElementById('userName').textContent = API.session.user.name;
+    document.getElementById('userRole').textContent = API.session.user.role;
+    document.getElementById('userAvatar').textContent = API.session.user.name.charAt(0).toUpperCase();
+
+    // Tab Navigation
+    const navItems = document.querySelectorAll('.nav-item[data-tab]');
+    const pageContents = document.querySelectorAll('.page-content');
+    const pageTitle = document.getElementById('pageTitle');
+
+    navItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const tabId = item.getAttribute('data-tab');
+            
+            // Update Active Nav
+            navItems.forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+
+            // Update Active Content
+            pageContents.forEach(content => content.classList.remove('active'));
+            document.getElementById(tabId + 'Tab').classList.add('active');
+
+            // Update Title
+            pageTitle.textContent = item.querySelector('span:last-child').textContent;
+
+            // Load Data based on tab
+            if (tabId === 'customers') loadCustomers();
+            if (tabId === 'rewards') loadRewards();
+            if (tabId === 'transactions') loadTransactions();
+        });
+    });
+
+    // --- DATA LOADING ---
+
+    const customersTableBody = document.getElementById('customersTableBody');
+    const rewardsGrid = document.getElementById('rewardsGrid');
+    const transactionsTableBody = document.getElementById('transactionsTableBody');
+    const searchCustomer = document.getElementById('searchCustomer');
+
+    let allCustomers = [];
+
+    async function loadCustomers() {
+        try {
+            customersTableBody.innerHTML = '<tr><td colspan="6" class="text-center empty-state">Memuat data pelanggan...</td></tr>';
+            const res = await API.request(`/crm/customers?tenantId=${API.session.tenantId}`);
+            
+            if (res.success) {
+                allCustomers = res.list || [];
+                renderCustomers();
+            }
+        } catch (error) {
+            console.error('Failed to load customers:', error);
+            customersTableBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Gagal memuat data: ${error.message}</td></tr>`;
+        }
+    }
+
+    function renderCustomers() {
+        const query = searchCustomer.value.toLowerCase();
+        const filtered = allCustomers.filter(c => c.name.toLowerCase().includes(query) || (c.phone && c.phone.includes(query)));
+
+        if (filtered.length === 0) {
+            customersTableBody.innerHTML = '<tr><td colspan="6" class="text-center empty-state">Belum ada data pelanggan</td></tr>';
+            return;
+        }
+
+        customersTableBody.innerHTML = '';
+        filtered.forEach(customer => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="font-bold">${customer.name}</td>
+                <td>
+                    ${customer.phone || '-'}<br>
+                    <small class="text-secondary">${customer.email || ''}</small>
+                </td>
+                <td class="font-bold text-success">${formatNumber(customer.points)} Pts</td>
+                <td>${formatCurrency(customer.total_spent)}</td>
+                <td>${formatNumber(customer.visit_count)}x</td>
+                <td class="text-center">
+                    <button class="btn btn-danger delete-customer-btn" data-id="${customer.id}">Hapus</button>
+                </td>
+            `;
+            customersTableBody.appendChild(tr);
+        });
+
+        // Delete handlers
+        document.querySelectorAll('.delete-customer-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const id = e.target.getAttribute('data-id');
+                if (confirm('Hapus pelanggan ini beserta poinnya?')) {
+                    try {
+                        await API.request(`/crm/customers/${id}?tenantId=${API.session.tenantId}`, { method: 'DELETE' });
+                        loadCustomers();
+                    } catch (err) { alert('Error: ' + err.message); }
+                }
+            });
+        });
+    }
+
+    searchCustomer.addEventListener('input', renderCustomers);
+
+    async function loadRewards() {
+        try {
+            rewardsGrid.innerHTML = '<div class="empty-state">Memuat katalog reward...</div>';
+            const res = await API.request(`/crm/rewards?tenantId=${API.session.tenantId}`);
+            
+            if (res.success) {
+                renderRewards(res.list || []);
+            }
+        } catch (error) {
+            rewardsGrid.innerHTML = `<div class="text-danger">Gagal memuat data: ${error.message}</div>`;
+        }
+    }
+
+    function renderRewards(rewards) {
+        if (rewards.length === 0) {
+            rewardsGrid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; text-align: center;">Belum ada reward ditambahkan</div>';
+            return;
+        }
+
+        rewardsGrid.innerHTML = '';
+        rewards.forEach(reward => {
+            const card = document.createElement('div');
+            card.className = 'reward-card';
+            card.innerHTML = `
+                <div class="reward-points">${formatNumber(reward.points_required)} Pts</div>
+                <h3 class="reward-title">${reward.title}</h3>
+                <p class="reward-desc">${reward.description || 'Tidak ada deskripsi.'}</p>
+                <div class="reward-actions">
+                    <button class="btn btn-danger delete-reward-btn" data-id="${reward.id}">Hapus</button>
+                </div>
+            `;
+            rewardsGrid.appendChild(card);
+        });
+
+        document.querySelectorAll('.delete-reward-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const id = e.target.getAttribute('data-id');
+                if (confirm('Hapus reward ini dari katalog?')) {
+                    try {
+                        await API.request(`/crm/rewards/${id}?tenantId=${API.session.tenantId}`, { method: 'DELETE' });
+                        loadRewards();
+                    } catch (err) { alert('Error: ' + err.message); }
+                }
+            });
+        });
+    }
+
+    async function loadTransactions() {
+        try {
+            transactionsTableBody.innerHTML = '<tr><td colspan="4" class="text-center empty-state">Memuat riwayat poin...</td></tr>';
+            const res = await API.request(`/crm/point-transactions?tenantId=${API.session.tenantId}`);
+            
+            if (res.success) {
+                const txs = res.list || [];
+                if (txs.length === 0) {
+                    transactionsTableBody.innerHTML = '<tr><td colspan="4" class="text-center empty-state">Belum ada riwayat transaksi poin</td></tr>';
+                    return;
+                }
+
+                transactionsTableBody.innerHTML = '';
+                txs.forEach(tx => {
+                    const tr = document.createElement('tr');
+                    const isEarn = tx.type === 'earn';
+                    tr.innerHTML = `
+                        <td>${formatDate(tx.created_at)}</td>
+                        <td><span class="badge ${isEarn ? 'gaji' : 'bahan-baku'}">${isEarn ? 'Penambahan' : 'Penukaran'}</span></td>
+                        <td class="font-bold ${isEarn ? 'text-success' : 'text-danger'}">
+                            ${isEarn ? '+' : '-'}${formatNumber(tx.points)}
+                        </td>
+                        <td>${tx.description || '-'}</td>
+                    `;
+                    transactionsTableBody.appendChild(tr);
+                });
+            }
+        } catch (error) {
+            transactionsTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">Gagal memuat data: ${error.message}</td></tr>`;
+        }
+    }
+
+    // --- MODALS ---
+
+    const setupModal = (modalId, closeSelector) => {
+        const modal = document.getElementById(modalId);
+        document.querySelectorAll(closeSelector).forEach(btn => {
+            btn.addEventListener('click', () => {
+                modal.classList.remove('active');
+                modal.querySelector('form').reset();
+            });
+        });
+        return modal;
+    };
+
+    const customerModal = setupModal('customerModal', '[data-close="customerModal"]');
+    const rewardModal = setupModal('rewardModal', '[data-close="rewardModal"]');
+
+    document.getElementById('addCustomerBtn').addEventListener('click', () => customerModal.classList.add('active'));
+    document.getElementById('addRewardBtn').addEventListener('click', () => rewardModal.classList.add('active'));
+
+    // Form Submits
+    document.getElementById('customerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+
+        try {
+            await API.request('/crm/customers', {
+                method: 'POST',
+                body: JSON.stringify({
+                    tenantId: API.session.tenantId,
+                    name: document.getElementById('customerName').value,
+                    phone: document.getElementById('customerPhone').value,
+                    email: document.getElementById('customerEmail').value
+                })
+            });
+            customerModal.classList.remove('active');
+            e.target.reset();
+            loadCustomers();
+        } catch (error) {
+            alert('Gagal menambah pelanggan: ' + error.message);
+        } finally {
+            submitBtn.disabled = false;
+        }
+    });
+
+    document.getElementById('rewardForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+
+        try {
+            await API.request('/crm/rewards', {
+                method: 'POST',
+                body: JSON.stringify({
+                    tenantId: API.session.tenantId,
+                    title: document.getElementById('rewardTitle').value,
+                    points_required: Number(document.getElementById('rewardPoints').value),
+                    description: document.getElementById('rewardDesc').value
+                })
+            });
+            rewardModal.classList.remove('active');
+            e.target.reset();
+            loadRewards();
+        } catch (error) {
+            alert('Gagal menambah reward: ' + error.message);
+        } finally {
+            submitBtn.disabled = false;
+        }
+    });
+
+    // Initial Load
+    loadCustomers();
+});

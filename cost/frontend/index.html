@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cost Management - Nashty</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">💸</span>
+                    <h1>Nashty Cost</h1>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/" class="nav-item back-launcher">
+                    <span class="icon">🏠</span>
+                    <span>Back to Launcher</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-title">
+                    <h2 id="pageTitle">Cost Dashboard</h2>
+                </div>
+                <div class="header-actions">
+                    <div class="user-profile">
+                        <div class="avatar" id="userAvatar">U</div>
+                        <div class="user-info">
+                            <span class="name" id="userName">User Name</span>
+                            <span class="role" id="userRole">Role</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Page -->
+            <div id="dashboardPage" class="page-content active">
+                <!-- Summary Cards -->
+                <div class="summary-cards">
+                    <div class="card glass-card summary-card">
+                        <div class="card-icon blue">💰</div>
+                        <div class="card-info">
+                            <h3>Total Pengeluaran</h3>
+                            <div class="value" id="totalCost">Rp 0</div>
+                        </div>
+                    </div>
+                    <div class="card glass-card summary-card">
+                        <div class="card-icon red">🍅</div>
+                        <div class="card-info">
+                            <h3>Bahan Baku</h3>
+                            <div class="value" id="bahanBakuCost">Rp 0</div>
+                        </div>
+                    </div>
+                    <div class="card glass-card summary-card">
+                        <div class="card-icon purple">⚡</div>
+                        <div class="card-info">
+                            <h3>Operasional</h3>
+                            <div class="value" id="operasionalCost">Rp 0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Toolbar -->
+                <div class="content-toolbar glass-card">
+                    <div class="filters">
+                        <select id="filterCategory" class="glass-input">
+                            <option value="">Semua Kategori</option>
+                            <option value="bahan-baku">Bahan Baku</option>
+                            <option value="operasional">Operasional</option>
+                            <option value="gaji">Gaji</option>
+                            <option value="utilitas">Utilitas</option>
+                            <option value="sewa">Sewa</option>
+                            <option value="lainnya">Lainnya</option>
+                        </select>
+                        <input type="date" id="filterDateFrom" class="glass-input">
+                        <span>-</span>
+                        <input type="date" id="filterDateTo" class="glass-input">
+                        <button id="applyFiltersBtn" class="btn btn-secondary">Filter</button>
+                    </div>
+                    <button class="btn btn-primary" id="addCostBtn">
+                        <span class="icon">+</span> Tambah Biaya
+                    </button>
+                </div>
+
+                <!-- Data Table -->
+                <div class="table-container glass-card">
+                    <table class="data-table" id="costTable">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Kategori</th>
+                                <th>Deskripsi</th>
+                                <th class="text-right">Nominal</th>
+                                <th class="text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="costTableBody">
+                            <!-- Data will be populated here -->
+                            <tr>
+                                <td colspan="5" class="text-center empty-state">Memuat data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Cost Modal -->
+    <div class="modal" id="addCostModal">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h2>Tambah Biaya Baru</h2>
+                <button class="close-btn" id="closeCostModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addCostForm">
+                    <div class="form-group">
+                        <label>Kategori Biaya</label>
+                        <select id="costCategory" class="glass-input" required>
+                            <option value="bahan-baku">Bahan Baku (Penyusutan)</option>
+                            <option value="operasional">Operasional Harian</option>
+                            <option value="gaji">Gaji Karyawan</option>
+                            <option value="utilitas">Utilitas (Listrik/Air/Internet)</option>
+                            <option value="sewa">Sewa Tempat</option>
+                            <option value="lainnya">Lain-lain</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nominal (Rp)</label>
+                        <input type="number" id="costAmount" class="glass-input" placeholder="0" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Deskripsi Keterangan</label>
+                        <textarea id="costDescription" class="glass-input" placeholder="Contoh: Beli telur ayam 2kg" rows="3" required></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelCostBtn">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan Biaya</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../api-client-v2.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
