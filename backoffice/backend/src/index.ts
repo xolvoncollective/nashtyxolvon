@@ -33,6 +33,7 @@ import xss from 'xss';
 dotenv.config();
 
 const app = express();
+app.set('trust proxy', 1); // Required for Railway/Reverse Proxy + rate limiting
 const PORT = process.env.PORT || 3099;
 const SERVER_START_TIME = Date.now();
 
