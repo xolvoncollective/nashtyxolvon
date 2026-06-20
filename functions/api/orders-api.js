@@ -74,7 +74,7 @@ export async function onRequestPost({ request, env }) {
           product_id: item.productId,
           product_name: item.name,
           quantity: item.qty,
-          price: item.price,
+          unit_price: item.price,
           subtotal: item.price * item.qty,
           notes: item.notes || ''
         }));

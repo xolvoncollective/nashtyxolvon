@@ -38,7 +38,7 @@ function subscribeToOrders() {
         event: 'INSERT',
         schema: 'public',
         table: 'orders',
-        filter: 'status=in.(pending,preparing)'
+        filter: 'kitchen_status=in.(pending,preparing)'
       },
       (payload) => {
         console.log('[KDS Realtime] New order:', payload.new);
@@ -51,7 +51,7 @@ function subscribeToOrders() {
         event: 'UPDATE',
         schema: 'public',
         table: 'orders',
-        filter: 'status=in.(pending,preparing,ready,completed)'
+        filter: 'kitchen_status=in.(pending,preparing,ready,completed)'
       },
       (payload) => {
         console.log('[KDS Realtime] Order updated:', payload.new);

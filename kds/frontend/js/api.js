@@ -10,7 +10,7 @@ const supabase = typeof window !== 'undefined' && window.supabase
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;
 
-const API_BASE_URL = `${SUPABASE_URL}/functions/v1`;
+const API_BASE_URL = `/api`;
 
 const API = {
   supabase,
@@ -74,7 +74,7 @@ const API = {
         .select('*, order_items(*)')
         .eq('tenant_id', API.session.tenantId || '00000000-0000-0000-0000-000000000001')
         .eq('outlet_id', outletId || API.session.outletId || '00000000-0000-0000-0000-000000000002')
-        .in('order_status', ['pending', 'preparing']); // Legacy kitchen logic relied on order_status, but we might need kitchen_status specifically if it exists.
+        .in('kitchen_status', ['pending', 'preparing']);
       
       if (error) {
         console.error('[KDS] Failed to get queue:', error);
@@ -96,7 +96,7 @@ const API = {
     async updateKitchenStatus(orderId, status) {
       const { data, error } = await API.supabase
         .from('orders')
-        .update({ order_status: status }) // Mapping kitchen_status to order_status as fallback
+        .update({ kitchen_status: status })
         .eq('id', orderId)
         .select();
         
