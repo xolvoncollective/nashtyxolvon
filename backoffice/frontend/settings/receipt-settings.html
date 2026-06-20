@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receipt Settings - NASHTY OS</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #f5f5f5; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .settings-grid { display: grid; grid-template-columns: 1fr 400px; gap: 24px; }
+    .settings-panel { background: white; padding: 24px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .preview-panel { background: white; padding: 24px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 24px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #333; }
+    .form-group input[type="text"], .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+    .form-group input[type="file"] { padding: 8px; }
+    .logo-preview { width: 200px; height: 100px; border: 2px dashed #ddd; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-top: 8px; background: #fafafa; }
+    .logo-preview img { max-width: 100%; max-height: 100%; }
+    .toggle-group { display: flex; align-items: center; gap: 12px; }
+    .toggle { position: relative; width: 48px; height: 24px; background: #ccc; border-radius: 12px; cursor: pointer; }
+    .toggle.active { background: #10b981; }
+    .toggle::after { content: ''; position: absolute; width: 20px; height: 20px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; }
+    .toggle.active::after { left: 26px; }
+    .social-inputs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .promo-messages { display: flex; flex-direction: column; gap: 12px; }
+    .btn-primary { background: #f59e0b; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; }
+    .btn-primary:hover { background: #d97706; }
+    .receipt-preview { background: white; border: 2px solid #000; padding: 20px; font-family: 'Courier New', monospace; max-width: 100%; }
+    .receipt-preview .logo { text-align: center; margin-bottom: 12px; }
+    .receipt-preview .header-text { text-align: center; margin-bottom: 16px; white-space: pre-line; }
+    .receipt-preview .items { border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 12px 0; margin: 12px 0; }
+    .receipt-preview .footer-text { text-align: center; margin-top: 16px; white-height: pre-line; }
+    .receipt-preview .qr-code { text-align: center; margin: 16px 0; }
+    .receipt-preview .social { text-align: center; margin: 12px 0; font-size: 11px; }
+    .receipt-preview .promo { background: #fff3cd; border: 1px solid #ffc107; padding: 8px; margin: 12px 0; text-align: center; font-weight: bold; }
+    .char-counter { font-size: 12px; color: #666; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Receipt Customization Settings</h1>
+      <p>Customize your receipt appearance and content</p>
+    </div>
+
+    <div class="settings-grid">
+      <div class="settings-panel">
+        <form id="receipt-settings-form">
+          <!-- Logo Upload -->
+          <div class="form-group">
+            <label>Receipt Logo</label>
+            <input type="file" id="logo-upload" accept=".png,.jpg,.jpeg,.svg" onchange="handleLogoUpload(event)">
+            <div class="logo-preview" id="logo-preview">
+              <span style="color: #999;">No logo uploaded</span>
+            </div>
+            <small style="color: #666;">Max 2MB, PNG/JPG/SVG only</small>
+          </div>
+
+          <!-- Header Text -->
+          <div class="form-group">
+            <label>Header Text</label>
+            <textarea id="header-text" maxlength="200" oninput="updatePreview(); updateCharCount('header')" placeholder="Welcome to our restaurant..."></textarea>
+            <div class="char-counter" id="header-counter">0 / 200</div>
+          </div>
+
+          <!-- Footer Text -->
+          <div class="form-group">
+            <label>Footer Text</label>
+            <textarea id="footer-text" maxlength="300" oninput="updatePreview(); updateCharCount('footer')" placeholder="Thank you for your visit..."></textarea>
+            <div class="char-counter" id="footer-counter">0 / 300</div>
+          </div>
+
+          <!-- Font Size -->
+          <div class="form-group">
+            <label>Font Size</label>
+            <select id="font-size" onchange="updatePreview()">
+              <option value="small">Small (10pt)</option>
+              <option value="medium" selected>Medium (12pt)</option>
+              <option value="large">Large (14pt)</option>
+            </select>
+          </div>
+
+          <!-- QR Code -->
+          <div class="form-group">
+            <label>Feedback QR Code</label>
+            <div class="toggle-group">
+              <div class="toggle" id="qr-toggle" onclick="toggleQR()"></div>
+              <span>Enable QR Code</span>
+            </div>
+            <input type="url" id="qr-url" placeholder="https://feedback.example.com" style="margin-top: 12px; display: none;" oninput="updatePreview()">
+          </div>
+
+          <!-- Social Media -->
+          <div class="form-group">
+            <label>Social Media Links</label>
+            <div class="social-inputs">
+              <input type="url" id="social-facebook" placeholder="Facebook URL" oninput="updatePreview()">
+              <input type="url" id="social-instagram" placeholder="Instagram URL" oninput="updatePreview()">
+              <input type="url" id="social-twitter" placeholder="Twitter URL" oninput="updatePreview()">
+              <input type="url" id="social-tiktok" placeholder="TikTok URL" oninput="updatePreview()">
+            </div>
+          </div>
+
+          <!-- Promotional Messages -->
+          <div class="form-group">
+            <label>Promotional Messages (Max 3)</label>
+            <div class="promo-messages">
+              <div>
+                <input type="text" id="promo-1" maxlength="150" placeholder="Promo message 1..." oninput="updatePreview(); updateCharCount('promo1')">
+                <div class="char-counter" id="promo1-counter">0 / 150</div>
+              </div>
+              <div>
+                <input type="text" id="promo-2" maxlength="150" placeholder="Promo message 2..." oninput="updatePreview(); updateCharCount('promo2')">
+                <div class="char-counter" id="promo2-counter">0 / 150</div>
+              </div>
+              <div>
+                <input type="text" id="promo-3" maxlength="150" placeholder="Promo message 3..." oninput="updatePreview(); updateCharCount('promo3')">
+                <div class="char-counter" id="promo3-counter">0 / 150</div>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="btn-primary" onclick="saveSettings()">Save Settings</button>
+        </form>
+      </div>
+
+      <div class="preview-panel">
+        <h3 style="margin-bottom: 16px;">Live Preview</h3>
+        <div class="receipt-preview" id="receipt-preview">
+          <div class="logo" id="preview-logo"></div>
+          <div class="header-text" id="preview-header"></div>
+          <div class="items">
+            <div>Nasi Goreng x1 ........... Rp 25,000</div>
+            <div>Es Teh x2 ............... Rp 10,000</div>
+            <div style="margin-top: 8px; border-top: 1px dashed #000; padding-top: 8px;">
+              <div>Subtotal ............... Rp 35,000</div>
+              <div>Tax (10%) .............. Rp 3,500</div>
+              <div style="font-weight: bold;">TOTAL .................. Rp 38,500</div>
+            </div>
+          </div>
+          <div class="promo" id="preview-promo" style="display: none;"></div>
+          <div class="social" id="preview-social"></div>
+          <div class="qr-code" id="preview-qr" style="display: none;">
+            <div style="width: 100px; height: 100px; margin: 0 auto; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border: 1px solid #ddd;">QR</div>
+            <div style="margin-top: 4px;">Scan for Feedback</div>
+          </div>
+          <div class="footer-text" id="preview-footer"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let uploadedLogoUrl = null;
+
+    function handleLogoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Validate file size (2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('File size must be less than 2MB');
+        event.target.value = '';
+        return;
+      }
+
+      // Validate file type
+      const validTypes = ['image/png', 'image/jpeg', 'image/svg+xml'];
+      if (!validTypes.includes(file.type)) {
+        alert('Only PNG, JPG, and SVG files are allowed');
+        event.target.value = '';
+        return;
+      }
+
+      // Preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const preview = document.getElementById('logo-preview');
+        preview.innerHTML = `<img src="${e.target.result}" alt="Logo">`;
+        uploadedLogoUrl = e.target.result;
+        updatePreview();
+      };
+      reader.readAsDataURL(file);
+
+      // TODO: Upload to Supabase Storage
+      // const formData = new FormData();
+      // formData.append('logo', file);
+      // fetch('/api/upload-logo', { method: 'POST', body: formData })
+    }
+
+    function toggleQR() {
+      const toggle = document.getElementById('qr-toggle');
+      const input = document.getElementById('qr-url');
+      toggle.classList.toggle('active');
+      input.style.display = toggle.classList.contains('active') ? 'block' : 'none';
+      updatePreview();
+    }
+
+    function updateCharCount(field) {
+      let input, counter;
+      if (field === 'header') {
+        input = document.getElementById('header-text');
+        counter = document.getElementById('header-counter');
+        counter.textContent = `${input.value.length} / 200`;
+      } else if (field === 'footer') {
+        input = document.getElementById('footer-text');
+        counter = document.getElementById('footer-counter');
+        counter.textContent = `${input.value.length} / 300`;
+      } else if (field.startsWith('promo')) {
+        const num = field.replace('promo', '');
+        input = document.getElementById(`promo-${num}`);
+        counter = document.getElementById(`${field}-counter`);
+        counter.textContent = `${input.value.length} / 150`;
+      }
+    }
+
+    function updatePreview() {
+      // Logo
+      const previewLogo = document.getElementById('preview-logo');
+      if (uploadedLogoUrl) {
+        previewLogo.innerHTML = `<img src="${uploadedLogoUrl}" style="max-width: 150px; max-height: 60px;">`;
+      }
+
+      // Header
+      const headerText = document.getElementById('header-text').value;
+      document.getElementById('preview-header').textContent = headerText;
+
+      // Footer
+      const footerText = document.getElementById('footer-text').value;
+      document.getElementById('preview-footer').textContent = footerText;
+
+      // Font size
+      const fontSize = document.getElementById('font-size').value;
+      const preview = document.getElementById('receipt-preview');
+      const sizes = { small: '10pt', medium: '12pt', large: '14pt' };
+      preview.style.fontSize = sizes[fontSize];
+
+      // QR Code
+      const qrEnabled = document.getElementById('qr-toggle').classList.contains('active');
+      const qrUrl = document.getElementById('qr-url').value;
+      document.getElementById('preview-qr').style.display = qrEnabled && qrUrl ? 'block' : 'none';
+
+      // Social Media
+      const social = [];
+      const facebook = document.getElementById('social-facebook').value;
+      const instagram = document.getElementById('social-instagram').value;
+      const twitter = document.getElementById('social-twitter').value;
+      const tiktok = document.getElementById('social-tiktok').value;
+      
+      if (facebook) social.push('FB: ' + facebook);
+      if (instagram) social.push('IG: ' + instagram);
+      if (twitter) social.push('TW: ' + twitter);
+      if (tiktok) social.push('TT: ' + tiktok);
+      
+      document.getElementById('preview-social').innerHTML = social.length ? social.join('<br>') : '';
+
+      // Promo (random one for preview)
+      const promos = [
+        document.getElementById('promo-1').value,
+        document.getElementById('promo-2').value,
+        document.getElementById('promo-3').value
+      ].filter(p => p);
+      
+      const previewPromo = document.getElementById('preview-promo');
+      if (promos.length > 0) {
+        previewPromo.textContent = promos[Math.floor(Math.random() * promos.length)];
+        previewPromo.style.display = 'block';
+      } else {
+        previewPromo.style.display = 'none';
+      }
+    }
+
+    async function saveSettings() {
+      const settings = {
+        logo: uploadedLogoUrl,
+        headerText: document.getElementById('header-text').value,
+        footerText: document.getElementById('footer-text').value,
+        fontSize: document.getElementById('font-size').value,
+        qrCode: {
+          enabled: document.getElementById('qr-toggle').classList.contains('active'),
+          url: document.getElementById('qr-url').value
+        },
+        socialMedia: {
+          facebook: document.getElementById('social-facebook').value,
+          instagram: document.getElementById('social-instagram').value,
+          twitter: document.getElementById('social-twitter').value,
+          tiktok: document.getElementById('social-tiktok').value
+        },
+        promoMessages: [
+          document.getElementById('promo-1').value,
+          document.getElementById('promo-2').value,
+          document.getElementById('promo-3').value
+        ].filter(p => p)
+      };
+
+      // TODO: Save to backend
+      console.log('Saving settings:', settings);
+      
+      // Example API call:
+      // const response = await fetch('/api/outlets/settings', {
+      //   method: 'PUT',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(settings)
+      // });
+      
+      alert('Settings saved successfully!');
+    }
+
+    // Load existing settings on page load
+    window.addEventListener('DOMContentLoaded', async () => {
+      // TODO: Load from backend
+      // const response = await fetch('/api/outlets/settings');
+      // const settings = await response.json();
+      // Apply settings to form...
+    });
+  </script>
+</body>
+</html>

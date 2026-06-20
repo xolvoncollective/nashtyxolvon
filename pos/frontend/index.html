@@ -3925,22 +3925,73 @@
     }
     setInterval(tick, 1000); tick();
     
-    // Initialize offline infrastructure after login
+    // Initialize offline infrastructure and connection monitor on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+      console.log('🚀 NASHTY POS - Initializing...');
+      
+      // 1. Initialize Connection Monitor (works without login)
+      if (window.ConnectionMonitor) {
+        window.connectionMonitor = new window.ConnectionMonitor();
+        await window.connectionMonitor.init();
+        console.log('✓ Connection Monitor initialized');
+      }
+      
+      // 2. Initialize Keyboard Shortcuts Handler (works without login)
+      if (window.KeyboardShortcutHandler) {
+        window.keyboardHandler = new window.KeyboardShortcutHandler();
+        // Will be fully initialized after login with user ID
+        console.log('✓ Keyboard Shortcuts Handler ready');
+      }
+      
+      console.log('✓ Base initialization complete');
+    });
+    
+    // Initialize user-specific services after login
     window.addEventListener('userLoggedIn', async (event) => {
       const { userId, token } = event.detail;
-      console.log('🔐 User logged in, initializing offline infrastructure...');
+      console.log('🔐 User logged in, initializing user-specific services...');
       
-      // Derive encryption key
-      if (window.EncryptionService) {
-        await window.EncryptionService.deriveKey(userId, token);
+      try {
+        // 1. Derive encryption key
+        if (window.EncryptionService) {
+          await window.EncryptionService.deriveKey(userId, token);
+          console.log('✓ Encryption keys derived');
+        }
+        
+        // 2. Initialize keyboard shortcuts with user preferences
+        if (window.keyboardHandler) {
+          await window.keyboardHandler.init(userId);
+          console.log('✓ Keyboard shortcuts initialized');
+        }
+        
+        // 3. Start cache sync
+        if (window.CacheManager) {
+          await window.CacheManager.startSync();
+          console.log('✓ Cache sync started');
+        }
+        
+        // 4. Initialize favorites manager
+        if (window.FavoritesManager) {
+          await window.FavoritesManager.init(userId);
+          console.log('✓ Favorites Manager initialized');
+        }
+        
+        // 5. Initialize recent items tracker
+        if (window.RecentItemsTracker) {
+          await window.RecentItemsTracker.init(userId);
+          console.log('✓ Recent Items Tracker initialized');
+        }
+        
+        // 6. Initialize quick access grid
+        if (window.QuickAccessGrid) {
+          await window.QuickAccessGrid.init(userId);
+          console.log('✓ Quick Access Grid initialized');
+        }
+        
+        console.log('✅ All user services initialized successfully');
+      } catch (error) {
+        console.error('❌ Failed to initialize user services:', error);
       }
-      
-      // Start cache sync
-      if (window.CacheManager) {
-        await window.CacheManager.startSync();
-      }
-      
-      console.log('✅ Offline infrastructure initialized');
     });
     
     // Cleanup on logout

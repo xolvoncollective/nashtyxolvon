@@ -1,0 +1,1 @@
+document.write(new Date().toISOString().split('T')[0] + ' ' + new Date().toLocaleTimeString('en-GB'));
