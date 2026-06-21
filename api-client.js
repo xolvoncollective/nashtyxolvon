@@ -1106,6 +1106,198 @@ API.kds = {
   }
 };
 
+// ─── Settings Service ────────────────────────────────────────────────────────
+API.settings = {
+  async saveBranding(outletId, brandName) {
+    if (!brandName || !brandName.trim()) {
+      throw new Error('Nama brand tidak boleh kosong');
+    }
+    const res = await API.request(`/settings/${outletId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ settings: { brandName } })
+    });
+    if (!res.success) {
+      throw new Error(res.error || 'Gagal menyimpan branding');
+    }
+    return res;
+  },
+
+  async uploadLogo(outletId, base64Data) {
+    if (!base64Data) {
+      throw new Error('Data logo required');
+    }
+    const res = await API.request(`/settings/${outletId}/logo`, {
+      method: 'POST',
+      body: JSON.stringify({ base64Data })
+    });
+    if (!res.success) {
+      throw new Error(res.error || 'Gagal mengunggah logo');
+    }
+    return res;
+  },
+
+  async getSettings(outletId) {
+    const res = await API.request(`/settings/${outletId}`);
+    if (!res.success) {
+      throw new Error(res.error || 'Gagal mengambil settings');
+    }
+    return res.settings || {};
+  }
+};
+
+// ─── Products Service ────────────────────────────────────────────────────────
+API.products = {
+  async create(productData) {
+    if (!productData.name || !productData.name.trim()) {
+      throw new Error('Nama produk harus diisi');
+    }
+    if (!productData.price || productData.price < 0) {
+      throw new Error('Harga produk harus valid');
+    }
+    const res = await API.request('/products', {
+      method: 'POST',
+      body: JSON.stringify(productData)
+    });
+    if (!res.success) {
+      throw new Error(res.error || 'Gagal membuat produk');
+    }
+    return res.product;
+  },
+
+  async update(id, updates) {
+    if (!id) throw new Error('Product ID required');
+    const res = await API.request(`/products/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates)
+    });
+    if (!res.success) {
+      throw new Error(res.error || 'Gagal update produk');
+    }
+    return res.product;
+  },
+
+  async delete(id) {
+    if (!id) throw new Error('Product ID required');
+    const res = await API.request(`/products/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res.success) {
+      throw new Error(res.error || 'Gagal hapus produk');
+    }
+    return res;
+  },
+
+  async list(filters = {}) {
+    const params = new URLSearchParams(filters);
+    const res = await API.request(`/products?${params}`);
+    if (!res.success) {
+      throw new Error(res.error || 'Gagal ambil daftar produk');
+    }
+    return res.products || [];
+  }
+};
+
+// ─── Costs Service ───────────────────────────────────────────────────────────
+API.costs = {
+  async create(costData) {
+    if (!costData.name || !costData.name.trim()) {
+      throw new Error('Nama cost harus diisi');
+    }
+    if (!costData.amount || costData.amount < 0) {
+      throw new Error('Jumlah cost harus valid');
+    }
+    const res = await API.request('/costs', {
+      method: 'POST',
+      body: JSON.stringify(costData)
+    });
+    if (!res.success) {
+      throw new Error(res.error || 'Gagal membuat cost');
+    }
+    return res.cost;
+  },
+
+  async update(id, updates) {
+    if (!id) throw new Error('Cost ID required');
+    const res = await API.request(`/costs/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates)
+    });
+    if (!res.success) {
+      throw new Error(res.error || 'Gagal update cost');
+    }
+    return res.cost;
+  },
+
+  async delete(id) {
+    if (!id) throw new Error('Cost ID required');
+    const res = await API.request(`/costs/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res.success) {
+      throw new Error(res.error || 'Gagal hapus cost');
+    }
+    return res;
+  },
+
+  async list(filters = {}) {
+    const params = new URLSearchParams(filters);
+    const res = await API.request(`/costs?${params}`);
+    if (!res.success) {
+      throw new Error(res.error || 'Gagal ambil daftar cost');
+    }
+    return res.costs || [];
+  }
+};
+
+// ─── CRM Service ─────────────────────────────────────────────────────────────
+API.crm = {
+  async createCustomer(customerData) {
+    if (!customerData.name || !customerData.name.trim()) {
+      throw new Error('Nama customer harus diisi');
+    }
+    const res = await API.request('/customers', {
+      method: 'POST',
+      body: JSON.stringify(customerData)
+    });
+    if (!res.success) {
+      throw new Error(res.error || 'Gagal membuat customer');
+    }
+    return res.customer;
+  },
+
+  async updateCustomer(id, updates) {
+    if (!id) throw new Error('Customer ID required');
+    const res = await API.request(`/customers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates)
+    });
+    if (!res.success) {
+      throw new Error(res.error || 'Gagal update customer');
+    }
+    return res.customer;
+  },
+
+  async deleteCustomer(id) {
+    if (!id) throw new Error('Customer ID required');
+    const res = await API.request(`/customers/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res.success) {
+      throw new Error(res.error || 'Gagal hapus customer');
+    }
+    return res;
+  },
+
+  async listCustomers(filters = {}) {
+    const params = new URLSearchParams(filters);
+    const res = await API.request(`/customers?${params}`);
+    if (!res.success) {
+      throw new Error(res.error || 'Gagal ambil daftar customer');
+    }
+    return res.customers || [];
+  }
+};
+
 // ─── Export ───────────────────────────────────────────────────────────────────
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') {
