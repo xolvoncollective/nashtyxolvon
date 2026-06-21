@@ -21,8 +21,7 @@ const PAGE_TITLES={
  costs:'Nashtycost (Biaya)',
  reports:'Laporan',
  'menu-engineering':'Menu Engineering Analytics',
- settings:'Pengaturan',
- actlogs:'Activity Logs'
+ settings:'Pengaturan'
 };
 
 const PAGES={};
