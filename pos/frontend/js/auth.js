@@ -2,37 +2,18 @@
        LOGIN
     ════════════════════════ */
     async function initLogin() {
-      // 1. Try to restore PIN session from localStorage (survives refresh/SW update)
-      try {
-        const saved = localStorage.getItem('nashty_session');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          // Session valid if token exists and not expired (tokenExpiry check)
-          const notExpired = !parsed.tokenExpiry || Date.now() < parsed.tokenExpiry;
-          if (parsed.token && parsed.user && notExpired) {
-            console.log('✓ [POS Auth] Restoring PIN session from localStorage...');
-            Object.assign(API.session, parsed);
-            doLogin(API.session.user);
-            return;
-          } else {
-            console.log('⚠️ [POS Auth] Saved session expired, clearing...');
-            localStorage.removeItem('nashty_session');
-          }
-        }
-      } catch(e) { console.error('[POS Auth] Failed to restore session', e); }
-
-      // 2. Try in-memory session (e.g. SPA navigation)
-      if (API.session && API.session.user && API.session.token) {
-        console.log('✓ Found active staff session, auto-resuming...');
-        doLogin(API.session.user);
-        return;
-      }
+      // CRITICAL FIX: Jangan auto-restore session jika user baru login dari launcher
+      // User harus selalu pilih kasir dan input PIN setiap kali masuk POS
       
-      // 3. Fallback to launcher auth for staff selection (when loaded via iframe)
+      // Clear any stale POS-specific session
+      localStorage.removeItem('nashty_session');
+      
+      // 1. Check if we have launcher auth (admin1, superadmin, etc)
       if (typeof NASHTY_AUTH !== 'undefined' && NASHTY_AUTH.hasValidAuth()) {
         const user = NASHTY_AUTH.getUser();
         const outlet = NASHTY_AUTH.getOutlet();
         if (user && outlet) {
+          console.log('✓ [POS Auth] Launcher auth detected, showing staff selection...');
           API.session.tenantId = user.tenantId || user.tenant_id || '00000000-0000-0000-0000-000000000001';
           API.session.outletId = outlet.id || outlet.outlet_id || '00000000-0000-0000-0000-000000000101';
           loadStaff();
@@ -40,7 +21,8 @@
         }
       }
 
-      // 4. Last resort: load staff for default outlet (standalone POS)
+      // 2. Fallback: load staff for default outlet (standalone POS)
+      console.log('✓ [POS Auth] Standalone mode, loading staff...');
       API.session.tenantId = '00000000-0000-0000-0000-000000000001';
       API.session.outletId = '00000000-0000-0000-0000-000000000101';
       loadStaff();

@@ -359,57 +359,72 @@ const API = {
   auth: {
 
     async getStaff(outletId = null) {
-
-      let q = API.supabase.from('users').select('*').neq('role', 'admin');
-
-      if (outletId) q = q.eq('outlet_id', outletId);
-
-      const { data } = await q;
-
-      return { success: true, staff: data || [] };
-
+      try {
+        let q = API.supabase.from('staff').select('*').eq('is_active', true);
+        if (outletId) q = q.eq('outlet_id', outletId);
+        const { data, error } = await q;
+        
+        if (error) {
+          console.error('Failed to fetch staff:', error);
+          return { success: false, staff: [], error: error.message };
+        }
+        
+        return { success: true, staff: data || [] };
+      } catch (err) {
+        console.error('Error in getStaff:', err);
+        return { success: false, staff: [], error: err.message };
+      }
     },
 
 
 
     async login(pin, outletId = null) {
-
-      const data = await API.edgeRequest('auth-login', {
-
-        action: 'pin-login',
-
-        pin,
-
-        outletId
-
-      });
-
-
-
-      if (data.success && data.token) {
-
-        API.session.token = data.token;
-
-        API.session.user = data.user;
-
-        API.session.tenantId = data.user.tenantId;
-
-        API.session.outletId = data.user.outletId;
-
-        if (data.refreshToken) {
-
-          API.session.refreshToken = data.refreshToken;
-
-          API.session.tokenExpiry = Date.now() + (12 * 60 * 60 * 1000); // 12h
-
+      try {
+        // Direct query to staff table - no edge function needed
+        let q = API.supabase.from('staff').select('*').eq('pin', pin).eq('is_active', true);
+        if (outletId) q = q.eq('outlet_id', outletId);
+        
+        const { data, error } = await q.single();
+        
+        if (error || !data) {
+          return { 
+            success: false, 
+            error: 'PIN salah atau tidak valid' 
+          };
         }
-
+        
+        // Generate simple token for POS session
+        const token = `pos_${data.id}_${Date.now()}`;
+        
+        // Set session
+        API.session.token = token;
+        API.session.user = {
+          id: data.id,
+          name: data.name,
+          role: data.role,
+          color: data.color,
+          tenantId: data.tenant_id,
+          outletId: data.outlet_id
+        };
+        API.session.tenantId = data.tenant_id;
+        API.session.outletId = data.outlet_id;
+        API.session.tokenExpiry = Date.now() + (12 * 60 * 60 * 1000); // 12h
+        
+        // Store in localStorage
         localStorage.setItem('nashty_session', JSON.stringify(API.session));
-
+        
+        return { 
+          success: true, 
+          token: token,
+          user: API.session.user
+        };
+      } catch (err) {
+        console.error('Login error:', err);
+        return { 
+          success: false, 
+          error: err.message || 'Login gagal' 
+        };
       }
-
-      return data;
-
     },
 
 
