@@ -212,6 +212,7 @@ function activityLogsPage() {
 
   // Export for global access
   window.activityLogsModule = { updateFilter, exportLogs };
+  window.exportLogs = exportLogs;
 
   return render();
 }

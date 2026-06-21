@@ -150,9 +150,18 @@ serve(async (req) => {
         });
       }
 
-      const updates: Record<string, string> = {};
+      const updates: Record<string, any> = {};
       if (orderStatus) updates.order_status = orderStatus;
       if (kitchenStatus) updates.kitchen_status = kitchenStatus;
+
+      // ✅ FIX Bug #5: Set completed_at when order reaches completion states
+      const completionStates = ['ready', 'completed'];
+      const isKitchenComplete = kitchenStatus && completionStates.includes(kitchenStatus);
+      const isOrderComplete = orderStatus === 'completed';
+      
+      if (isKitchenComplete || isOrderComplete) {
+        updates.completed_at = new Date().toISOString();
+      }
 
       const { data, error } = await supabase
         .from('orders')

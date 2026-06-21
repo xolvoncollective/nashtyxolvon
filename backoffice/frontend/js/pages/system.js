@@ -60,7 +60,7 @@ window.uploadLogo = function() {
   input.click();
 };
 
-// Upload QRIS static image to localStorage (for POS to read)
+// Upload QRIS static image through API, with local cache fallback for POS compatibility.
 window.uploadQRIS = function() {
   const input = document.createElement('input');
   input.type = 'file';
@@ -70,12 +70,24 @@ window.uploadQRIS = function() {
     if (!file) return;
     if (file.size > 3 * 1024 * 1024) return toast('Ukuran QRIS maksimal 3MB', 'err');
     const reader = new FileReader();
-    reader.onload = ev => {
-      localStorage.setItem('nashty_qris_static', ev.target.result);
-      toast('QRIS berhasil diunggah dan disimpan', 'ok');
+    reader.onload = async ev => {
+      let qrisUrl = ev.target.result;
+      try {
+        if (window.API && API.outletSettings && API.session.outletId) {
+          toast('Mengunggah QRIS...');
+          const res = await API.outletSettings.uploadQris(file);
+          qrisUrl = res.qris_static_url || qrisUrl;
+        }
+        localStorage.setItem('nashty_qris_static', qrisUrl);
+        toast('QRIS berhasil diunggah dan disimpan', 'ok');
+      } catch (err) {
+        console.error('Failed uploading QRIS to backend', err);
+        localStorage.setItem('nashty_qris_static', qrisUrl);
+        toast('QRIS tersimpan lokal. Sinkronisasi backend gagal: ' + err.message, 'err');
+      }
       const preview = document.getElementById('qrisPreview');
       const placeholder = document.getElementById('qrisPlaceholder');
-      if (preview) { preview.src = ev.target.result; preview.style.display = 'block'; }
+      if (preview) { preview.src = qrisUrl; preview.style.display = 'block'; }
       if (placeholder) placeholder.style.display = 'none';
     };
     reader.readAsDataURL(file);
@@ -83,8 +95,16 @@ window.uploadQRIS = function() {
   input.click();
 };
 
-window.removeQRIS = function() {
+window.removeQRIS = async function() {
   if (!confirm('Hapus QRIS statis?')) return;
+  try {
+    if (window.API && API.outletSettings && API.session.outletId) {
+      await API.outletSettings.removeQris();
+    }
+  } catch (err) {
+    console.error('Failed removing QRIS from backend', err);
+    toast('QRIS lokal dihapus. Sinkronisasi backend gagal: ' + err.message, 'err');
+  }
   localStorage.removeItem('nashty_qris_static');
   const preview = document.getElementById('qrisPreview');
   const placeholder = document.getElementById('qrisPlaceholder');
@@ -95,7 +115,7 @@ window.removeQRIS = function() {
 
 PAGES.settings = async () => {
   let settings = { brandName: 'Nashty Hot Chicken' };
-  const qrisImage = localStorage.getItem('nashty_qris_static');
+  let qrisImage = localStorage.getItem('nashty_qris_static');
   
   if (window.API && API.session.outletId) {
     try {
@@ -105,6 +125,15 @@ PAGES.settings = async () => {
       }
     } catch (e) {
       console.error('Failed fetching settings', e);
+    }
+    try {
+      const qrisRes = await API.outletSettings.getQris(API.session.outletId);
+      if (qrisRes.success && qrisRes.qris_static_url) {
+        qrisImage = qrisRes.qris_static_url;
+        localStorage.setItem('nashty_qris_static', qrisImage);
+      }
+    } catch (e) {
+      console.error('Failed fetching QRIS settings', e);
     }
   }
 
@@ -155,8 +184,6 @@ PAGES.settings = async () => {
 </div>`;
 };
 
-};
-
 PAGES.actlogs = async () => {
   let logs = [];
   let total = 0;
@@ -202,6 +229,10 @@ PAGES.actlogs = async () => {
  <div class="search-wrap"><input class="search-inp" placeholder="Cari aktivitas atau user..." oninput="toast('Fitur pencarian logs menyusul')"></div>
  <select class="filter-select" onchange="toast('Fitur filter menyusul')"><option>Semua Module</option><option>Produk</option><option>POS</option><option>Menu</option><option>Tim</option></select>
  <select class="filter-select" onchange="toast('Fitur filter menyusul')"><option>Hari Ini</option><option>7 Hari Terakhir</option><option>30 Hari Terakhir</option></select>
+ <button class="btn btn-primary" onclick="window.exportActivityLogs()" style="margin-left:auto">
+   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+   Export CSV
+ </button>
 </div>
 <div class="card">
  <div class="tbl-wrap"><table>
@@ -229,4 +260,54 @@ PAGES.actlogs = async () => {
  </div>
  </div>
 </div>`;
+};
+
+// Export Activity Logs to CSV
+window.exportActivityLogs = async () => {
+  let logs = [];
+  
+  if (window.API && API.session.tenantId) {
+    try {
+      const res = await API.request('/activity-logs?tenantId=' + API.session.tenantId);
+      if (res.success && res.logs) {
+        logs = res.logs;
+      }
+    } catch (e) {
+      console.error('Failed fetching activity logs for export', e);
+      return toast('Gagal mengambil data logs', 'err');
+    }
+  }
+
+  if (logs.length === 0) {
+    return toast('Tidak ada data untuk diekspor', 'err');
+  }
+
+  // Generate CSV
+  const headers = ['Waktu', 'User', 'Aksi', 'Module', 'Detail'];
+  const rows = logs.map(l => [
+    l.created_at || '',
+    l.user_name || l.user_id || 'System',
+    l.action || '',
+    l.entity_type || '',
+    (l.description || '').replace(/"/g, '""')  // Escape quotes
+  ]);
+
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+  ].join('\n');
+
+  // Download CSV
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  const timestamp = new Date().toISOString().split('T')[0];
+  link.setAttribute('href', url);
+  link.setAttribute('download', `activity-logs-${timestamp}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  toast('CSV berhasil diunduh', 'ok');
 };
