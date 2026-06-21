@@ -3,174 +3,238 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Customer Display - Nashty POS</title>
+  <title>Customer Display - NASHTY OS</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #ffffff;
-      color: #000000;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Outfit', 'Inter', sans-serif; 
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      color: white; 
+      overflow: hidden;
       height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
     }
-
-    #outlet-logo {
-      max-width: 200px;
-      max-height: 80px;
-      margin: 20px auto;
-      display: block;
-    }
-
-    #display-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 40px;
-      font-size: 24pt;
-    }
-
-    .idle-screen {
+    .header { 
+      background: rgba(255, 90, 31, 0.15);
+      border-bottom: 3px solid #FF5A1F;
+      padding: 20px 40px;
       text-align: center;
     }
-
-    .idle-logo {
-      max-width: 300px;
-      margin-bottom: 30px;
+    .logo { font-size: 48px; font-weight: 900; color: #FF5A1F; letter-spacing: -1px; }
+    .tagline { font-size: 18px; color: #94A3B8; margin-top: 8px; }
+    .content { flex: 1; display: flex; flex-direction: column; padding: 40px; }
+    .cart-view { display: none; flex-direction: column; height: 100%; }
+    .cart-view.active { display: flex; }
+    .cart-items { 
+      flex: 1; 
+      overflow-y: auto; 
+      margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      align-content: start;
     }
-
-    .idle-tagline {
-      font-size: 36pt;
-      font-weight: bold;
-      animation: pulse 2s infinite;
+    .cart-item {
+      background: rgba(30, 41, 59, 0.6);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 24px;
+      align-items: center;
     }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
+    .item-qty {
+      font-size: 48px;
+      font-weight: 900;
+      color: #FF5A1F;
+      min-width: 80px;
+      text-align: center;
     }
-
-    .cart-view {
-      width: 100%;
-      max-width: 800px;
-    }
-
-    .items-list {
-      max-height: 60vh;
-      overflow-y: auto;
-      margin-bottom: 30px;
-    }
-
-    .display-item {
-      padding: 20px;
-      border-bottom: 2px solid #e0e0e0;
-    }
-
-    .item-name {
-      font-size: 28pt;
-      font-weight: 600;
-      margin-bottom: 10px;
-    }
-
-    .item-details {
-      display: flex;
-      justify-content: space-between;
-      font-size: 24pt;
-      color: #666;
-    }
-
+    .item-info { flex: 1; }
+    .item-name { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+    .item-price { font-size: 48px; font-weight: 900; color: #10B981; text-align: right; }
     .cart-totals {
-      border-top: 4px solid #333;
-      padding-top: 20px;
+      background: rgba(255, 90, 31, 0.15);
+      border: 3px solid #FF5A1F;
+      border-radius: 20px;
+      padding: 30px 40px;
     }
-
     .total-row {
       display: flex;
       justify-content: space-between;
-      font-size: 28pt;
-      margin: 15px 0;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 16px;
     }
-
-    .grand-total {
-      font-size: 36pt;
-      font-weight: bold;
-      color: #4CAF50;
-      border-top: 2px solid #333;
+    .total-row.grand {
+      font-size: 56px;
+      font-weight: 900;
+      color: #FF5A1F;
+      border-top: 3px solid rgba(255, 255, 255, 0.2);
       padding-top: 20px;
       margin-top: 20px;
+    }
+    .idle-view {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+    }
+    .idle-view.active { display: flex; }
+    .idle-view { display: none; }
+    .slideshow { 
+      width: 80%; 
+      max-width: 800px; 
+      height: 500px;
+      border-radius: 24px;
+      overflow: hidden;
+      margin-bottom: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .slideshow img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .idle-message {
+      font-size: 36px;
+      font-weight: 700;
+      color: #94A3B8;
     }
   </style>
 </head>
 <body>
-  <img id="outlet-logo" src="/logo.png" alt="Logo" />
-  <div id="display-content">
-    <div class="idle-screen">
-      <img src="/logo.png" class="idle-logo" />
-      <div class="idle-tagline">Selamat Datang!</div>
+  <div class="header">
+    <div class="logo" id="displayLogo">NASHTY OS</div>
+    <div class="tagline" id="displayTagline">Restaurant Management System</div>
+  </div>
+
+  <div class="content">
+    <div class="cart-view" id="cartView">
+      <div class="cart-items" id="cartItems"></div>
+      <div class="cart-totals">
+        <div class="total-row">
+          <span>Subtotal</span>
+          <span id="subtotal">Rp 0</span>
+        </div>
+        <div class="total-row">
+          <span>Tax</span>
+          <span id="tax">Rp 0</span>
+        </div>
+        <div class="total-row grand">
+          <span>TOTAL</span>
+          <span id="grandTotal">Rp 0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="idle-view active" id="idleView">
+      <div class="slideshow" id="slideshow">
+        <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800" alt="Promo">
+      </div>
+      <div class="idle-message">Welcome! Place your order to see it here</div>
     </div>
   </div>
 
   <script>
-    // Listen for cart updates from main window
-    window.addEventListener('message', (event) => {
-      if (event.data.type === 'cart-update') {
-        updateCart(event.data.cart);
-      }
-    });
+    let idleTimeout;
+    let slideshowInterval;
+    const promoImages = [
+      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800',
+      'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800',
+      'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800'
+    ];
+    let currentSlide = 0;
 
-    function updateCart(cart) {
-      const container = document.getElementById('display-content');
+    function formatPrice(num) {
+      return 'Rp ' + num.toLocaleString('id-ID');
+    }
+
+    function updateDisplay(cart) {
+      clearIdleTimeout();
       
       if (!cart || cart.items.length === 0) {
-        showIdleScreen();
+        showIdle();
         return;
       }
 
+      showCart(cart);
+      resetIdleTimeout();
+    }
+
+    function showCart(cart) {
+      document.getElementById('cartView').classList.add('active');
+      document.getElementById('idleView').classList.remove('active');
+
       const itemsHtml = cart.items.map(item => `
-        <div class="display-item">
-          <div class="item-name">${item.name}</div>
-          <div class="item-details">
-            <span>${item.quantity}x</span>
-            <span>Rp ${item.price.toLocaleString()}</span>
-            <span>Rp ${(item.price * item.quantity).toLocaleString()}</span>
+        <div class="cart-item">
+          <div class="item-qty">${item.quantity}x</div>
+          <div class="item-info">
+            <div class="item-name">${item.name}</div>
           </div>
+          <div class="item-price">${formatPrice(item.quantity * item.price)}</div>
         </div>
       `).join('');
 
-      container.innerHTML = `
-        <div class="cart-view">
-          <div class="items-list">${itemsHtml}</div>
-          <div class="cart-totals">
-            <div class="total-row">
-              <span>Subtotal:</span>
-              <span>Rp ${cart.subtotal.toLocaleString()}</span>
-            </div>
-            <div class="total-row grand-total">
-              <span>TOTAL:</span>
-              <span>Rp ${cart.total.toLocaleString()}</span>
-            </div>
-          </div>
-        </div>
-      `;
+      document.getElementById('cartItems').innerHTML = itemsHtml;
+      document.getElementById('subtotal').textContent = formatPrice(cart.subtotal);
+      document.getElementById('tax').textContent = formatPrice(cart.tax);
+      document.getElementById('grandTotal').textContent = formatPrice(cart.grandTotal);
     }
 
-    function showIdleScreen() {
-      const container = document.getElementById('display-content');
-      container.innerHTML = `
-        <div class="idle-screen">
-          <img src="/logo.png" class="idle-logo" />
-          <div class="idle-tagline">Selamat Datang!</div>
-        </div>
-      `;
+    function showIdle() {
+      document.getElementById('cartView').classList.remove('active');
+      document.getElementById('idleView').classList.add('active');
+      startSlideshow();
     }
+
+    function startSlideshow() {
+      if (slideshowInterval) return;
+      slideshowInterval = setInterval(() => {
+        currentSlide = (currentSlide + 1) % promoImages.length;
+        document.querySelector('#slideshow img').src = promoImages[currentSlide];
+      }, 10000);
+    }
+
+    function stopSlideshow() {
+      if (slideshowInterval) {
+        clearInterval(slideshowInterval);
+        slideshowInterval = null;
+      }
+    }
+
+    function resetIdleTimeout() {
+      clearIdleTimeout();
+      idleTimeout = setTimeout(showIdle, 30000);
+    }
+
+    function clearIdleTimeout() {
+      if (idleTimeout) {
+        clearTimeout(idleTimeout);
+        idleTimeout = null;
+      }
+      stopSlideshow();
+    }
+
+    // Listen for messages from main POS window
+    window.addEventListener('message', (event) => {
+      if (event.data.type === 'CART_UPDATE') {
+        updateDisplay(event.data.cart);
+      }
+    });
+
+    // Load settings
+    const settings = JSON.parse(localStorage.getItem('displaySettings') || '{}');
+    if (settings.logo) document.getElementById('displayLogo').textContent = settings.logo;
+    if (settings.tagline) document.getElementById('displayTagline').textContent = settings.tagline;
+    if (settings.bgColor) document.body.style.background = settings.bgColor;
+    if (settings.textColor) document.body.style.color = settings.textColor;
+
+    showIdle();
   </script>
 </body>
 </html>

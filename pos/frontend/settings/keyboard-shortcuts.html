@@ -4,392 +4,173 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Keyboard Shortcuts - NASHTY OS</title>
+  <link rel="stylesheet" href="../css/app.css">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', sans-serif; background: #f5f5f5; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
-    .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .shortcuts-grid { display: grid; gap: 16px; }
-    .shortcut-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-    .shortcut-info { flex: 1; }
-    .shortcut-name { font-weight: 600; font-size: 16px; margin-bottom: 4px; }
-    .shortcut-description { color: #666; font-size: 14px; }
-    .shortcut-key { 
-      background: #1a1a1a; 
-      color: #fff; 
-      padding: 8px 16px; 
-      border-radius: 6px; 
-      font-family: 'Courier New', monospace; 
-      font-weight: 600;
-      min-width: 120px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .shortcut-key:hover { background: #f59e0b; color: #000; }
-    .shortcut-key.system { background: #666; cursor: not-allowed; }
-    .shortcut-key.system:hover { background: #666; color: #fff; }
-    .category-header { font-size: 20px; font-weight: 700; margin: 24px 0 16px 0; color: #1a1a1a; }
-    .btn-primary { background: #f59e0b; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; }
-    .btn-primary:hover { background: #d97706; }
-    .btn-secondary { background: #e5e7eb; color: #1a1a1a; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; margin-left: 12px; }
-    .btn-secondary:hover { background: #d1d5db; }
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
-    .modal.active { display: flex; }
-    .modal-content { background: white; padding: 32px; border-radius: 12px; max-width: 500px; text-align: center; }
-    .modal-title { font-size: 24px; font-weight: 700; margin-bottom: 16px; }
-    .modal-text { color: #666; margin-bottom: 24px; }
-    .key-display { 
-      background: #1a1a1a; 
-      color: #fff; 
-      padding: 20px; 
-      border-radius: 8px; 
-      font-size: 24px; 
-      font-family: 'Courier New', monospace; 
-      margin: 24px 0;
-      min-height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .conflict-warning { background: #fef3c7; border: 1px solid #fbbf24; padding: 12px; border-radius: 6px; margin-top: 16px; color: #92400e; }
-    .actions { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
+    body { font-family: 'Outfit', sans-serif; background: #0B0F19; color: #F8FAFC; padding: 20px; }
+    .container { max-width: 900px; margin: 0 auto; }
+    .header { margin-bottom: 30px; }
+    h1 { font-size: 28px; font-weight: 900; color: #FF5A1F; }
+    .shortcut-list { display: flex; flex-direction: column; gap: 12px; }
+    .shortcut-item { background: rgba(21, 29, 45, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .shortcut-name { font-size: 14px; font-weight: 600; color: #F8FAFC; }
+    .shortcut-desc { font-size: 12px; color: #94A3B8; margin-top: 4px; }
+    .shortcut-key { background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.35); border-radius: 8px; padding: 8px 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: #FF5A1F; cursor: pointer; transition: all 0.2s; }
+    .shortcut-key:hover { background: rgba(255, 90, 31, 0.25); transform: scale(1.05); }
+    .btn-reset { background: #FF5A1F; color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; cursor: pointer; margin-top: 20px; }
+    .btn-reset:hover { background: #E04812; }
+    .capture-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; }
+    .capture-modal.show { display: flex; }
+    .capture-box { background: rgba(21, 29, 45, 0.95); border: 2px solid #FF5A1F; border-radius: 16px; padding: 40px; text-align: center; }
+    .capture-box h2 { font-size: 20px; margin-bottom: 12px; }
+    .capture-box p { color: #94A3B8; font-size: 14px; margin-bottom: 20px; }
+    .captured-key { background: rgba(255, 90, 31, 0.25); border: 2px solid #FF5A1F; padding: 16px 32px; border-radius: 10px; font-size: 24px; font-weight: 900; color: #FF5A1F; min-width: 200px; }
+    .conflict-warning { background: rgba(244, 63, 94, 0.15); border: 1px solid #F43F5E; border-radius: 8px; padding: 12px; margin-top: 12px; color: #F43F5E; font-size: 13px; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>⌨️ Keyboard Shortcuts Customization</h1>
-      <p>Click on any shortcut key to reassign it. System shortcuts cannot be modified.</p>
+      <h1>⌨️ Keyboard Shortcuts Settings</h1>
+      <p style="color: #94A3B8; margin-top: 8px;">Customize your keyboard shortcuts for faster POS operations</p>
     </div>
 
-    <div class="shortcuts-grid" id="shortcuts-grid">
-      <!-- Navigation Shortcuts -->
-      <div class="category-header">🧭 Navigation</div>
-      
-      <div class="shortcut-card">
-        <div class="shortcut-info">
-          <div class="shortcut-name">Open Payment</div>
-          <div class="shortcut-description">Open payment dialog to complete order</div>
-        </div>
-        <div class="shortcut-key" data-action="payment" onclick="reassignShortcut(this)">Ctrl+P</div>
+    <div class="shortcut-list" id="shortcutList"></div>
+
+    <button class="btn-reset" onclick="resetToDefaults()">🔄 Reset to Defaults</button>
+  </div>
+
+  <div class="capture-modal" id="captureModal">
+    <div class="capture-box">
+      <h2>Press any key combination</h2>
+      <p>Press the keys you want to assign to this action</p>
+      <div class="captured-key" id="capturedKey">Waiting...</div>
+      <div class="conflict-warning" id="conflictWarning" style="display: none;">
+        ⚠️ This shortcut is already assigned to another action
       </div>
-
-      <div class="shortcut-card">
-        <div class="shortcut-info">
-          <div class="shortcut-name">Save Draft</div>
-          <div class="shortcut-description">Save current cart as draft for later</div>
-        </div>
-        <div class="shortcut-key" data-action="save-draft" onclick="reassignShortcut(this)">Ctrl+S</div>
-      </div>
-
-      <div class="shortcut-card">
-        <div class="shortcut-info">
-          <div class="shortcut-name">New Order</div>
-          <div class="shortcut-description">Clear cart and start new order</div>
-        </div>
-        <div class="shortcut-key" data-action="new-order" onclick="reassignShortcut(this)">Ctrl+N</div>
-      </div>
-
-      <div class="shortcut-card">
-        <div class="shortcut-info">
-          <div class="shortcut-name">Show Drafts</div>
-          <div class="shortcut-description">Show list of saved draft orders</div>
-        </div>
-        <div class="shortcut-key" data-action="show-drafts" onclick="reassignShortcut(this)">Ctrl+D</div>
-      </div>
-
-      <div class="shortcut-card">
-        <div class="shortcut-info">
-          <div class="shortcut-name">Order History</div>
-          <div class="shortcut-description">Open order history panel</div>
-        </div>
-        <div class="shortcut-key" data-action="history" onclick="reassignShortcut(this)">Ctrl+H</div>
-      </div>
-
-      <div class="shortcut-card">
-        <div class="shortcut-info">
-          <div class="shortcut-name">Focus Search</div>
-          <div class="shortcut-description">Focus product search input</div>
-        </div>
-        <div class="shortcut-key" data-action="focus-search" onclick="reassignShortcut(this)">Alt+F</div>
-      </div>
-
-      <div class="shortcut-card">
-        <div class="shortcut-info">
-          <div class="shortcut-name">Close Dialog</div>
-          <div class="shortcut-description">Close current dialog or cancel operation</div>
-        </div>
-        <div class="shortcut-key system" data-action="escape">Escape</div>
-      </div>
-
-      <!-- Cart Shortcuts -->
-      <div class="category-header">🛒 Cart Operations</div>
-
-      <div class="shortcut-card">
-        <div class="shortcut-info">
-          <div class="shortcut-name">Select Item</div>
-          <div class="shortcut-description">Navigate cart items up and down</div>
-        </div>
-        <div class="shortcut-key system" data-action="arrow-keys">↑ ↓</div>
-      </div>
-
-      <div class="shortcut-card">
-        <div class="shortcut-info">
-          <div class="shortcut-name">Remove Item</div>
-          <div class="shortcut-description">Delete selected cart item</div>
-        </div>
-        <div class="shortcut-key system" data-action="delete">Delete</div>
-      </div>
-
-      <div class="shortcut-card">
-        <div class="shortcut-info">
-          <div class="shortcut-name">Adjust Quantity</div>
-          <div class="shortcut-description">Increase or decrease quantity by 1</div>
-        </div>
-        <div class="shortcut-key system" data-action="plus-minus">+ / -</div>
-      </div>
-
-      <div class="shortcut-card">
-        <div class="shortcut-info">
-          <div class="shortcut-name">Item Modifiers</div>
-          <div class="shortcut-description">Open modifiers dialog for selected item</div>
-        </div>
-        <div class="shortcut-key system" data-action="enter">Enter</div>
-      </div>
-
-      <div class="shortcut-card">
-        <div class="shortcut-info">
-          <div class="shortcut-name">Select All Items</div>
-          <div class="shortcut-description">Select all items in cart</div>
-        </div>
-        <div class="shortcut-key" data-action="select-all" onclick="reassignShortcut(this)">Ctrl+A</div>
-      </div>
-
-      <!-- Quantity Entry -->
-      <div class="category-header">🔢 Quantity Entry</div>
-
-      <div class="shortcut-card">
-        <div class="shortcut-info">
-          <div class="shortcut-name">Number Keys</div>
-          <div class="shortcut-description">Type quantity before selecting product (0-9)</div>
-        </div>
-        <div class="shortcut-key system" data-action="numbers">0-9</div>
-      </div>
-
-      <div class="shortcut-card">
-        <div class="shortcut-info">
-          <div class="shortcut-name">Clear Quantity</div>
-          <div class="shortcut-description">Clear quantity indicator</div>
-        </div>
-        <div class="shortcut-key system" data-action="escape-qty">Escape</div>
-      </div>
-
-      <!-- Function Keys -->
-      <div class="category-header">🎹 Function Keys (Product Shortcuts)</div>
-
-      <div class="shortcut-card">
-        <div class="shortcut-info">
-          <div class="shortcut-name">Quick Add Products</div>
-          <div class="shortcut-description">Press F1-F12 to add assigned products</div>
-        </div>
-        <div class="shortcut-key system" data-action="function-keys">F1-F12</div>
-      </div>
-
-      <div class="shortcut-card">
-        <div class="shortcut-info">
-          <div class="shortcut-name">Assign Products</div>
-          <div class="shortcut-description">Press Shift+F1-F12 to assign products</div>
-        </div>
-        <div class="shortcut-key system" data-action="shift-function">Shift+F1-F12</div>
-      </div>
-
-      <!-- Help -->
-      <div class="category-header">❓ Help</div>
-
-      <div class="shortcut-card">
-        <div class="shortcut-info">
-          <div class="shortcut-name">Show All Shortcuts</div>
-          <div class="shortcut-description">Display shortcuts reference overlay (press F1 twice)</div>
-        </div>
-        <div class="shortcut-key system" data-action="help">F1 F1</div>
-      </div>
-    </div>
-
-    <div style="margin-top: 32px; text-align: center;">
-      <button class="btn-primary" onclick="saveShortcuts()">💾 Save Changes</button>
-      <button class="btn-secondary" onclick="resetToDefaults()">↺ Reset to Defaults</button>
+      <button class="btn-reset" onclick="cancelCapture()" style="margin-top: 20px; background: #6B7280;">Cancel</button>
     </div>
   </div>
 
-  <!-- Reassign Modal -->
-  <div class="modal" id="reassign-modal">
-    <div class="modal-content">
-      <div class="modal-title">Reassign Shortcut</div>
-      <div class="modal-text">Press the key combination you want to use for this action</div>
-      <div class="key-display" id="key-display">Waiting for key press...</div>
-      <div class="conflict-warning" id="conflict-warning" style="display: none;">
-        ⚠️ This key combination is already used by another action. Press a different key or cancel.
-      </div>
-      <div class="actions">
-        <button class="btn-primary" id="confirm-btn" onclick="confirmReassign()" disabled>Confirm</button>
-        <button class="btn-secondary" onclick="cancelReassign()">Cancel</button>
-      </div>
-    </div>
-  </div>
+  <script>
+    const DEFAULT_SHORTCUTS = {
+      'payment': { name: 'Open Payment', key: 'Ctrl+P', desc: 'Open payment dialog' },
+      'save-draft': { name: 'Save Draft', key: 'Ctrl+S', desc: 'Save current cart as draft' },
+      'new-order': { name: 'New Order', key: 'Ctrl+N', desc: 'Clear cart and start new order' },
+      'drafts': { name: 'Show Drafts', key: 'Ctrl+D', desc: 'Show saved draft orders' },
+      'history': { name: 'Order History', key: 'Ctrl+H', desc: 'Open order history' },
+      'search': { name: 'Focus Search', key: 'Alt+F', desc: 'Focus product search input' },
+      'cancel': { name: 'Cancel/Close', key: 'Escape', desc: 'Close dialog or cancel operation' }
+    };
 
-  <script src="../js/app.js" type="module"></script>
-  <script type="module">
-    import { KeyboardShortcutHandler } from '../js/services/keyboard-shortcuts.js';
+    let currentShortcuts = {};
+    let currentEditing = null;
 
-    let shortcutHandler;
-    let currentAction = null;
-    let capturedKey = null;
-    let shortcuts = {};
-
-    // Initialize
-    async function init() {
-      shortcutHandler = new KeyboardShortcutHandler();
-      await shortcutHandler.init();
-      
-      // Load current shortcuts from handler
-      shortcuts = shortcutHandler.shortcuts || {};
-      
-      // Update UI with current shortcuts
-      updateShortcutsUI();
+    async function loadShortcuts() {
+      const db = await openDB();
+      const tx = db.transaction('keyboard_shortcuts', 'readonly');
+      const store = tx.objectStore('keyboard_shortcuts');
+      const saved = await store.get('user_shortcuts');
+      currentShortcuts = saved ? saved.shortcuts : {...DEFAULT_SHORTCUTS};
+      renderShortcuts();
     }
 
-    function updateShortcutsUI() {
-      document.querySelectorAll('.shortcut-key:not(.system)').forEach(el => {
-        const action = el.dataset.action;
-        const shortcut = shortcuts[action];
-        if (shortcut) {
-          el.textContent = formatKeyCombo(shortcut);
-        }
+    function renderShortcuts() {
+      const list = document.getElementById('shortcutList');
+      list.innerHTML = '';
+      
+      Object.entries(currentShortcuts).forEach(([id, shortcut]) => {
+        const item = document.createElement('div');
+        item.className = 'shortcut-item';
+        item.innerHTML = `
+          <div>
+            <div class="shortcut-name">${shortcut.name}</div>
+            <div class="shortcut-desc">${shortcut.desc}</div>
+          </div>
+          <div class="shortcut-key" onclick="editShortcut('${id}')">${shortcut.key}</div>
+        `;
+        list.appendChild(item);
       });
     }
 
-    function formatKeyCombo(shortcut) {
-      const parts = [];
-      if (shortcut.ctrl) parts.push('Ctrl');
-      if (shortcut.alt) parts.push('Alt');
-      if (shortcut.shift) parts.push('Shift');
-      if (shortcut.meta) parts.push('Meta');
-      parts.push(shortcut.key.toUpperCase());
-      return parts.join('+');
+    function editShortcut(id) {
+      currentEditing = id;
+      document.getElementById('captureModal').classList.add('show');
+      document.getElementById('capturedKey').textContent = 'Waiting...';
+      document.getElementById('conflictWarning').style.display = 'none';
     }
 
-    window.reassignShortcut = function(element) {
-      if (element.classList.contains('system')) return;
+    document.addEventListener('keydown', (e) => {
+      if (!document.getElementById('captureModal').classList.contains('show')) return;
       
-      currentAction = element.dataset.action;
-      capturedKey = null;
-      
-      document.getElementById('key-display').textContent = 'Waiting for key press...';
-      document.getElementById('conflict-warning').style.display = 'none';
-      document.getElementById('confirm-btn').disabled = true;
-      document.getElementById('reassign-modal').classList.add('active');
-      
-      // Start listening for key press
-      document.addEventListener('keydown', captureKey);
-    };
-
-    function captureKey(e) {
       e.preventDefault();
-      e.stopPropagation();
-
-      // Ignore system keys
-      if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
-        document.getElementById('key-display').textContent = '⛔ System shortcut cannot be overridden';
-        return;
+      const keys = [];
+      if (e.ctrlKey) keys.push('Ctrl');
+      if (e.altKey) keys.push('Alt');
+      if (e.shiftKey) keys.push('Shift');
+      if (e.key !== 'Control' && e.key !== 'Alt' && e.key !== 'Shift') {
+        keys.push(e.key.toUpperCase());
       }
-
-      capturedKey = {
-        key: e.key,
-        ctrl: e.ctrlKey,
-        alt: e.altKey,
-        shift: e.shiftKey,
-        meta: e.metaKey
-      };
-
-      document.getElementById('key-display').textContent = formatKeyCombo(capturedKey);
+      
+      const combo = keys.join('+');
+      document.getElementById('capturedKey').textContent = combo;
 
       // Check for conflicts
-      const conflict = checkConflict(capturedKey, currentAction);
+      const conflict = Object.entries(currentShortcuts).find(([id, s]) => 
+        s.key === combo && id !== currentEditing
+      );
+      
       if (conflict) {
-        document.getElementById('conflict-warning').textContent = 
-          `⚠️ Already used by: ${conflict}. Press a different key or cancel.`;
-        document.getElementById('conflict-warning').style.display = 'block';
-        document.getElementById('confirm-btn').disabled = true;
+        document.getElementById('conflictWarning').style.display = 'block';
+        document.getElementById('conflictWarning').textContent = 
+          `⚠️ Already assigned to: ${conflict[1].name}`;
       } else {
-        document.getElementById('conflict-warning').style.display = 'none';
-        document.getElementById('confirm-btn').disabled = false;
+        document.getElementById('conflictWarning').style.display = 'none';
+        // Apply immediately
+        setTimeout(() => applyShortcut(combo), 500);
+      }
+    });
+
+    async function applyShortcut(combo) {
+      if (currentEditing) {
+        currentShortcuts[currentEditing].key = combo;
+        await saveShortcuts();
+        cancelCapture();
+        renderShortcuts();
       }
     }
 
-    function checkConflict(keyCombo, excludeAction) {
-      for (const [action, shortcut] of Object.entries(shortcuts)) {
-        if (action === excludeAction) continue;
-        
-        if (shortcut.key === keyCombo.key &&
-            shortcut.ctrl === keyCombo.ctrl &&
-            shortcut.alt === keyCombo.alt &&
-            shortcut.shift === keyCombo.shift &&
-            shortcut.meta === keyCombo.meta) {
-          return action;
-        }
-      }
-      return null;
+    function cancelCapture() {
+      document.getElementById('captureModal').classList.remove('show');
+      currentEditing = null;
     }
 
-    window.confirmReassign = function() {
-      if (!capturedKey || !currentAction) return;
-
-      // Update shortcuts
-      shortcuts[currentAction] = capturedKey;
-      
-      // Update UI
-      updateShortcutsUI();
-      
-      cancelReassign();
-    };
-
-    window.cancelReassign = function() {
-      document.removeEventListener('keydown', captureKey);
-      document.getElementById('reassign-modal').classList.remove('active');
-      currentAction = null;
-      capturedKey = null;
-    };
-
-    window.saveShortcuts = async function() {
-      try {
-        // Save to IndexedDB via shortcut handler
-        await shortcutHandler.saveCustomShortcuts(shortcuts);
-        
-        alert('✅ Shortcuts saved successfully!');
-      } catch (error) {
-        console.error('Save error:', error);
-        alert('❌ Failed to save shortcuts: ' + error.message);
+    async function resetToDefaults() {
+      if (confirm('Reset all shortcuts to default values?')) {
+        currentShortcuts = {...DEFAULT_SHORTCUTS};
+        await saveShortcuts();
+        renderShortcuts();
       }
-    };
+    }
 
-    window.resetToDefaults = async function() {
-      if (!confirm('Reset all shortcuts to default values?')) return;
+    async function saveShortcuts() {
+      const db = await openDB();
+      const tx = db.transaction('keyboard_shortcuts', 'readwrite');
+      await tx.objectStore('keyboard_shortcuts').put({
+        id: 'user_shortcuts',
+        shortcuts: currentShortcuts,
+        updatedAt: Date.now()
+      });
+    }
 
-      try {
-        await shortcutHandler.resetToDefaults();
-        shortcuts = shortcutHandler.shortcuts || {};
-        updateShortcutsUI();
-        
-        alert('✅ Shortcuts reset to defaults!');
-      } catch (error) {
-        console.error('Reset error:', error);
-        alert('❌ Failed to reset shortcuts: ' + error.message);
-      }
-    };
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open('POS_DB', 1);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
 
-    // Initialize on load
-    init();
+    loadShortcuts();
   </script>
 </body>
 </html>

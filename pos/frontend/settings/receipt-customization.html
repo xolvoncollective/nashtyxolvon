@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receipt Customization - NASHTY OS</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Outfit', sans-serif; background: #0B0F19; color: #F8FAFC; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: 1fr 400px; gap: 24px; }
+    .panel { background: rgba(21, 29, 45, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 24px; }
+    h1 { font-size: 28px; font-weight: 900; color: #FF5A1F; margin-bottom: 8px; }
+    h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #F8FAFC; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-size: 13px; font-weight: 600; color: #CBD5E1; margin-bottom: 8px; }
+    input[type="text"], input[type="url"], textarea, select { width: 100%; background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 12px; color: #F8FAFC; font-size: 13px; font-family: 'Outfit', sans-serif; }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: #FF5A1F; }
+    textarea { min-height: 80px; resize: vertical; }
+    .upload-box { border: 2px dashed rgba(255, 90, 31, 0.35); border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; }
+    .upload-box:hover { border-color: #FF5A1F; background: rgba(255, 90, 31, 0.05); }
+    .preview-img { max-width: 200px; max-height: 100px; margin: 12px auto; display: block; }
+    .btn-primary { background: #FF5A1F; color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+    .btn-primary:hover { background: #E04812; transform: translateY(-1px); }
+    .toggle-switch { position: relative; display: inline-block; width: 48px; height: 24px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; inset: 0; background-color: #374151; border-radius: 24px; transition: 0.3s; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; border-radius: 50%; transition: 0.3s; }
+    input:checked + .slider { background-color: #FF5A1F; }
+    input:checked + .slider:before { transform: translateX(24px); }
+    .receipt-preview { background: white; color: black; padding: 24px; border-radius: 12px; font-family: monospace; font-size: 12px; line-height: 1.6; }
+    .receipt-logo { text-align: center; margin-bottom: 16px; }
+    .receipt-logo img { max-width: 150px; }
+    .receipt-header { text-align: center; margin-bottom: 16px; white-space: pre-line; }
+    .receipt-items { border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 12px 0; margin: 12px 0; }
+    .receipt-item { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .receipt-total { font-weight: bold; font-size: 14px; margin-top: 8px; }
+    .receipt-footer { text-align: center; margin-top: 16px; white-space: pre-line; }
+    .receipt-qr { text-align: center; margin: 16px 0; }
+    .receipt-social { display: flex; justify-content: center; gap: 12px; margin: 12px 0; font-size: 11px; }
+    .promo-box { background: #FEF3C7; border: 1px solid #F59E0B; padding: 8px; margin: 12px 0; text-align: center; font-weight: bold; color: #92400E; }
+    .char-count { font-size: 11px; color: #94A3B8; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="panel">
+      <h1>🧾 Receipt Customization</h1>
+      <p style="color: #94A3B8; margin-bottom: 24px;">Customize your receipt appearance and branding</p>
+
+      <div class="form-group">
+        <label>Logo Upload (PNG/JPG/SVG, max 2MB)</label>
+        <div class="upload-box" onclick="document.getElementById('logoInput').click()">
+          <div id="logoPreview">📸 Click to upload logo</div>
+          <img id="logoImg" class="preview-img" style="display:none;">
+        </div>
+        <input type="file" id="logoInput" accept="image/png,image/jpeg,image/svg+xml" style="display:none;">
+      </div>
+
+      <div class="form-group">
+        <label>Header Text (max 200 chars)</label>
+        <textarea id="headerText" maxlength="200" placeholder="e.g., Welcome to Our Restaurant&#10;Best Food in Town!"></textarea>
+        <div class="char-count"><span id="headerCount">0</span>/200</div>
+      </div>
+
+      <div class="form-group">
+        <label>Footer Text (max 300 chars)</label>
+        <textarea id="footerText" maxlength="300" placeholder="e.g., Thank you for your visit!&#10;Come again soon!"></textarea>
+        <div class="char-count"><span id="footerCount">0</span>/300</div>
+      </div>
+
+      <div class="form-group">
+        <label>Font Size</label>
+        <select id="fontSize">
+          <option value="10">Small (10pt)</option>
+          <option value="12" selected>Medium (12pt)</option>
+          <option value="14">Large (14pt)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label style="display: flex; align-items: center; gap: 12px;">
+          <span>Enable Feedback QR Code</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="enableQR">
+            <span class="slider"></span>
+          </label>
+        </label>
+        <input type="url" id="feedbackUrl" placeholder="https://forms.google.com/..." style="margin-top: 8px;">
+      </div>
+
+      <h2 style="margin-top: 32px;">Social Media Links</h2>
+      <div class="form-group">
+        <label>Facebook</label>
+        <input type="url" id="fbUrl" placeholder="https://facebook.com/yourpage">
+      </div>
+      <div class="form-group">
+        <label>Instagram</label>
+        <input type="url" id="igUrl" placeholder="https://instagram.com/yourpage">
+      </div>
+      <div class="form-group">
+        <label>Twitter/X</label>
+        <input type="url" id="twUrl" placeholder="https://twitter.com/yourpage">
+      </div>
+      <div class="form-group">
+        <label>TikTok</label>
+        <input type="url" id="tkUrl" placeholder="https://tiktok.com/@yourpage">
+      </div>
+
+      <h2 style="margin-top: 32px;">Promotional Messages (max 3)</h2>
+      <div class="form-group">
+        <label>Message 1 (max 150 chars)</label>
+        <input type="text" id="promo1" maxlength="150" placeholder="e.g., Get 10% off your next visit!">
+        <div class="char-count"><span id="promo1Count">0</span>/150</div>
+      </div>
+      <div class="form-group">
+        <label>Message 2 (max 150 chars)</label>
+        <input type="text" id="promo2" maxlength="150" placeholder="e.g., Follow us on Instagram for daily deals">
+        <div class="char-count"><span id="promo2Count">0</span>/150</div>
+      </div>
+      <div class="form-group">
+        <label>Message 3 (max 150 chars)</label>
+        <input type="text" id="promo3" maxlength="150" placeholder="e.g., Free dessert on your birthday!">
+        <div class="char-count"><span id="promo3Count">0</span>/150</div>
+      </div>
+
+      <button class="btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+    </div>
+
+    <div class="panel">
+      <h2>📄 Live Preview</h2>
+      <div class="receipt-preview" id="preview" style="font-size: 12px;"></div>
+    </div>
+  </div>
+
+  <script>
+    let logoFile = null;
+
+    function updatePreview() {
+      const preview = document.getElementById('preview');
+      const fontSize = document.getElementById('fontSize').value;
+      
+      let html = '';
+      
+      if (logoFile) {
+        html += `<div class="receipt-logo"><img src="${URL.createObjectURL(logoFile)}" style="max-width: 150px;"></div>`;
+      }
+      
+      const header = document.getElementById('headerText').value;
+      if (header) html += `<div class="receipt-header">${header}</div>`;
+      
+      html += `
+        <div class="receipt-items">
+          <div class="receipt-item"><span>Nasi Goreng x2</span><span>Rp 50.000</span></div>
+          <div class="receipt-item"><span>Es Teh x2</span><span>Rp 10.000</span></div>
+          <div style="border-top: 1px dashed #000; margin-top: 8px; padding-top: 8px;">
+            <div class="receipt-item"><span>Subtotal</span><span>Rp 60.000</span></div>
+            <div class="receipt-item"><span>Tax 10%</span><span>Rp 6.000</span></div>
+            <div class="receipt-item receipt-total"><span>TOTAL</span><span>Rp 66.000</span></div>
+          </div>
+        </div>
+      `;
+
+      const promos = [
+        document.getElementById('promo1').value,
+        document.getElementById('promo2').value,
+        document.getElementById('promo3').value
+      ].filter(p => p);
+      
+      if (promos.length > 0) {
+        const randomPromo = promos[Math.floor(Math.random() * promos.length)];
+        html += `<div class="promo-box">${randomPromo}</div>`;
+      }
+
+      const socials = [];
+      if (document.getElementById('fbUrl').value) socials.push('FB: ' + document.getElementById('fbUrl').value.split('/').pop());
+      if (document.getElementById('igUrl').value) socials.push('IG: @' + document.getElementById('igUrl').value.split('/').pop());
+      if (document.getElementById('twUrl').value) socials.push('X: @' + document.getElementById('twUrl').value.split('/').pop());
+      if (document.getElementById('tkUrl').value) socials.push('TK: @' + document.getElementById('tkUrl').value.split('/').pop());
+      
+      if (socials.length > 0) {
+        html += `<div class="receipt-social">${socials.join(' • ')}</div>`;
+      }
+
+      if (document.getElementById('enableQR').checked && document.getElementById('feedbackUrl').value) {
+        html += `<div class="receipt-qr">
+          <canvas id="qrCanvas"></canvas>
+          <div style="font-size: 10px; margin-top: 4px;">Scan for Feedback</div>
+        </div>`;
+      }
+
+      const footer = document.getElementById('footerText').value;
+      if (footer) html += `<div class="receipt-footer">${footer}</div>`;
+
+      preview.innerHTML = html;
+      preview.style.fontSize = fontSize + 'pt';
+
+      if (document.getElementById('enableQR').checked && document.getElementById('feedbackUrl').value) {
+        setTimeout(() => {
+          QRCode.toCanvas(document.getElementById('qrCanvas'), document.getElementById('feedbackUrl').value, {
+            width: 100, height: 100, margin: 1
+          });
+        }, 100);
+      }
+    }
+
+    document.getElementById('logoInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file && file.size <= 2 * 1024 * 1024) {
+        logoFile = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          document.getElementById('logoImg').src = e.target.result;
+          document.getElementById('logoImg').style.display = 'block';
+          document.getElementById('logoPreview').style.display = 'none';
+          updatePreview();
+        };
+        reader.readAsDataURL(file);
+      } else {
+        alert('File too large! Maximum 2MB');
+      }
+    });
+
+    ['headerText', 'footerText', 'fontSize', 'enableQR', 'feedbackUrl', 'fbUrl', 'igUrl', 'twUrl', 'tkUrl', 'promo1', 'promo2', 'promo3'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updatePreview);
+      document.getElementById(id).addEventListener('change', updatePreview);
+    });
+
+    ['headerText', 'footerText', 'promo1', 'promo2', 'promo3'].forEach(id => {
+      document.getElementById(id).addEventListener('input', (e) => {
+        document.getElementById(id + 'Count').textContent = e.target.value.length;
+      });
+    });
+
+    async function saveSettings() {
+      const settings = {
+        logo: logoFile ? await fileToBase64(logoFile) : null,
+        headerText: document.getElementById('headerText').value,
+        footerText: document.getElementById('footerText').value,
+        fontSize: document.getElementById('fontSize').value,
+        enableQR: document.getElementById('enableQR').checked,
+        feedbackUrl: document.getElementById('feedbackUrl').value,
+        social: {
+          facebook: document.getElementById('fbUrl').value,
+          instagram: document.getElementById('igUrl').value,
+          twitter: document.getElementById('twUrl').value,
+          tiktok: document.getElementById('tkUrl').value
+        },
+        promos: [
+          document.getElementById('promo1').value,
+          document.getElementById('promo2').value,
+          document.getElementById('promo3').value
+        ].filter(p => p)
+      };
+
+      localStorage.setItem('receiptSettings', JSON.stringify(settings));
+      alert('✅ Receipt settings saved!');
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function loadSettings() {
+      const saved = localStorage.getItem('receiptSettings');
+      if (saved) {
+        const settings = JSON.parse(saved);
+        if (settings.headerText) document.getElementById('headerText').value = settings.headerText;
+        if (settings.footerText) document.getElementById('footerText').value = settings.footerText;
+        if (settings.fontSize) document.getElementById('fontSize').value = settings.fontSize;
+        if (settings.enableQR) document.getElementById('enableQR').checked = settings.enableQR;
+        if (settings.feedbackUrl) document.getElementById('feedbackUrl').value = settings.feedbackUrl;
+        if (settings.social) {
+          document.getElementById('fbUrl').value = settings.social.facebook || '';
+          document.getElementById('igUrl').value = settings.social.instagram || '';
+          document.getElementById('twUrl').value = settings.social.twitter || '';
+          document.getElementById('tkUrl').value = settings.social.tiktok || '';
+        }
+        if (settings.promos) {
+          document.getElementById('promo1').value = settings.promos[0] || '';
+          document.getElementById('promo2').value = settings.promos[1] || '';
+          document.getElementById('promo3').value = settings.promos[2] || '';
+        }
+      }
+      updatePreview();
+    }
+
+    loadSettings();
+  </script>
+</body>
+</html>

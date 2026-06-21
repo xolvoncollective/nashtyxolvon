@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Display Settings - NASHTY OS</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Outfit', sans-serif; background: #0B0F19; color: #F8FAFC; padding: 40px; }
+    .container { max-width: 800px; margin: 0 auto; background: rgba(21, 29, 45, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 32px; }
+    h1 { font-size: 32px; font-weight: 900; color: #FF5A1F; margin-bottom: 12px; }
+    .form-group { margin-bottom: 24px; }
+    label { display: block; font-size: 14px; font-weight: 600; color: #CBD5E1; margin-bottom: 10px; }
+    input[type="text"], input[type="color"] { width: 100%; background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 12px 16px; color: #F8FAFC; font-size: 14px; }
+    input[type="color"] { height: 60px; cursor: pointer; }
+    input:focus { outline: none; border-color: #FF5A1F; }
+    .color-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .color-item { text-align: center; }
+    .contrast-warning { background: rgba(245, 158, 11, 0.15); border: 1px solid #F59E0B; border-radius: 8px; padding: 12px; color: #F59E0B; font-size: 13px; margin-top: 8px; display: none; }
+    .contrast-warning.show { display: block; }
+    .btn-primary { background: #FF5A1F; color: white; border: none; padding: 14px 28px; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; width: 100%; margin-top: 20px; transition: all 0.2s; }
+    .btn-primary:hover { background: #E04812; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255, 90, 31, 0.4); }
+    .preview-box { background: var(--preview-bg, #1e293b); color: var(--preview-text, white); padding: 40px; border-radius: 12px; margin-top: 20px; text-align: center; transition: all 0.3s; }
+    .preview-title { font-size: 28px; font-weight: 900; color: var(--preview-accent, #FF5A1F); margin-bottom: 12px; }
+    .preview-content { font-size: 18px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎨 Customer Display Branding</h1>
+    <p style="color: #94A3B8; margin-bottom: 32px;">Customize colors and branding for your customer-facing display</p>
+
+    <div class="form-group">
+      <label>Display Logo Text</label>
+      <input type="text" id="logoText" placeholder="e.g., NASHTY OS" value="NASHTY OS">
+    </div>
+
+    <div class="form-group">
+      <label>Tagline</label>
+      <input type="text" id="tagline" placeholder="e.g., Restaurant Management System" value="Restaurant Management System">
+    </div>
+
+    <div class="form-group">
+      <label>Color Theme</label>
+      <div class="color-group">
+        <div class="color-item">
+          <label>Background</label>
+          <input type="color" id="bgColor" value="#1e293b">
+        </div>
+        <div class="color-item">
+          <label>Text</label>
+          <input type="color" id="textColor" value="#ffffff">
+        </div>
+        <div class="color-item">
+          <label>Accent</label>
+          <input type="color" id="accentColor" value="#FF5A1F">
+        </div>
+      </div>
+      <div class="contrast-warning" id="contrastWarning">
+        ⚠️ Low contrast detected! Text may be hard to read. Minimum contrast ratio: 4.5:1
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Live Preview</label>
+      <div class="preview-box" id="preview">
+        <div class="preview-title" id="previewTitle">NASHTY OS</div>
+        <div class="preview-content" id="previewContent">Restaurant Management System</div>
+        <div style="margin-top: 24px; font-size: 16px;">This is how your display will look</div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="saveSettings()">💾 Save Display Settings</button>
+  </div>
+
+  <script>
+    function hexToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : null;
+    }
+
+    function luminance(r, g, b) {
+      const [rs, gs, bs] = [r, g, b].map(c => {
+        c = c / 255;
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+    }
+
+    function contrastRatio(hex1, hex2) {
+      const rgb1 = hexToRgb(hex1);
+      const rgb2 = hexToRgb(hex2);
+      const l1 = luminance(rgb1.r, rgb1.g, rgb1.b);
+      const l2 = luminance(rgb2.r, rgb2.g, rgb2.b);
+      const lighter = Math.max(l1, l2);
+      const darker = Math.min(l1, l2);
+      return (lighter + 0.05) / (darker + 0.05);
+    }
+
+    function updatePreview() {
+      const bgColor = document.getElementById('bgColor').value;
+      const textColor = document.getElementById('textColor').value;
+      const accentColor = document.getElementById('accentColor').value;
+      const logoText = document.getElementById('logoText').value;
+      const tagline = document.getElementById('tagline').value;
+
+      const preview = document.getElementById('preview');
+      preview.style.setProperty('--preview-bg', bgColor);
+      preview.style.setProperty('--preview-text', textColor);
+      preview.style.setProperty('--preview-accent', accentColor);
+
+      document.getElementById('previewTitle').textContent = logoText;
+      document.getElementById('previewTitle').style.color = accentColor;
+      document.getElementById('previewContent').textContent = tagline;
+
+      // Check contrast
+      const contrast = contrastRatio(bgColor, textColor);
+      const warning = document.getElementById('contrastWarning');
+      if (contrast < 4.5) {
+        warning.classList.add('show');
+        warning.textContent = `⚠️ Contrast ratio: ${contrast.toFixed(2)}:1 (minimum: 4.5:1). Text may be hard to read.`;
+      } else {
+        warning.classList.remove('show');
+      }
+    }
+
+    function saveSettings() {
+      const settings = {
+        logo: document.getElementById('logoText').value,
+        tagline: document.getElementById('tagline').value,
+        bgColor: document.getElementById('bgColor').value,
+        textColor: document.getElementById('textColor').value,
+        accentColor: document.getElementById('accentColor').value
+      };
+
+      localStorage.setItem('displaySettings', JSON.stringify(settings));
+      alert('✅ Customer display settings saved!');
+      
+      // Notify customer display window if open
+      const displayWindow = window.open('', 'CustomerDisplay');
+      if (displayWindow && !displayWindow.closed) {
+        displayWindow.postMessage({ type: 'SETTINGS_UPDATE', settings }, '*');
+      }
+    }
+
+    function loadSettings() {
+      const saved = localStorage.getItem('displaySettings');
+      if (saved) {
+        const settings = JSON.parse(saved);
+        document.getElementById('logoText').value = settings.logo || 'NASHTY OS';
+        document.getElementById('tagline').value = settings.tagline || 'Restaurant Management System';
+        document.getElementById('bgColor').value = settings.bgColor || '#1e293b';
+        document.getElementById('textColor').value = settings.textColor || '#ffffff';
+        document.getElementById('accentColor').value = settings.accentColor || '#FF5A1F';
+      }
+      updatePreview();
+    }
+
+    ['bgColor', 'textColor', 'accentColor', 'logoText', 'tagline'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updatePreview);
+    });
+
+    loadSettings();
+  </script>
+</body>
+</html>
