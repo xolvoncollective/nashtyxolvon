@@ -42,8 +42,11 @@ const API = {
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
       };
 
-      const token = API.session.token || API.session.adminToken;
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      // Do not send expired session tokens to auth-login, otherwise the Supabase gateway rejects it with 401
+      if (functionName !== 'auth-login') {
+        const token = API.session.token || API.session.adminToken;
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+      }
 
       const response = await fetch(`${EDGE_FUNCTIONS_URL}/${functionName}`, {
         method: 'POST',
@@ -565,9 +568,43 @@ const API = {
       const oid = outletId || API.session.outletId;
       const { data: categories } = await API.supabase.from('categories')
         .select('*').eq('tenant_id', API.session.tenantId);
-      const { data: products } = await API.supabase.from('products')
-        .select('*').eq('tenant_id', API.session.tenantId);
-      return { success: true, menu: { categories, products } };
+      
+      // Get products with modifier groups
+      const { data: products } = await API.supabase
+        .from('products')
+        .select(`
+          *,
+          category:categories(id, name),
+          modifier_groups:product_modifiers(
+            modifier_group:modifier_groups(
+              id,
+              name,
+              type,
+              required,
+              max_select,
+              options:modifier_options(*)
+            )
+          )
+        `)
+        .eq('tenant_id', API.session.tenantId)
+        .eq('is_active', true);
+
+      // Transform products to include modifier_groups array
+      const transformedProducts = (products || []).map(p => ({
+        ...p,
+        modifier_groups: (p.modifier_groups || []).map(pm => ({
+          ...pm.modifier_group,
+          options: pm.modifier_group?.options || []
+        })).filter(g => g && g.id)
+      }));
+
+      return { 
+        success: true, 
+        data: { 
+          categories: categories || [], 
+          items: transformedProducts 
+        } 
+      };
     }
   },
 
