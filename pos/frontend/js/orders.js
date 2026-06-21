@@ -318,27 +318,39 @@
       
       let visualContent = '';
       if (isQris) {
-        visualContent = `
-          <div style="background:#fff;padding:12px;border-radius:12px;margin:15px auto;width:150px;height:150px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
-            <svg viewBox="0 0 100 100" width="100%" height="100%">
-              <rect x="0" y="0" width="100" height="100" fill="#fff"/>
-              <rect x="10" y="10" width="25" height="25" fill="#1E293B"/>
-              <rect x="15" y="15" width="15" height="15" fill="#fff"/>
-              <rect x="65" y="10" width="25" height="25" fill="#1E293B"/>
-              <rect x="70" y="15" width="15" height="15" fill="#fff"/>
-              <rect x="10" y="65" width="25" height="25" fill="#1E293B"/>
-              <rect x="15" y="70" width="15" height="15" fill="#fff"/>
-              <rect x="45" y="20" width="10" height="10" fill="#1E293B"/>
-              <rect x="45" y="45" width="10" height="10" fill="#1E293B"/>
-              <rect x="20" y="45" width="10" height="10" fill="#1E293B"/>
-              <rect x="65" y="45" width="15" height="10" fill="#1E293B"/>
-              <rect x="45" y="65" width="15" height="15" fill="#1E293B"/>
-              <rect x="65" y="65" width="10" height="10" fill="#1E293B"/>
-              <rect x="80" y="80" width="10" height="10" fill="#1E293B"/>
-            </svg>
-          </div>
-          <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:15px;letter-spacing:0.05em">PINDAI QRIS UNTUK BAYAR</div>
-        `;
+        const qrisImg = localStorage.getItem('nashty_qris_static');
+        if (qrisImg) {
+          visualContent = `
+            <div style="background:#fff;padding:12px;border-radius:16px;margin:12px auto;width:200px;height:200px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,0.15)">
+              <img src="${qrisImg}" style="width:176px;height:176px;object-fit:contain;border-radius:8px" alt="QRIS Static">
+            </div>
+            <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:12px;letter-spacing:0.06em">SCAN QRIS UNTUK BAYAR • ${fr(amount)}</div>
+          `;
+        } else {
+          visualContent = `
+            <div style="background:#fff;padding:12px;border-radius:12px;margin:15px auto;width:150px;height:150px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+              <svg viewBox="0 0 100 100" width="100%" height="100%">
+                <rect x="0" y="0" width="100" height="100" fill="#fff"/>
+                <rect x="10" y="10" width="25" height="25" fill="#1E293B"/>
+                <rect x="15" y="15" width="15" height="15" fill="#fff"/>
+                <rect x="65" y="10" width="25" height="25" fill="#1E293B"/>
+                <rect x="70" y="15" width="15" height="15" fill="#fff"/>
+                <rect x="10" y="65" width="25" height="25" fill="#1E293B"/>
+                <rect x="15" y="70" width="15" height="15" fill="#fff"/>
+                <rect x="45" y="20" width="10" height="10" fill="#1E293B"/>
+                <rect x="45" y="45" width="10" height="10" fill="#1E293B"/>
+                <rect x="20" y="45" width="10" height="10" fill="#1E293B"/>
+                <rect x="65" y="45" width="15" height="10" fill="#1E293B"/>
+                <rect x="45" y="65" width="15" height="15" fill="#1E293B"/>
+                <rect x="65" y="65" width="10" height="10" fill="#1E293B"/>
+                <rect x="80" y="80" width="10" height="10" fill="#1E293B"/>
+              </svg>
+            </div>
+            <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:8px;letter-spacing:0.05em">PINDAI QRIS UNTUK BAYAR</div>
+            <div style="font-size:10px;color:rgba(245,158,11,.7);margin-bottom:12px">⚠ Upload QRIS di Backoffice › Pengaturan</div>
+          `;
+        }
+
       } else {
         visualContent = `
           <div style="font-size:48px;margin:20px 0;">💳</div>
@@ -584,10 +596,22 @@
 
 
     function showSuccess(total, change, delivNote) {
+      const lastOrder = HISTORY[0] || {};
       const ov = document.createElement('div'); ov.className = 'ov'; ov.id = 'mo-ok';
-      ov.innerHTML = `<div class="mo smo"><div class="mo-b" style="padding:24px"><div class="sico"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="stitl">Pembayaran Berhasil!</div><div class="ssub">Pesanan dikirim ke dapur</div>${change > 0 ? `<div class="chg-box"><div class="chg-lbl">Kembalian</div><div class="chg-amt">${fr(change)}</div></div>` : `<div style="background:var(--orM);border:1px solid rgba(228,84,12,.18);border-radius:12px;padding:13px;margin-bottom:14px;text-align:center"><div style="font-size:9.5px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Total Dibayar</div><div style="font-size:24px;font-weight:900;color:var(--or);font-family:var(--mo)">${fr(total)}</div></div>`}<button class="btn-new" onclick="newOrder()">+ Order Baru</button></div></div>`;
+      ov.innerHTML = `<div class="mo smo"><div class="mo-b" style="padding:24px"><div class="sico"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="stitl">Pembayaran Berhasil!</div><div class="ssub">Pesanan dikirim ke dapur</div>${change > 0 ? `<div class="chg-box"><div class="chg-lbl">Kembalian</div><div class="chg-amt">${fr(change)}</div></div>` : `<div style="background:var(--orM);border:1px solid rgba(228,84,12,.18);border-radius:12px;padding:13px;margin-bottom:14px;text-align:center"><div style="font-size:9.5px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Total Dibayar</div><div style="font-size:24px;font-weight:900;color:var(--or);font-family:var(--mo)">${fr(total)}</div></div>`}
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px" onclick="doPrintReceipt()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Cetak Struk
+      </button>
+      <button class="btn-new" onclick="newOrder()">+ Order Baru</button></div></div>`;
       ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
       document.body.appendChild(ov);
+    }
+    
+    function doPrintReceipt() {
+      const lastOrder = HISTORY[0];
+      if (!lastOrder || !window.ThermalPrinter) return;
+      window.ThermalPrinter.printFromHistory(lastOrder, currentUser?.name || 'Kasir');
     }
     function newOrder() {
       document.getElementById('mo-ok')?.remove(); cart = []; discount = 0; curMember = null; window.curMemberPhone = null;
