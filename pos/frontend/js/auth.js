@@ -70,24 +70,28 @@
       if (loginPinArr.length === 4) {
         try {
           const res = await API.auth.login(loginPinArr.join(''), API.session.outletId);
-          if (res.success && res.user && res.user.id === loginSel.id) {
-            doLogin(res.user);
+          if (res.success && res.user) {
+            if (res.user.id === loginSel.id) {
+              doLogin(res.user);
+            } else {
+              showPinError('PIN salah untuk kasir ini (ID Mismatch)');
+            }
           } else {
-            showPinError();
+            showPinError('Invalid PIN response');
           }
         } catch (err) {
-          showPinError();
+          showPinError(err.message);
         }
       }
     }
 
-    function showPinError() {
-      document.getElementById('login-err').textContent = 'PIN salah, coba lagi';
+    function showPinError(msg = 'PIN salah, coba lagi') {
+      document.getElementById('login-err').textContent = msg;
       loginPinArr = [];
       setTimeout(() => {
         for (let i = 0; i < 4; i++) { const d = document.getElementById('ld' + i); if (d) d.classList.remove('on'); }
         document.getElementById('login-err').textContent = '';
-      }, 900);
+      }, 2500);
     }
     async function doLogin(staff) {
       currentUser = staff;
