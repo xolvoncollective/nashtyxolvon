@@ -87,6 +87,11 @@
       return;
     }
     
+    if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
+      console.warn('[NASHTY AUTH] Already on launcher, skipping redirect');
+      return;
+    }
+    
     console.warn('[NASHTY AUTH] Redirecting to launcher...');
     if (window.top !== window.self) {
       // Inside iframe - notify parent to handle navigation

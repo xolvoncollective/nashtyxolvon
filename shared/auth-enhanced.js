@@ -642,6 +642,10 @@
      * Redirect to launcher
      */
     redirectToLauncher() {
+      if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
+        console.warn('[AUTH v2] Already on launcher, skipping redirect');
+        return;
+      }
       console.warn('[AUTH v2] Redirecting to launcher...');
       window.location.href = AUTH_CONFIG.LAUNCHER_ORIGIN;
     }
@@ -716,7 +720,8 @@
         let response = await originalFetch(url, options);
 
         // Handle 401 responses (token expired)
-        if (response.status === 401 && authManager.currentSession) {
+        // Skip handling for auth and refresh endpoints to prevent infinite loops
+        if (response.status === 401 && authManager.currentSession && !url.includes('/api/auth/refresh') && !url.includes('auth-login')) {
           console.warn('[AUTH v2] Received 401, attempting token refresh...');
           
           // Try to refresh token
