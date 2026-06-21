@@ -188,6 +188,15 @@
     // Intercept fetch to add Authorization header
     createAuthenticatedFetch();
     
+    // URL Hijacking Mitigation: Ensure app is running inside an iframe or launcher
+    if (window.location.pathname !== '/' && window.top === window.self) {
+      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        console.warn('[NASHTY AUTH] URL Hijacking detected. Redirecting to Launcher.');
+        redirectToLauncher();
+        return;
+      }
+    }
+    
     // Sync auth data with API object if it exists
     syncAuthWithAPI();
     

@@ -1106,26 +1106,78 @@
     }
 
     function openModule(path, title, authPayload) {
-        // Use current origin so it works locally and on cloudflare
-        const url = `${window.location.origin}${path}`;
-        const windowFeatures = 'width=1280,height=800,menubar=no,toolbar=no,location=no,status=no';
-        const newWindow = window.open(url, title, windowFeatures);
+        // SPA Launcher approach to mitigate URL Hijacking
         
-        if (newWindow) {
-            if (authPayload) {
-              setTimeout(() => {
-                  try {
-                      newWindow.postMessage({
-                          type: 'NASHTY_AUTH',
-                          ...authPayload
-                      }, window.location.origin); // SECURE: Same origin only
-                  } catch (error) {
-                      console.error('Failed to send auth to child window:', error);
-                  }
-              }, 1500);
-            }
-        } else {
-            alert('Popup blocked. Please allow popups for NASHTY OS.');
+        // Hide auth wrapper if it exists
+        const authWrapper = document.querySelector('.auth-wrapper');
+        if (authWrapper) authWrapper.style.display = 'none';
+        
+        // Remove existing app container if any
+        let appContainer = document.getElementById('spa-app-container');
+        if (appContainer) appContainer.remove();
+        
+        // Create new app container
+        appContainer = document.createElement('div');
+        appContainer.id = 'spa-app-container';
+        appContainer.style.position = 'fixed';
+        appContainer.style.inset = '0';
+        appContainer.style.width = '100vw';
+        appContainer.style.height = '100vh';
+        appContainer.style.backgroundColor = 'var(--bg-base, #010100)';
+        appContainer.style.zIndex = '999999';
+        
+        // Back to Launcher Button (hover to show)
+        const backBtn = document.createElement('button');
+        backBtn.innerHTML = '← Back to Launcher';
+        backBtn.style.position = 'absolute';
+        backBtn.style.top = '10px';
+        backBtn.style.left = '50%';
+        backBtn.style.transform = 'translateX(-50%)';
+        backBtn.style.zIndex = '1000000';
+        backBtn.style.padding = '8px 16px';
+        backBtn.style.background = 'var(--bg-input, #121210)';
+        backBtn.style.color = 'var(--text-main, #FAFAFA)';
+        backBtn.style.border = '1px solid var(--border-dim, #2A2A26)';
+        backBtn.style.borderRadius = '4px';
+        backBtn.style.cursor = 'pointer';
+        backBtn.style.fontFamily = "'Inter', sans-serif";
+        backBtn.style.fontSize = '12px';
+        backBtn.style.opacity = '0.05'; // Almost invisible
+        backBtn.style.transition = 'opacity 0.2s';
+        backBtn.title = 'Hover to reveal. Click to close app and return to Launcher.';
+        
+        backBtn.onmouseover = () => backBtn.style.opacity = '1';
+        backBtn.onmouseout = () => backBtn.style.opacity = '0.05';
+        backBtn.onclick = () => {
+            appContainer.remove();
+            if (authWrapper) authWrapper.style.display = 'flex';
+        };
+        
+        // Create Iframe
+        const iframe = document.createElement('iframe');
+        iframe.src = `${window.location.origin}${path}`;
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';
+        
+        appContainer.appendChild(iframe);
+        appContainer.appendChild(backBtn);
+        document.body.appendChild(appContainer);
+        
+        // Send Auth Payload to iframe when it loads
+        if (authPayload) {
+            iframe.onload = () => {
+                setTimeout(() => {
+                    try {
+                        iframe.contentWindow.postMessage({
+                            type: 'NASHTY_AUTH',
+                            ...authPayload
+                        }, window.location.origin);
+                    } catch (error) {
+                        console.error('Failed to send auth to child window:', error);
+                    }
+                }, 500); // Small delay to ensure auth listener in iframe is ready
+            };
         }
     }
   </script>

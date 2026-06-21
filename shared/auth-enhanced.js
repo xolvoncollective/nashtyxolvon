@@ -310,6 +310,21 @@
         }
       }
 
+      // 1. Restore local session
+      this.restoreSession();
+
+      // URL Hijacking Mitigation: Ensure app is running inside an iframe or launcher
+      if (window.location.pathname !== '/' && window.top === window.self) {
+        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+          console.warn('[AUTH v2] URL Hijacking detected. Redirecting to Launcher.');
+          this.redirectToLauncher();
+          return;
+        }
+      }
+
+      // 2. Setup auth interceptors
+      this.setupInterceptors();
+
       // Sync with API session
       this.syncWithAPI();
 
