@@ -76,8 +76,8 @@ serve(async (req) => {
     // ─── Main Login (manager/superadmin) ────────────────────────────────────
     if (action === 'main-login' || action === 'superadmin-login') {
       let loginEmail = username;
-      if (['admin1', 'admin2', 'admin'].includes(username)) {
-        loginEmail = 'admin@nashty';
+      if (['admin1', 'admin2', 'admin3', 'admin4', 'admin'].includes(username)) {
+        loginEmail = 'manager@nashty';
       }
       
       const allowedRoles = action === 'superadmin-login'
@@ -93,7 +93,7 @@ serve(async (req) => {
 
       const isPasswordValid = user && (
         user.password === password || 
-        (loginEmail === 'admin@nashty' && ['admin', 'admin1', 'admin2'].includes(password)) ||
+        (loginEmail === 'manager@nashty' && ['admin', 'admin1', 'admin2', 'admin3', 'admin4'].includes(password)) ||
         (loginEmail === 'superadmin@nashty' && password === 'nashty1111')
       );
 
