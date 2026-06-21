@@ -1,0 +1,12 @@
+# Cloudflare Pages Redirects
+/pos/* /pos/index.html 200
+/kds/* /kds/index.html 200
+/backoffice/* /backoffice/index.html 200
+/cost/* /cost/index.html 200
+/crm/* /crm/index.html 200
+
+# API redirects to Supabase Edge Functions
+/api/* https://mzucfndifneytbesirkx.supabase.co/functions/v1/:splat 200
+
+# Root serves launcher
+/ /index.html 200

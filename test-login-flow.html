@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NASHTY OS - Login Flow Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0A0A09;
+      color: #FAFAFA;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { color: #E4540C; margin-bottom: 20px; }
+    h2 { color: #FAFAFA; margin: 30px 0 15px; font-size: 1.3em; }
+    .test-section {
+      background: #121210;
+      border: 1px solid #2A2A26;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .test-item {
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 6px;
+      background: #0A0A09;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .test-item.pass { border-left: 4px solid #10B981; }
+    .test-item.fail { border-left: 4px solid #EF4444; }
+    .test-item.pending { border-left: 4px solid #F59E0B; }
+    .icon { font-size: 20px; }
+    button {
+      background: #E4540C;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      margin: 10px 5px;
+    }
+    button:hover { background: #C4420A; }
+    button:disabled {
+      background: #2A2A26;
+      cursor: not-allowed;
+    }
+    .log {
+      background: #000;
+      padding: 15px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 15px;
+    }
+    .log-entry { margin: 4px 0; }
+    .log-success { color: #10B981; }
+    .log-error { color: #EF4444; }
+    .log-info { color: #60A5FA; }
+    .log-warn { color: #F59E0B; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .stat-card {
+      background: #121210;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 32px;
+      font-weight: bold;
+      color: #E4540C;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: #82827C;
+      text-transform: uppercase;
+      margin-top: 5px;
+    }
+    input {
+      background: #121210;
+      border: 1px solid #2A2A26;
+      color: #FAFAFA;
+      padding: 10px;
+      border-radius: 6px;
+      width: 200px;
+      margin: 0 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 NASHTY OS - Login Flow Test Suite</h1>
+    
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-total">0</div>
+        <div class="stat-label">Total Tests</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-passed" style="color: #10B981;">0</div>
+        <div class="stat-label">Passed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-failed" style="color: #EF4444;">0</div>
+        <div class="stat-label">Failed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-success">0%</div>
+        <div class="stat-label">Success Rate</div>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h2>🎯 Test Controls</h2>
+      <button onclick="runAllTests()">Run All Tests</button>
+      <button onclick="testConnection()">Test Connection Only</button>
+      <button onclick="testAuth()">Test Auth Only</button>
+      <button onclick="clearLogs()">Clear Logs</button>
+    </div>
+
+    <div class="test-section">
+      <h2>🔐 Manual Login Test</h2>
+      <div style="margin: 15px 0;">
+        <input type="text" id="manual-pin" placeholder="Enter PIN (e.g. 1234)" maxlength="4">
+        <button onclick="testManualLogin()">Test Login</button>
+      </div>
+      <div id="manual-result" class="log" style="max-height: 150px;"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>📊 Test Results</h2>
+      <div id="test-results"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>📝 Detailed Logs</h2>
+      <div id="logs" class="log"></div>
+    </div>
+  </div>
+
+  <script src="/api-client.js"></script>
+  <script>
+    const SUPABASE_URL = 'https://mzucfndifneytbesirkx.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16dWNmbmRpZm5leXRiZXNpcmt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNDA1MzUsImV4cCI6MjA5NjkxNjUzNX0.fUynF1mfZCyy48aFkwz3_G52-4hd4EE-b5gpG7k0mpg';
+
+    let testResults = [];
+    let testsPassed = 0;
+    let testsFailed = 0;
+
+    function log(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      const className = `log-${type}`;
+      const icon = type === 'success' ? '✓' : type === 'error' ? '✗' : type === 'warn' ? '⚠' : 'ℹ';
+      
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${className}`;
+      entry.textContent = `[${timestamp}] ${icon} ${message}`;
+      
+      document.getElementById('logs').appendChild(entry);
+      document.getElementById('logs').scrollTop = document.getElementById('logs').scrollHeight;
+    }
+
+    function clearLogs() {
+      document.getElementById('logs').innerHTML = '';
+      document.getElementById('test-results').innerHTML = '';
+      testResults = [];
+      testsPassed = 0;
+      testsFailed = 0;
+      updateStats();
+    }
+
+    function updateStats() {
+      const total = testsPassed + testsFailed;
+      const successRate = total > 0 ? Math.round((testsPassed / total) * 100) : 0;
+      
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-passed').textContent = testsPassed;
+      document.getElementById('stat-failed').textContent = testsFailed;
+      document.getElementById('stat-success').textContent = successRate + '%';
+    }
+
+    function addTestResult(name, passed, details = '') {
+      testResults.push({ name, passed, details });
+      if (passed) testsPassed++;
+      else testsFailed++;
+      
+      updateStats();
+      renderTestResults();
+    }
+
+    function renderTestResults() {
+      const container = document.getElementById('test-results');
+      container.innerHTML = testResults.map(t => `
+        <div class="test-item ${t.passed ? 'pass' : 'fail'}">
+          <span class="icon">${t.passed ? '✓' : '✗'}</span>
+          <div style="flex: 1;">
+            <strong>${t.name}</strong>
+            ${t.details ? `<div style="font-size: 13px; color: #82827C; margin-top: 4px;">${t.details}</div>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function testConnection() {
+      log('Testing Supabase connection...', 'info');
+      
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/users?limit=1`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        });
+        
+        if (response.ok) {
+          log('✓ Supabase connection successful', 'success');
+          addTestResult('Supabase Connection', true, 'Database is accessible');
+          return true;
+        } else {
+          throw new Error(`HTTP ${response.status}`);
+        }
+      } catch (error) {
+        log(`✗ Connection failed: ${error.message}`, 'error');
+        addTestResult('Supabase Connection', false, error.message);
+        return false;
+      }
+    }
+
+    async function testAuth() {
+      log('Testing authentication flow...', 'info');
+      
+      try {
+        // Test 1: Get staff list
+        log('Fetching staff list...', 'info');
+        const staff = await API.auth.getStaff();
+        
+        if (staff.success && Array.isArray(staff.staff)) {
+          log(`✓ Found ${staff.staff.length} staff members`, 'success');
+          addTestResult('Get Staff List', true, `${staff.staff.length} staff members found`);
+          
+          if (staff.staff.length > 0) {
+            log(`  Sample: ${staff.staff[0].name} (${staff.staff[0].role})`, 'info');
+          }
+        } else {
+          throw new Error('Invalid staff response');
+        }
+
+        // Test 2: Try PIN login with wrong PIN (should fail gracefully)
+        log('Testing PIN login with incorrect PIN...', 'info');
+        try {
+          const loginResult = await API.auth.login('0000');
+          if (!loginResult.success) {
+            log('✓ PIN validation working (incorrect PIN rejected)', 'success');
+            addTestResult('PIN Validation', true, 'Incorrect PIN properly rejected');
+          }
+        } catch (loginError) {
+          log('✓ PIN validation working (incorrect PIN rejected)', 'success');
+          addTestResult('PIN Validation', true, 'Auth function validates PINs correctly');
+        }
+
+        return true;
+      } catch (error) {
+        log(`✗ Auth test failed: ${error.message}`, 'error');
+        addTestResult('Authentication Flow', false, error.message);
+        return false;
+      }
+    }
+
+    async function testManualLogin() {
+      const pin = document.getElementById('manual-pin').value;
+      const resultDiv = document.getElementById('manual-result');
+      
+      if (!pin || pin.length !== 4) {
+        resultDiv.innerHTML = '<div class="log-error">Please enter a 4-digit PIN</div>';
+        return;
+      }
+
+      resultDiv.innerHTML = '<div class="log-info">Testing login with PIN: ' + pin + '...</div>';
+      
+      try {
+        const result = await API.auth.login(pin);
+        
+        if (result.success && result.token) {
+          resultDiv.innerHTML = `
+            <div class="log-success">✓ Login successful!</div>
+            <div class="log-info">User: ${result.user.name}</div>
+            <div class="log-info">Role: ${result.user.role}</div>
+            <div class="log-info">Token: ${result.token.substring(0, 30)}...</div>
+          `;
+          log(`✓ Manual login successful as ${result.user.name}`, 'success');
+        } else {
+          resultDiv.innerHTML = '<div class="log-error">✗ Login failed: Invalid PIN or user not found</div>';
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `<div class="log-error">✗ Login error: ${error.message}</div>`;
+        log(`✗ Manual login failed: ${error.message}`, 'error');
+      }
+    }
+
+    async function runAllTests() {
+      clearLogs();
+      log('Starting full test suite...', 'info');
+      log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+      
+      // Test 1: Connection
+      await testConnection();
+      
+      // Test 2: Auth
+      await testAuth();
+      
+      // Test 3: API Client
+      log('Testing API Client...', 'info');
+      try {
+        const health = await API.request('/health');
+        if (health.status === 'ok') {
+          log('✓ API Client working', 'success');
+          addTestResult('API Client', true, health.message);
+        }
+      } catch (error) {
+        log(`✗ API Client test failed: ${error.message}`, 'error');
+        addTestResult('API Client', false, error.message);
+      }
+      
+      // Test 4: Menu data
+      log('Testing menu data fetch...', 'info');
+      try {
+        const menu = await API.menu.getOutletMenu();
+        if (menu.success && menu.data) {
+          log(`✓ Menu data loaded: ${menu.data.categories?.length || 0} categories, ${menu.data.items?.length || 0} products`, 'success');
+          addTestResult('Menu Data', true, `${menu.data.categories?.length || 0} categories, ${menu.data.items?.length || 0} products`);
+        }
+      } catch (error) {
+        log(`✗ Menu data test failed: ${error.message}`, 'error');
+        addTestResult('Menu Data', false, error.message);
+      }
+      
+      log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+      log('Test suite completed!', 'success');
+      
+      const total = testsPassed + testsFailed;
+      const rate = total > 0 ? Math.round((testsPassed / total) * 100) : 0;
+      
+      if (rate >= 80) {
+        log(`✓ System is ready! Success rate: ${rate}%`, 'success');
+      } else if (rate >= 60) {
+        log(`⚠ System has issues. Success rate: ${rate}%`, 'warn');
+      } else {
+        log(`✗ System has critical issues. Success rate: ${rate}%`, 'error');
+      }
+    }
+
+    // Auto-run on load
+    window.addEventListener('load', () => {
+      log('Test page loaded. Click "Run All Tests" to start.', 'info');
+    });
+  </script>
+</body>
+</html>

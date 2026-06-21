@@ -1,0 +1,43 @@
+{
+  "name": "nashty-os",
+  "version": "3.1.0",
+  "build": {
+    "command": "echo 'Static site - no build required'",
+    "publish": ".",
+    "environment": {
+      "NODE_VERSION": "18"
+    }
+  },
+  "redirects": [
+    {
+      "source": "/pos/*",
+      "destination": "/pos/:splat",
+      "status": 200
+    },
+    {
+      "source": "/kds/*",
+      "destination": "/kds/:splat",
+      "status": 200
+    },
+    {
+      "source": "/backoffice/*",
+      "destination": "/backoffice/:splat",
+      "status": 200
+    },
+    {
+      "source": "/cost/*",
+      "destination": "/cost/:splat",
+      "status": 200
+    },
+    {
+      "source": "/crm/*",
+      "destination": "/crm/:splat",
+      "status": 200
+    },
+    {
+      "source": "/api/*",
+      "destination": "https://mzucfndifneytbesirkx.supabase.co/functions/v1/:splat",
+      "status": 200
+    }
+  ]
+}
