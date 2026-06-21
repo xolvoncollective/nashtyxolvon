@@ -33,20 +33,70 @@ export class ReceiptTemplateGenerator {
   /**
    * Load outlet settings
    */
+  /**
+   * Load outlet settings
+   */
   async loadSettings(outletId) {
-    const db = await window.dbPromise;
-    const tx = db.transaction('settings', 'readonly');
-    const store = tx.objectStore('settings');
-    const index = store.index('outletId');
-    
-    const settingsArray = await index.getAll(outletId);
-    await tx.done;
-    
-    // Convert to object
-    this.settings = {};
-    for (const setting of settingsArray) {
-      this.settings[setting.key] = setting.value;
+    try {
+      // Try to load from API first
+      const response = await fetch(`${window.NashtyAPI.config.functionsUrl}/settings-api?outlet_id=${outletId}`, {
+        headers: {
+          'Authorization': `Bearer ${await window.NashtyAPI.auth.getAccessToken()}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        this.settings = data.settings || this.getDefaultSettings();
+      } else {
+        // Fallback to defaults
+        this.settings = this.getDefaultSettings();
+      }
+
+      // Cache in IndexedDB for offline use
+      const db = await window.dbPromise;
+      const tx = db.transaction('settings', 'readwrite');
+      await tx.objectStore('settings').put({
+        outlet_id: outletId,
+        key: 'receipt_settings',
+        value: this.settings,
+        updated_at: Date.now()
+      });
+      await tx.done;
+    } catch (error) {
+      console.error('Failed to load settings from API, using cached:', error);
+      
+      // Fallback to IndexedDB cache
+      try {
+        const db = await window.dbPromise;
+        const tx = db.transaction('settings', 'readonly');
+        const cached = await tx.objectStore('settings').get([outletId, 'receipt_settings']);
+        await tx.done;
+        
+        this.settings = cached?.value || this.getDefaultSettings();
+      } catch {
+        this.settings = this.getDefaultSettings();
+      }
     }
+  }
+
+  /**
+   * Get default settings
+   */
+  getDefaultSettings() {
+    return {
+      receipt_logo_url: null,
+      receipt_header_text: 'Terima kasih atas kunjungan Anda',
+      receipt_footer_text: 'Silakan datang kembali',
+      receipt_font_size: 'medium',
+      receipt_qr_enabled: false,
+      receipt_qr_url: null,
+      receipt_social_facebook: null,
+      receipt_social_instagram: null,
+      receipt_social_twitter: null,
+      receipt_social_tiktok: null,
+      receipt_promo_messages: []
+    };
   }
 
   /**

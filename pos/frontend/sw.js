@@ -1,7 +1,7 @@
 // Import Workbox from CDN
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.0.0/workbox-sw.js');
 
-const CACHE_VERSION = 'v7';
+const CACHE_VERSION = 'v2.0.0';
 const CACHE_NAME = `nashty-pos-${CACHE_VERSION}`;
 
 // Configure Workbox

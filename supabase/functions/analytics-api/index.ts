@@ -85,14 +85,53 @@ serve(async (req) => {
       }
     });
 
+    // Get previous period for trend calculation
+    const previousFromDate = new Date(fromDate.getTime() - days * 24 * 60 * 60 * 1000);
+    const { data: previousItems } = await supabase
+      .from('order_items')
+      .select(`
+        product_id,
+        quantity,
+        orders!inner(outlet_id, created_at, order_status)
+      `)
+      .eq('orders.outlet_id', outletId)
+      .eq('orders.order_status', 'completed')
+      .gte('orders.created_at', previousFromDate.toISOString())
+      .lt('orders.created_at', fromDate.toISOString());
+
+    // Aggregate previous period
+    const previousAggregated = new Map<string, number>();
+    (previousItems ?? []).forEach((item: any) => {
+      const count = previousAggregated.get(item.product_id) || 0;
+      previousAggregated.set(item.product_id, count + (item.quantity || 0));
+    });
+
+    // Calculate trends
     const products = Array.from(aggregated.values())
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, limit)
-      .map(p => ({
-        ...p,
-        trend: 'stable',
-        trendPercentage: 0
-      }));
+      .map(p => {
+        const previousCount = previousAggregated.get(p.productId) || 0;
+        const currentCount = p.salesCount;
+        
+        let trend: 'up' | 'down' | 'stable' = 'stable';
+        let trendPercentage = 0;
+        
+        if (previousCount > 0) {
+          trendPercentage = Math.round(((currentCount - previousCount) / previousCount) * 100);
+          if (trendPercentage > 10) trend = 'up';
+          else if (trendPercentage < -10) trend = 'down';
+        } else if (currentCount > 0) {
+          trend = 'up';
+          trendPercentage = 100;
+        }
+        
+        return {
+          ...p,
+          trend,
+          trendPercentage
+        };
+      });
 
     const response = {
       success: true,
