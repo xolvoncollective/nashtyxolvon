@@ -300,9 +300,16 @@ if (document.readyState === 'loading') {
   window.ConnectionMonitor.init();
 }
 
+// Expose to window
+if (typeof window !== 'undefined') {
+  window.ConnectionMonitor = ConnectionMonitor;
+}
+
 // Update indicator when queue changes
 window.addEventListener('offlineQueueUpdate', () => {
-  window.ConnectionMonitor.updateIndicator();
+  if (window.ConnectionMonitor && window.ConnectionMonitor.updateIndicator) {
+    window.ConnectionMonitor.updateIndicator();
+  }
 });
 
 console.log('✅ ConnectionMonitor module loaded');

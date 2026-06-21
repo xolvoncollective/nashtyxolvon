@@ -11,6 +11,28 @@ class CacheManager {
     this.isSyncing = false;
   }
 
+  /**
+   * Static initializer for use with DatabaseSchema
+   */
+  static async init(db) {
+    const instance = new CacheManager();
+    instance.db = db;
+    await instance.initializeAPIClient();
+    return instance;
+  }
+
+  /**
+   * Initialize API client connection
+   */
+  async initializeAPIClient() {
+    if (typeof window !== 'undefined' && window.API) {
+      this.apiClient = window.API;
+      console.log('✅ CacheManager: API client connected');
+    } else {
+      console.warn('⚠️ CacheManager: API client not available');
+    }
+  }
+
   async startSync() {
     console.log('🔄 CacheManager: Starting periodic sync...');
     await this.syncAll();
