@@ -10,7 +10,7 @@ const supabase = typeof window !== 'undefined' && window.supabase
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;
 
-const API_BASE_URL = `/api`;
+const API_BASE_URL = `${SUPABASE_URL}/functions/v1`;
 
 const API = {
   supabase,

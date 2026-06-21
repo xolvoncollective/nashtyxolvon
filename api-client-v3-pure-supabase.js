@@ -578,7 +578,22 @@ const API = {
       if (endpoint.startsWith('/dashboard/weekly-chart')) {
         return await API.dashboard.getWeeklyChart();
       }
+      if (endpoint.startsWith('/auth-login')) {
+        const body = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
+        return await API.edgeRequest('auth-login', body);
+      }
       if (endpoint.startsWith('/settings')) {
+        const logoMatch = endpoint.match(/\/settings\/([^/]+)\/logo/);
+        if (logoMatch && options.method === 'POST') {
+          const body = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
+          if (body.base64Data) {
+            // Convert base64 to Blob for Supabase storage
+            const res = await fetch(body.base64Data);
+            const blob = await res.blob();
+            const file = new File([blob], 'logo.png', { type: blob.type });
+            return await API.outletSettings.uploadLogo(file, logoMatch[1]);
+          }
+        }
         if (options.method === 'PUT') return await API.settings.update(JSON.parse(options.body).settings);
         return await API.settings.get();
       }
