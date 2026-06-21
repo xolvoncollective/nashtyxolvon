@@ -1,10 +1,38 @@
-testsprite_tests/tmp/
+# Dependencies
 node_modules/
-*.db-shm
-*.db-wal
+
+# Testing artifacts
+testsprite_tests/tmp/
 .playwright-mcp/
-.serena/memories/
 playwright-report/
 test-results/
+*.spec.js
+test-*.js
+test-*.html
+*-test.js
+
+# Build artifacts
+*.db-shm
+*.db-wal
+
+# Development files
 Draft/
+DraftMD/
+.serena/memories/
 ULTIMATE_NOTES.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+
+# Environment (if any)
+.env.local
+.env.development.local

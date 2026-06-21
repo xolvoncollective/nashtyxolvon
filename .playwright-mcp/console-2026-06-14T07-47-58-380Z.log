@@ -1,8 +1,0 @@
-[      54ms] [LOG] [NASHTY AUTH] Initializing authentication system... @ http://localhost:3099/shared/auth.js:175
-[      54ms] [LOG] [NASHTY AUTH] Message listener initialized @ http://localhost:3099/shared/auth.js:137
-[      54ms] [LOG] [NASHTY AUTH] Fetch interceptor installed @ http://localhost:3099/shared/auth.js:168
-[      54ms] [LOG] [NASHTY AUTH] Syncing auth data with API.session @ http://localhost:3099/shared/auth.js:225
-[      54ms] [LOG] [NASHTY AUTH] Valid authentication found @ http://localhost:3099/shared/auth.js:208
-[      55ms] [LOG] [NASHTY AUTH] User: Admin Demo @ http://localhost:3099/shared/auth.js:210
-[      55ms] [LOG] [NASHTY AUTH] Outlet: Demo Outlet @ http://localhost:3099/shared/auth.js:211
-[      55ms] [LOG] [NASHTY AUTH] Syncing auth data with API.session @ http://localhost:3099/shared/auth.js:225
