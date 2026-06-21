@@ -31,7 +31,81 @@ const API = {
     user: null,
     tenantId: null,
     outletId: null,
-    shiftId: null
+    shiftId: null,
+    role: null,
+    expiresAt: null,
+    
+    /**
+     * Save session to localStorage with appropriate key based on role
+     */
+    save() {
+      const key = this.role === 'kitchen' ? 'nashty_kds_session' : 'nashty_session';
+      try {
+        localStorage.setItem(key, JSON.stringify(this));
+      } catch (e) {
+        console.error('[Session] Failed to save:', e);
+      }
+    },
+    
+    /**
+     * Load session from localStorage (tries all legacy keys for backward compat)
+     */
+    load() {
+      const keys = ['nashty_session', 'nashty_kds_session', 'nashty_main_session'];
+      for (const key of keys) {
+        try {
+          const data = localStorage.getItem(key);
+          if (data) {
+            const parsed = JSON.parse(data);
+            Object.assign(this, parsed);
+            return true;
+          }
+        } catch (e) {
+          console.error(`[Session] Failed to load from ${key}:`, e);
+        }
+      }
+      return false;
+    },
+    
+    /**
+     * Clear all session data (including legacy keys)
+     */
+    clear() {
+      const keys = [
+        'nashty_session', 'nashty_kds_session', 'nashty_main_session',
+        'nashty_token', 'nashty_user', 'nashty_outlet'
+      ];
+      keys.forEach(k => {
+        try {
+          localStorage.removeItem(k);
+        } catch (e) {}
+      });
+      
+      // Reset session object
+      Object.assign(this, {
+        admin: null,
+        adminToken: null,
+        currentApp: null,
+        token: null,
+        refreshToken: null,
+        tokenExpiry: null,
+        user: null,
+        tenantId: null,
+        outletId: null,
+        shiftId: null,
+        role: null,
+        expiresAt: null
+      });
+    },
+    
+    /**
+     * Check if current session token is valid (not expired)
+     */
+    isValid() {
+      if (!this.token) return false;
+      if (!this.expiresAt) return true; // No expiry set, assume valid
+      return Date.now() < this.expiresAt;
+    }
   },
 
   // ─── Edge Function Request ────────────────────────────────────────────────
@@ -403,6 +477,40 @@ const API = {
         action: 'update-status',
         orderId: id,
         ...statusData
+      });
+    },
+
+    /**
+     * Get KDS Queue (for Kitchen Display System)
+     * Returns pending and preparing orders
+     */
+    async getKDSQueue(outletId) {
+      if (!API.session.tenantId) return { success: false, orders: [] };
+      
+      const { data, error } = await supabaseClient
+        .from('orders')
+        .select('*, order_items(*)')
+        .eq('tenant_id', API.session.tenantId)
+        .eq('outlet_id', outletId || API.session.outletId)
+        .in('kitchen_status', ['pending', 'preparing'])
+        .order('created_at', { ascending: true });
+      
+      if (error) {
+        console.error('[API.orders] Failed to get KDS queue:', error);
+        return { success: false, orders: [], error: error.message };
+      }
+      
+      return { success: true, orders: data || [] };
+    },
+
+    /**
+     * Update kitchen status (for KDS workflow)
+     */
+    async updateKitchenStatus(orderId, status) {
+      return await API.edgeRequest('orders-api', {
+        action: 'update-status',
+        orderId,
+        kitchenStatus: status
       });
     }
   },
@@ -910,6 +1018,93 @@ if (typeof window !== 'undefined') {
     }
   }
 }
+
+// ─── KDS Compatibility Layer ──────────────────────────────────────────────────
+// Provides KDS-specific methods for backward compatibility after consolidating duplicate API client
+API.kds = {
+  /**
+   * Get KDS queue (pending and preparing orders for kitchen display)
+   */
+  async getQueue(outletId) {
+    if (!API.session.tenantId) return { success: false, orders: [] };
+    
+    const { data, error } = await supabaseClient
+      .from('orders')
+      .select('*, order_items(*)')
+      .eq('tenant_id', API.session.tenantId)
+      .eq('outlet_id', outletId || API.session.outletId)
+      .in('kitchen_status', ['pending', 'preparing'])
+      .order('created_at', { ascending: true });
+    
+    if (error) {
+      console.error('[API.kds] Failed to get queue:', error);
+      return { success: false, orders: [], error: error.message };
+    }
+    
+    return { success: true, orders: data || [] };
+  },
+
+  /**
+   * Update kitchen status (KDS workflow)
+   */
+  async updateStatus(orderId, status) {
+    return await API.orders.updateKitchenStatus(orderId, status);
+  },
+
+  /**
+   * Get KDS configuration (thresholds, sound, etc.)
+   */
+  async getConfig(outletId) {
+    try {
+      const { data } = await supabaseClient
+        .from('settings')
+        .select('settings')
+        .eq('outlet_id', outletId || API.session.outletId)
+        .single();
+      
+      if (data && data.settings) {
+        return {
+          success: true,
+          config: {
+            kdsWarnThreshold: data.settings.kds_warn_minutes || 10,
+            kdsUrgentThreshold: data.settings.kds_urgent_minutes || 20,
+            kdsSoundEnabled: data.settings.kds_sound_enabled !== false,
+            kdsAutoSort: data.settings.kds_auto_sort !== false
+          }
+        };
+      }
+    } catch (e) {
+      console.error('[API.kds] Failed to get config:', e);
+    }
+    
+    // Fallback defaults
+    return {
+      success: true,
+      config: {
+        kdsWarnThreshold: 10,
+        kdsUrgentThreshold: 20,
+        kdsSoundEnabled: true,
+        kdsAutoSort: true
+      }
+    };
+  },
+
+  /**
+   * Get kitchen statistics (analytics)
+   */
+  async getStats(outletId) {
+    // This would call analytics Edge Function if available
+    // For now, return basic structure
+    return {
+      success: true,
+      stats: {
+        avgTime: 0,
+        completedOrders: 0,
+        pendingOrders: 0
+      }
+    };
+  }
+};
 
 // ─── Export ───────────────────────────────────────────────────────────────────
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
