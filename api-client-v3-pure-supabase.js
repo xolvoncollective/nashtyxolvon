@@ -582,6 +582,49 @@ const API = {
         const body = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
         return await API.edgeRequest('auth-login', body);
       }
+      if (endpoint.startsWith('/favorites')) {
+        if (options.method === 'POST') {
+          const body = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
+          return await API.favorites.add(body.productId, body.position || 0);
+        }
+        if (options.method === 'DELETE') {
+          const idMatch = endpoint.match(/\/favorites\/([^?]+)/);
+          if (idMatch) return await API.favorites.remove(idMatch[1]);
+        }
+        if (options.method === 'PUT' && endpoint.includes('/reorder')) {
+          const body = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
+          return await API.favorites.reorder(body.favorites);
+        }
+        const urlObj = new URL('http://dummy' + endpoint);
+        return await API.favorites.getAll(urlObj.searchParams.get('userId'));
+      }
+      if (endpoint.startsWith('/products')) {
+        if (endpoint.includes('/duplicate')) {
+          const idMatch = endpoint.match(/\/products\/([^/]+)\/duplicate/);
+          const { data: p } = await API.supabase.from('products').select('*').eq('id', idMatch[1]).single();
+          if (p) {
+            delete p.id;
+            p.name = p.name + ' (Copy)';
+            await API.supabase.from('products').insert(p);
+          }
+          return { success: true };
+        }
+        const idMatch = endpoint.match(/\/products\/([^?]+)/);
+        if (idMatch && idMatch[1] !== 'search') {
+          return await API.products.getById(idMatch[1]);
+        }
+        return await API.products.getAll();
+      }
+      if (endpoint.startsWith('/categories')) {
+        return await API.categories.getAll();
+      }
+      if (endpoint.startsWith('/orders')) {
+        if (options.method === 'POST') {
+          const body = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
+          return await API.orders.create(body);
+        }
+        return await API.orders.getAll();
+      }
       if (endpoint.startsWith('/settings')) {
         const logoMatch = endpoint.match(/\/settings\/([^/]+)\/logo/);
         if (logoMatch && options.method === 'POST') {
@@ -685,4 +728,26 @@ if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') {
   window.API = API;
   window.APIv3 = API; // v3 = Pure Supabase
+
+  // Global Fetch Interceptor for Legacy POS code calling /api/ endpoints
+  const originalFetch = window.fetch;
+  window.fetch = async function(url, options) {
+    const urlStr = url.toString();
+    if (urlStr.includes('/api/')) {
+      const endpoint = urlStr.substring(urlStr.indexOf('/api/') + 4);
+      try {
+        const data = await API.request(endpoint, options);
+        return new Response(JSON.stringify(data), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+    return originalFetch(url, options);
+  };
 }
