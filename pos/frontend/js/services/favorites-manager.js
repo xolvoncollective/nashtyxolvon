@@ -128,7 +128,7 @@ class FavoritesManager {
 
   async addFavoriteOnline(productId) {
     const token = sessionStorage.getItem('token');
-    const apiBase = window.API_BASE || 'http://localhost:3099';
+    const apiBase = window.API_BASE || '';
 
     const response = await fetch(`${apiBase}/api/favorites`, {
       method: 'POST',
@@ -214,7 +214,7 @@ class FavoritesManager {
 
   async removeFavoriteOnline(favoriteId) {
     const token = sessionStorage.getItem('token');
-    const apiBase = window.API_BASE || 'http://localhost:3099';
+    const apiBase = window.API_BASE || '';
 
     const response = await fetch(`${apiBase}/api/favorites/${favoriteId}?userId=${this.userId}`, {
       method: 'DELETE',
@@ -276,7 +276,7 @@ class FavoritesManager {
 
   async reorderOnline(newOrder) {
     const token = sessionStorage.getItem('token');
-    const apiBase = window.API_BASE || 'http://localhost:3099';
+    const apiBase = window.API_BASE || '';
 
     await fetch(`${apiBase}/api/favorites/reorder`, {
       method: 'PUT',

@@ -19,7 +19,7 @@ function activityLogsPage() {
       if (filters.entityType !== 'all') params.append('entityType', filters.entityType);
       if (filters.search) params.append('search', filters.search);
 
-      const response = await fetch(`${API_URL}/activity-logs?${params}`, {
+      const response = await fetch(`${window.API_BASE || ''}/api/activity-logs?${params}`, {
         headers: { 'Authorization': `Bearer ${API.session.token}` }
       });
 

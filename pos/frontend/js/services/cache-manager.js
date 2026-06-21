@@ -62,7 +62,7 @@ class CacheManager {
       }
       const lastSync = await this.getLastSyncTime('products');
       console.log(`🔄 Syncing products (last sync: ${new Date(lastSync).toISOString()})...`);
-      const url = `${window.API_BASE || 'http://localhost:3099'}/api/products?outletId=${outletId}&updatedAfter=${lastSync}`;
+      const url = `${window.API_BASE || ''}/api/products?outletId=${outletId}&updatedAfter=${lastSync}`;
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
@@ -92,7 +92,7 @@ class CacheManager {
       const outletId = sessionStorage.getItem('currentOutletId');
       if (!outletId) return;
       console.log('🔄 Syncing categories...');
-      const url = `${window.API_BASE || 'http://localhost:3099'}/api/categories?outletId=${outletId}`;
+      const url = `${window.API_BASE || ''}/api/categories?outletId=${outletId}`;
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
@@ -120,7 +120,7 @@ class CacheManager {
       const outletId = sessionStorage.getItem('currentOutletId');
       if (!outletId) return;
       console.log('🔄 Syncing settings...');
-      const url = `${window.API_BASE || 'http://localhost:3099'}/api/settings?outletId=${outletId}`;
+      const url = `${window.API_BASE || ''}/api/settings?outletId=${outletId}`;
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('token')}`,

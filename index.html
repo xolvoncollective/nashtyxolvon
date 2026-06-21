@@ -313,6 +313,68 @@
       font-size: calc(var(--fluid-base) * 0.7);
       color: var(--text-muted);
     }
+    
+    /* App-specific styling */
+    .app-card.pos { border-left: 3px solid #E4540C; }
+    .app-card.kds { border-left: 3px solid #10B981; }
+    .app-card.backoffice { border-left: 3px solid #3B82F6; }
+    .app-card.cost { border-left: 3px solid #F59E0B; }
+    .app-card.crm { border-left: 3px solid #8B5CF6; }
+    
+    /* Loading Overlay */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(1, 1, 0, 0.95);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      backdrop-filter: blur(4px);
+    }
+    
+    .loading-overlay.active {
+      display: flex;
+    }
+    
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(228, 84, 12, 0.1);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      margin-top: 1.5rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: calc(var(--fluid-base) * 0.85);
+      color: var(--text-muted);
+      letter-spacing: 0.05rem;
+    }
+    
+    /* Remember Device Checkbox */
+    .remember-device {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      font-size: calc(var(--fluid-base) * 0.8);
+      color: var(--text-muted);
+    }
+    
+    .remember-device input[type="checkbox"] {
+      width: 1.2rem;
+      height: 1.2rem;
+      cursor: pointer;
+      accent-color: var(--accent);
+    }
 
     /* Modals */
     .modal-overlay {
@@ -421,6 +483,11 @@
               <option value="" disabled selected>Retrieving Outlets...</option>
             </select>
           </div>
+          
+          <div class="remember-device">
+            <input type="checkbox" id="rememberDevice">
+            <label for="rememberDevice">Remember this device (30 days)</label>
+          </div>
 
           <div class="form-actions">
             <a href="#" class="recovery-link" onclick="alert('Contact System Administrator to reset your Access Key.')">Recover Access</a>
@@ -438,30 +505,30 @@
         </div>
 
         <div class="module-grid">
-          <div class="app-card" onclick="triggerApp('pos')">
-            <div class="app-icon">🧾</div>
+          <div class="app-card pos" onclick="triggerApp('pos')">
+            <div class="app-icon">🛒</div>
             <div class="app-title">POS Terminal</div>
-            <div class="app-desc">Point of Sale (Requires PIN)</div>
+            <div class="app-desc">Point of Sale System</div>
           </div>
-          <div class="app-card" onclick="triggerApp('kds')">
-            <div class="app-icon">👨‍🍳</div>
-            <div class="app-title">KDS Kitchen</div>
-            <div class="app-desc">Kitchen Display System</div>
+          <div class="app-card kds" onclick="triggerApp('kds')">
+            <div class="app-icon">🍳</div>
+            <div class="app-title">Kitchen Display</div>
+            <div class="app-desc">Order Management</div>
           </div>
-          <div class="app-card" onclick="triggerApp('crm')">
+          <div class="app-card backoffice" onclick="triggerApp('backoffice')">
+            <div class="app-icon">📊</div>
+            <div class="app-title">Back Office</div>
+            <div class="app-desc">Analytics & Reports</div>
+          </div>
+          <div class="app-card cost" onclick="triggerApp('cost')">
+            <div class="app-icon">💰</div>
+            <div class="app-title">Cost Control</div>
+            <div class="app-desc">Expense Tracking</div>
+          </div>
+          <div class="app-card crm" onclick="triggerApp('crm')">
             <div class="app-icon">👥</div>
             <div class="app-title">CRM</div>
-            <div class="app-desc">Customer Relations (Requires PIN)</div>
-          </div>
-          <div class="app-card" onclick="triggerApp('backoffice')">
-            <div class="app-icon">⚙️</div>
-            <div class="app-title">Backoffice</div>
-            <div class="app-desc">Management (Requires Superadmin)</div>
-          </div>
-          <div class="app-card" onclick="triggerApp('cost')">
-            <div class="app-icon">💰</div>
-            <div class="app-title">Cost Module</div>
-            <div class="app-desc">Finance (Requires Superadmin)</div>
+            <div class="app-desc">Customer Relations</div>
           </div>
         </div>
       </div>
@@ -516,6 +583,12 @@
     </div>
   </div>
 
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <p class="loading-text" id="loadingText">Loading...</p>
+  </div>
+
   <!-- Global Diagnostic Footer -->
   <div class="diagnostics-bar">
     <div class="diag-item">
@@ -542,6 +615,209 @@
     // State
     let mainSession = null;
     let currentTargetApp = null;
+    
+    // ============================================
+    // SECURITY ENHANCEMENTS
+    // ============================================
+    
+    // Rate limiting for auth attempts
+    const authAttempts = {
+      count: 0,
+      lastAttempt: 0,
+      lockoutUntil: null
+    };
+    
+    function checkRateLimit() {
+      const now = Date.now();
+      
+      // Check if locked out
+      if (authAttempts.lockoutUntil && now < authAttempts.lockoutUntil) {
+        const remaining = Math.ceil((authAttempts.lockoutUntil - now) / 1000);
+        throw new Error(`⏱️ Too many failed attempts. Please wait ${remaining} seconds.`);
+      }
+      
+      // Reset counter if more than 5 minutes since last attempt
+      if (now - authAttempts.lastAttempt > 5 * 60 * 1000) {
+        authAttempts.count = 0;
+      }
+      
+      authAttempts.lastAttempt = now;
+      authAttempts.count++;
+      
+      // Lock out after 3 failed attempts
+      if (authAttempts.count > 3) {
+        authAttempts.lockoutUntil = now + (5 * 60 * 1000); // 5 minutes
+        authAttempts.count = 0;
+        throw new Error('🔒 Too many failed login attempts. Account locked for 5 minutes.');
+      }
+    }
+    
+    function resetRateLimit() {
+      authAttempts.count = 0;
+      authAttempts.lockoutUntil = null;
+    }
+    
+    // Token expiry validation
+    function isTokenExpired(token) {
+      if (!token) return true;
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.exp * 1000 < Date.now();
+      } catch {
+        return true;
+      }
+    }
+    
+    function validateSession() {
+      if (mainSession && mainSession.token) {
+        if (isTokenExpired(mainSession.token)) {
+          console.warn('⚠️ Token expired, forcing logout');
+          alert('Your session has expired. Please login again.');
+          handleLogout();
+          return false;
+        }
+      }
+      return true;
+    }
+    
+    // Enhanced error messages
+    const ERROR_MESSAGES = {
+      'INVALID_CREDENTIALS': '❌ Username or password incorrect. Please try again.',
+      'USER_NOT_FOUND': '❌ User not found. Check your credentials.',
+      'ACCOUNT_LOCKED': '🔒 Account locked due to multiple failed attempts. Contact admin.',
+      'TOKEN_EXPIRED': '⏱️ Your session has expired. Please login again.',
+      'NETWORK_ERROR': '🌐 Unable to connect. Check your internet connection.',
+      'PERMISSION_DENIED': '🚫 You don\'t have permission to access this app.',
+      'OUTLET_CLOSED': '🏢 This outlet is currently closed.',
+      'MAINTENANCE_MODE': '🔧 System under maintenance. Try again later.',
+      'GENERIC_ERROR': '⚠️ An error occurred. Please try again.'
+    };
+    
+    function getErrorMessage(error) {
+      const errorMsg = error?.message || error || 'Unknown error';
+      
+      // Map backend errors to friendly messages
+      for (const [key, message] of Object.entries(ERROR_MESSAGES)) {
+        if (errorMsg.toUpperCase().includes(key.replace(/_/g, ' '))) {
+          return message;
+        }
+      }
+      
+      return ERROR_MESSAGES.GENERIC_ERROR + ` (${errorMsg})`;
+    }
+    
+    // ============================================
+    // END SECURITY ENHANCEMENTS
+    // ============================================
+    
+    // ============================================
+    // REMEMBER DEVICE & LOADING STATES
+    // ============================================
+    
+    function rememberDevice() {
+      if (document.getElementById('rememberDevice').checked) {
+        const deviceId = crypto.randomUUID();
+        const deviceData = {
+          id: deviceId,
+          userAgent: navigator.userAgent,
+          created: Date.now(),
+          expires: Date.now() + (30 * 24 * 60 * 60 * 1000) // 30 days
+        };
+        localStorage.setItem('nashty_device_id', JSON.stringify(deviceData));
+        console.log('✅ Device remembered for 30 days');
+      }
+    }
+    
+    function checkRememberedDevice() {
+      const deviceData = localStorage.getItem('nashty_device_id');
+      if (deviceData) {
+        try {
+          const device = JSON.parse(deviceData);
+          if (device.expires > Date.now()) {
+            console.log('✅ Returning device detected');
+            return device;
+          } else {
+            localStorage.removeItem('nashty_device_id');
+            console.log('⏱️ Device token expired');
+          }
+        } catch (e) {
+          localStorage.removeItem('nashty_device_id');
+        }
+      }
+      return null;
+    }
+    
+    function showLoading(text = 'Loading...') {
+      const overlay = document.getElementById('loadingOverlay');
+      const loadingText = document.getElementById('loadingText');
+      loadingText.textContent = text;
+      overlay.classList.add('active');
+    }
+    
+    function hideLoading() {
+      const overlay = document.getElementById('loadingOverlay');
+      overlay.classList.remove('active');
+    }
+    
+    // ============================================
+    // KEYBOARD SHORTCUTS
+    // ============================================
+    
+    document.addEventListener('keydown', (e) => {
+      // Only if launcher is showing
+      if (launcherButtons.style.display === 'block') {
+        // Alt + 1-5 for quick app access
+        if (e.altKey && e.key >= '1' && e.key <= '5') {
+          e.preventDefault();
+          const apps = ['pos', 'kds', 'backoffice', 'cost', 'crm'];
+          triggerApp(apps[parseInt(e.key) - 1]);
+        }
+      }
+      
+      // Ctrl + L to logout (anywhere)
+      if (e.ctrlKey && e.key === 'l') {
+        e.preventDefault();
+        if (mainSession && confirm('🚪 Logout and terminate all sessions?')) {
+          handleLogout();
+        }
+      }
+    });
+    
+    // ============================================
+    // SSO ACROSS APPS (BroadcastChannel)
+    // ============================================
+    
+    const authChannel = new BroadcastChannel('nashty_auth');
+    
+    authChannel.addEventListener('message', (event) => {
+      if (event.data.type === 'SESSION_UPDATED') {
+        // Sync session across tabs
+        mainSession = event.data.session;
+        localStorage.setItem('nashty_main_session', JSON.stringify(mainSession));
+        console.log('📡 Session synced from another tab');
+      } else if (event.data.type === 'LOGOUT') {
+        // Force logout all tabs
+        console.log('📡 Logout signal received from another tab');
+        handleLogout();
+      }
+    });
+    
+    function broadcastSessionUpdate() {
+      authChannel.postMessage({
+        type: 'SESSION_UPDATED',
+        session: mainSession
+      });
+    }
+    
+    function broadcastLogout() {
+      authChannel.postMessage({
+        type: 'LOGOUT'
+      });
+    }
+    
+    // ============================================
+    // END ENHANCEMENTS
+    // ============================================
 
     // Elements
     const outletSelect = document.getElementById('outletSelect');
@@ -618,6 +894,8 @@
       const btn = document.getElementById('mainLoginBtn');
       btn.disabled = true;
       btn.textContent = 'AUTHENTICATING...';
+      
+      showLoading('Authenticating...');
 
       const username = document.getElementById('usernameInput').value;
       const password = document.getElementById('passwordInput').value;
@@ -625,29 +903,50 @@
       const outletName = outletSelect.options[outletSelect.selectedIndex].dataset.name;
 
       try {
+        // SECURITY: Check rate limiting before attempting login
+        checkRateLimit();
+        
         const res = await fetch(`${API_BASE_URL}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+          headers: { 
+            'Content-Type': 'application/json', 
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          },
           body: JSON.stringify({ action: 'main-login', username, password, outletId })
         });
         
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Authentication Failed');
 
+        // SECURITY: Reset rate limit on successful login
+        resetRateLimit();
+
         mainSession = {
           token: data.token,
           user: data.user,
           outletId: outletId,
-          outletName: outletName
+          outletName: outletName,
+          loginTime: Date.now() // Track session start time
         };
 
         localStorage.setItem('nashty_main_session', JSON.stringify(mainSession));
+        
+        // Remember device if checked
+        rememberDevice();
+        
+        // Broadcast session to other tabs
+        broadcastSessionUpdate();
+        
+        console.log('✅ Login successful:', mainSession.user.username);
         showLauncher();
 
       } catch (err) {
-        mainError.innerText = err.message;
+        console.error('❌ Login failed:', err);
+        mainError.innerText = getErrorMessage(err);
         mainError.style.display = 'block';
       } finally {
+        hideLoading();
         btn.disabled = false;
         btn.textContent = 'Authenticate';
       }
@@ -660,12 +959,17 @@
     }
 
     function handleLogout() {
+      // Broadcast logout to other tabs
+      broadcastLogout();
+      
       mainSession = null;
       localStorage.removeItem('nashty_main_session');
       localStorage.removeItem('nashty_token'); // Staff pin
       localStorage.removeItem('nashty_super_token'); // Superadmin token
       loginSection.style.display = 'block';
       launcherButtons.style.display = 'none';
+      
+      console.log('🚪 Logged out successfully');
     }
 
     function closeModals() {
@@ -674,7 +978,21 @@
     }
 
     function triggerApp(app) {
+      // SECURITY: Validate session before opening app
+      if (!validateSession()) {
+        alert('⏱️ Your session has expired. Please login again.');
+        return;
+      }
+      
       currentTargetApp = app;
+      
+      console.log(`🚀 Opening ${app.toUpperCase()}...`);
+      showLoading(`Opening ${app.toUpperCase()}...`);
+      
+      // Small delay for better UX
+      setTimeout(() => {
+        hideLoading();
+      }, 800);
       
       if (app === 'kds') {
         openModule('/kds/frontend/', 'Kitchen Display', null);
@@ -708,7 +1026,11 @@
       try {
         const res = await fetch(`${API_BASE_URL}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+          headers: { 
+            'Content-Type': 'application/json', 
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          },
           body: JSON.stringify({ action: 'pin-login', pin, outletId: mainSession.outletId })
         });
         
@@ -748,7 +1070,11 @@
       try {
         const res = await fetch(`${API_BASE_URL}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+          headers: { 
+            'Content-Type': 'application/json', 
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          },
           body: JSON.stringify({ action: 'superadmin-login', username, password, outletId: mainSession.outletId || 'main-branch' })
         });
         
@@ -792,7 +1118,7 @@
                       newWindow.postMessage({
                           type: 'NASHTY_AUTH',
                           ...authPayload
-                      }, '*');
+                      }, window.location.origin); // SECURE: Same origin only
                   } catch (error) {
                       console.error('Failed to send auth to child window:', error);
                   }

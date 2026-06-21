@@ -120,7 +120,7 @@ class OfflineSyncManager {
 
         // Send to server
         const token = sessionStorage.getItem('token');
-        const response = await fetch(`${window.API_BASE || 'http://localhost:3099'}/api/orders`, {
+        const response = await fetch(`${window.API_BASE || ''}/api/orders`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

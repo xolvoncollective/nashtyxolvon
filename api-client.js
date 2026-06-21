@@ -38,7 +38,8 @@ const API = {
     try {
       const headers = {
         'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
       };
 
       const token = API.session.token || API.session.adminToken;
@@ -177,7 +178,7 @@ const API = {
       const response = await fetch(`${EDGE_FUNCTIONS_URL}/favorites-api?action=get&userId=${uid}`, {
         headers: {
           'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${API.session.token || API.session.adminToken}`
+          'Authorization': `Bearer ${API.session.token || API.session.adminToken || SUPABASE_ANON_KEY}`
         }
       });
 
@@ -203,7 +204,7 @@ const API = {
         method: 'DELETE',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${API.session.token || API.session.adminToken}`
+          'Authorization': `Bearer ${API.session.token || API.session.adminToken || SUPABASE_ANON_KEY}`
         }
       });
 
@@ -233,7 +234,7 @@ const API = {
       const response = await fetch(`${EDGE_FUNCTIONS_URL}/analytics-api?outletId=${oid}&days=${days}&limit=${limit}`, {
         headers: {
           'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${API.session.token || API.session.adminToken}`
+          'Authorization': `Bearer ${API.session.token || API.session.adminToken || SUPABASE_ANON_KEY}`
         }
       });
 
@@ -252,7 +253,7 @@ const API = {
       const response = await fetch(`${EDGE_FUNCTIONS_URL}/settings-api?action=get&outletId=${oid}`, {
         headers: {
           'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${API.session.token || API.session.adminToken}`
+          'Authorization': `Bearer ${API.session.token || API.session.adminToken || SUPABASE_ANON_KEY}`
         }
       });
 

@@ -46,7 +46,7 @@ async function generateJwt(payload, secret) {
 export async function onRequestPost({ request, env }) {
   const supabaseUrl = env.SUPABASE_URL || '';
   const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY || '';
-  const JWT_SECRET = env.JWT_SECRET || 'ZaidunkMargin';
+  const JWT_SECRET = env.JWT_SECRET || 'fallback_secret_only_for_dev_change_me';
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 

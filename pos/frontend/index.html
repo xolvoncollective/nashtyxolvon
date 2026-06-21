@@ -3925,6 +3925,53 @@
     }
     setInterval(tick, 1000); tick();
     
+    // Listen for authentication from launcher (parent window)
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'NASHTY_AUTH') {
+        console.log('🔐 Received auth from launcher:', event.data);
+        
+        // Store auth data
+        const authData = {
+          token: event.data.token,
+          user: event.data.user,
+          outlet: event.data.outlet
+        };
+        
+        // Save to localStorage for API client
+        if (authData.token) {
+          API.session.token = authData.token;
+          API.session.adminToken = authData.token;
+        }
+        if (authData.user) {
+          API.session.admin = authData.user;
+          API.session.tenantId = authData.user.tenantId || authData.user.tenant_id;
+        }
+        if (authData.outlet) {
+          API.session.outletId = authData.outlet.id || authData.outlet.outlet_id;
+        }
+        
+        localStorage.setItem('nashty_main_session', JSON.stringify({
+          admin: authData.user,
+          adminToken: authData.token,
+          tenantId: authData.user?.tenantId || authData.user?.tenant_id,
+          outletId: authData.outlet?.id || authData.outlet?.outlet_id,
+          timestamp: new Date().toISOString()
+        }));
+        
+        // Trigger login initialization
+        if (typeof initLogin === 'function') {
+          initLogin();
+        }
+        
+        // Call window.onAuthReceived if it exists
+        if (typeof window.onAuthReceived === 'function') {
+          window.onAuthReceived(authData);
+        }
+        
+        console.log('✓ Auth data stored, session initialized');
+      }
+    });
+    
     // Initialize offline infrastructure and connection monitor on page load
     document.addEventListener('DOMContentLoaded', async () => {
       console.log('🚀 NASHTY POS - Initializing...');
@@ -3941,6 +3988,28 @@
         window.keyboardHandler = new window.KeyboardShortcutHandler();
         // Will be fully initialized after login with user ID
         console.log('✓ Keyboard Shortcuts Handler ready');
+      }
+      
+      // 3. Check for existing auth from launcher or localStorage
+      const savedSession = localStorage.getItem('nashty_main_session');
+      if (savedSession) {
+        try {
+          const session = JSON.parse(savedSession);
+          if (session.adminToken) {
+            API.session.adminToken = session.adminToken;
+            API.session.admin = session.admin;
+            API.session.tenantId = session.tenantId;
+            API.session.outletId = session.outletId;
+            console.log('✓ Restored session from localStorage');
+            
+            // Initialize login screen with restored session
+            if (typeof initLogin === 'function') {
+              initLogin();
+            }
+          }
+        } catch (e) {
+          console.error('Failed to restore session:', e);
+        }
       }
       
       console.log('✓ Base initialization complete');

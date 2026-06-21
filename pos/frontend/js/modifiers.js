@@ -17,7 +17,7 @@ function showModifierModal(product) {
 // Fetch modifiers from backend
 async function fetchProductModifiers(productId) {
   try {
-    const response = await fetch(`${API_URL}/products/${productId}/modifiers`, {
+    const response = await fetch(`${window.API_BASE || ''}/api/products/${productId}/modifiers`, {
       headers: { 'Authorization': `Bearer ${API.session.token}` }
     });
     
