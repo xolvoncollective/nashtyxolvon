@@ -168,7 +168,54 @@ serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ error: 'Invalid action. Use: create, get-orders, update-status' }), {
+    // ─── Shift Management ──────────────────────────────────────────────────────
+    if (action === 'start-shift') {
+      const { outletId, userId, startCash } = payload;
+      
+      if (!outletId || !userId) {
+        return new Response(JSON.stringify({ error: 'outletId and userId required' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const { data, error } = await supabase.from('shifts').insert([{
+        outlet_id: outletId,
+        user_id: userId,
+        start_cash: startCash,
+        status: 'open'
+      }]).select();
+
+      if (error) throw error;
+
+      return new Response(JSON.stringify({ success: true, shift: data?.[0] }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (action === 'end-shift') {
+      const { shiftId, endCash, notes } = payload;
+      
+      if (!shiftId) {
+        return new Response(JSON.stringify({ error: 'shiftId required' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const { data, error } = await supabase.from('shifts').update({
+        end_cash: endCash,
+        notes: notes || '',
+        status: 'closed',
+        end_time: new Date().toISOString()
+      }).eq('id', shiftId).select();
+
+      if (error) throw error;
+
+      return new Response(JSON.stringify({ success: true, shift: data?.[0] }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    return new Response(JSON.stringify({ error: 'Invalid action. Use: create, get-orders, update-status, start-shift, end-shift' }), {
       status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 

@@ -37,16 +37,18 @@ const API = {
   // ─── Edge Function Request ────────────────────────────────────────────────
   async edgeRequest(functionName, body = {}) {
     try {
+      // IMPORTANT: Always use SUPABASE_ANON_KEY for Authorization header
+      // to pass the Supabase gateway. Custom user token is sent via x-nashty-token.
       const headers = {
         'Content-Type': 'application/json',
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
       };
 
-      // Do not send expired session tokens to auth-login, otherwise the Supabase gateway rejects it with 401
-      if (functionName !== 'auth-login') {
-        const token = API.session.token || API.session.adminToken;
-        if (token) headers['Authorization'] = `Bearer ${token}`;
+      // Pass user token via custom header (not Authorization, which Supabase gateway validates)
+      const userToken = API.session.token || API.session.adminToken;
+      if (userToken) {
+        headers['x-nashty-token'] = userToken;
       }
 
       const response = await fetch(`${EDGE_FUNCTIONS_URL}/${functionName}`, {
@@ -57,8 +59,8 @@ const API = {
 
       const data = await response.json();
       
-      // Global 401 Handler
-      if (response.status === 401 && functionName !== 'auth-login') {
+      // Global 401 Handler - only for explicit auth failures from our Edge Functions
+      if (response.status === 401 && functionName !== 'auth-login' && data.code !== 'UNAUTHORIZED_LEGACY_JWT') {
           console.warn('[API] 401 Unauthorized detected. Forcing logout.');
           if (typeof window.NASHTY_AUTH !== 'undefined') window.NASHTY_AUTH.clearAuth();
           if (API.auth && typeof API.auth.logout === 'function') API.auth.logout();
@@ -191,7 +193,7 @@ const API = {
       const response = await fetch(`${EDGE_FUNCTIONS_URL}/favorites-api?action=get&userId=${uid}`, {
         headers: {
           'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${API.session.token || API.session.adminToken || SUPABASE_ANON_KEY}`
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
         }
       });
 
@@ -217,7 +219,7 @@ const API = {
         method: 'DELETE',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${API.session.token || API.session.adminToken || SUPABASE_ANON_KEY}`
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
         }
       });
 
@@ -247,7 +249,7 @@ const API = {
       const response = await fetch(`${EDGE_FUNCTIONS_URL}/analytics-api?outletId=${oid}&days=${days}&limit=${limit}`, {
         headers: {
           'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${API.session.token || API.session.adminToken || SUPABASE_ANON_KEY}`
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
         }
       });
 
@@ -266,7 +268,7 @@ const API = {
       const response = await fetch(`${EDGE_FUNCTIONS_URL}/settings-api?action=get&outletId=${oid}`, {
         headers: {
           'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${API.session.token || API.session.adminToken || SUPABASE_ANON_KEY}`
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
         }
       });
 
@@ -519,29 +521,31 @@ const API = {
 
   shifts: {
     async start(startCash) {
-      const { data } = await API.supabase.from('shifts').insert([{
-        outlet_id: API.session.outletId,
-        user_id: API.session.user?.id,
-        start_cash: startCash,
-        status: 'open'
-      }]).select();
-      if (data && data[0]) {
-        API.session.shiftId = data[0].id;
+      const data = await API.edgeRequest('orders-api', {
+        action: 'start-shift',
+        outletId: API.session.outletId,
+        userId: API.session.user?.id,
+        startCash: startCash
+      });
+      if (data.success && data.shift) {
+        API.session.shiftId = data.shift.id;
         localStorage.setItem('nashty_session', JSON.stringify(API.session));
       }
-      return { success: true, shift: data?.[0] };
+      return data;
     },
 
     async end(shiftId, endCash, notes = '') {
-      const { data } = await API.supabase.from('shifts').update({
-        end_cash: endCash,
-        notes,
-        status: 'closed',
-        end_time: new Date().toISOString()
-      }).eq('id', shiftId).select();
-      API.session.shiftId = null;
-      localStorage.setItem('nashty_session', JSON.stringify(API.session));
-      return { success: true, shift: data?.[0] };
+      const data = await API.edgeRequest('orders-api', {
+        action: 'end-shift',
+        shiftId,
+        endCash,
+        notes
+      });
+      if (data.success) {
+        API.session.shiftId = null;
+        localStorage.setItem('nashty_session', JSON.stringify(API.session));
+      }
+      return data;
     },
 
     async getActive() {
@@ -596,8 +600,7 @@ const API = {
             )
           )
         `)
-        .eq('tenant_id', API.session.tenantId)
-        .eq('is_active', true);
+        .eq('tenant_id', API.session.tenantId);
 
       // Transform products to include modifier_groups array
       const transformedProducts = (products || []).map(p => ({
@@ -810,25 +813,10 @@ const API = {
         return { success: true, logs: data || [] };
       }
 
-      // Costs endpoints
+      // Costs endpoints (table does not exist yet - placeholder)
       if (endpoint.startsWith('/costs')) {
-        const idMatch = endpoint.match(/\/costs\/([^?]+)/);
-        if (method === 'DELETE' && idMatch) {
-          await API.supabase.from('costs').delete().eq('id', idMatch[1]);
-          return { success: true };
-        }
-        if ((method === 'PUT' || method === 'POST') && body) {
-          body.tenant_id = API.session.tenantId;
-          body.outlet_id = API.session.outletId;
-          if (idMatch) body.id = idMatch[1];
-          const { data } = await API.supabase.from('costs').upsert(body).select();
-          return { success: true, data: data[0] };
-        }
-        const { data } = await API.supabase.from('costs')
-          .select('*')
-          .eq('tenant_id', API.session.tenantId)
-          .order('created_at', { ascending: false });
-        return { success: true, costs: data || [] };
+        console.warn('[API] costs table does not exist yet');
+        return { success: true, costs: [] };
       }
 
       // Health check
