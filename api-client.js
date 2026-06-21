@@ -857,8 +857,22 @@ const API = {
 
 // ─── Session Restore on Load ──────────────────────────────────────────────────
 if (typeof window !== 'undefined') {
+  // First restore from localStorage
   API.mainAuth.restoreSession();
   API.auth.restoreSession();
+  
+  // Then sync with NASHTY_AUTH if available
+  if (typeof window.NASHTY_AUTH !== 'undefined' && window.NASHTY_AUTH.hasValidAuth()) {
+    const authData = window.NASHTY_AUTH.getAuthData();
+    if (authData.token && authData.user) {
+      // Sync to API.session
+      API.session.token = authData.token;
+      API.session.user = authData.user;
+      API.session.tenantId = authData.user.tenant_id || authData.user.tenantId || API.session.tenantId;
+      API.session.outletId = authData.outlet?.id || authData.outlet?.outlet_id || authData.user.outlet_id || API.session.outletId;
+      console.log('[API] Synced auth from NASHTY_AUTH:', authData.user.name);
+    }
+  }
 }
 
 // ─── Export ───────────────────────────────────────────────────────────────────

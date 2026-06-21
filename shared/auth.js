@@ -1,6 +1,7 @@
 /**
- * NASHTY OS - Shared Authentication Handler
- * Handles JWT token reception from parent launcher window via postMessage
+ * NASHTY OS - Shared Authentication Handler v2.0
+ * SIMPLIFIED - No auto-kick, no aggressive redirects
+ * Handles JWT token from launcher or direct login
  * 
  * Usage: Include this script in POS, KDS, and Backoffice HTML files
  * <script src="../shared/auth.js"></script>
@@ -14,7 +15,8 @@
     STORAGE_KEYS: {
       TOKEN: 'nashty_token',
       USER: 'nashty_user',
-      OUTLET: 'nashty_outlet'
+      OUTLET: 'nashty_outlet',
+      SESSION: 'nashty_session' // For API.session data
     }
   };
 
@@ -23,9 +25,8 @@
    */
   function hasValidAuth() {
     const token = localStorage.getItem(NASHTY_AUTH.STORAGE_KEYS.TOKEN);
-    const user = localStorage.getItem(NASHTY_AUTH.STORAGE_KEYS.USER);
-    const outlet = localStorage.getItem(NASHTY_AUTH.STORAGE_KEYS.OUTLET);
-    return !!(token && user && outlet);
+    const session = localStorage.getItem(NASHTY_AUTH.STORAGE_KEYS.SESSION);
+    return !!(token || session);
   }
 
   /**
@@ -33,6 +34,20 @@
    */
   function getAuthData() {
     try {
+      // Try to get from nashty_session first (API.session)
+      const sessionStr = localStorage.getItem(NASHTY_AUTH.STORAGE_KEYS.SESSION);
+      if (sessionStr) {
+        const session = JSON.parse(sessionStr);
+        if (session.token) {
+          return {
+            token: session.token,
+            user: session.user || JSON.parse(localStorage.getItem(NASHTY_AUTH.STORAGE_KEYS.USER) || 'null'),
+            outlet: session.outletId ? { id: session.outletId } : JSON.parse(localStorage.getItem(NASHTY_AUTH.STORAGE_KEYS.OUTLET) || 'null')
+          };
+        }
+      }
+
+      // Fallback to individual keys
       return {
         token: localStorage.getItem(NASHTY_AUTH.STORAGE_KEYS.TOKEN),
         user: JSON.parse(localStorage.getItem(NASHTY_AUTH.STORAGE_KEYS.USER) || 'null'),
@@ -71,38 +86,15 @@
   }
 
   /**
-   * Redirect to launcher if not authenticated
-   */
-  function redirectToLauncher() {
-    console.warn('[NASHTY AUTH] No valid authentication, redirecting to launcher...');
-    window.location.href = NASHTY_AUTH.LAUNCHER_ORIGIN;
-  }
-
-  /**
-   * Handle 401/403 responses by redirecting to launcher
-   */
-  function handleUnauthorized() {
-    console.warn('[NASHTY AUTH] Unauthorized access detected, clearing auth and redirecting...');
-    clearAuthData();
-    redirectToLauncher();
-  }
-
-  /**
    * Listen for auth messages from parent launcher window
    */
   function initMessageListener() {
     window.addEventListener('message', function(event) {
-      // Verify origin for security
-      if (event.origin !== NASHTY_AUTH.LAUNCHER_ORIGIN) {
-        console.warn('[NASHTY AUTH] Received message from unauthorized origin:', event.origin);
-        return;
-      }
-
       // Check if this is an auth message
       if (event.data && event.data.type === 'NASHTY_AUTH') {
         const { token, user, outlet, superToken } = event.data;
 
-        // Support both regular token and superToken for backward compatibility
+        // Support both regular token and superToken
         const authToken = token || superToken;
         
         if (!authToken || !user) {
@@ -110,10 +102,10 @@
           return;
         }
 
-        // Ensure outlet exists, use default if not provided
+        // Ensure outlet exists
         const authOutlet = outlet || { 
-          id: user.outletId || 'main-branch', 
-          name: 'Main Branch' 
+          id: user.outletId || user.outlet_id || 'default-outlet', 
+          name: user.outletName || 'Main Outlet' 
         };
 
         console.log('[NASHTY AUTH] Received authentication data from launcher');
@@ -135,10 +127,6 @@
           } else if (typeof window.onAuthReceived === 'function') {
             console.log('[NASHTY AUTH] Calling onAuthReceived()');
             window.onAuthReceived({ token: authToken, user, outlet: authOutlet });
-          } else {
-            // If no initialization function, just reload the page
-            console.log('[NASHTY AUTH] No init function found, reloading page...');
-            window.location.reload();
           }
         }
       }
@@ -148,7 +136,7 @@
   }
 
   /**
-   * Add Authorization header to fetch requests
+   * Add Authorization header to fetch requests (SIMPLE VERSION)
    */
   function createAuthenticatedFetch() {
     const originalFetch = window.fetch;
@@ -165,25 +153,34 @@
         }
       }
 
-      // Call original fetch and handle 401/403 responses
-      return originalFetch(url, options).then(response => {
-        // Skip 401 handling for login endpoints to prevent auto-logout on wrong password/pin
-        if ((response.status === 401 || response.status === 403) && !url.toString().includes('auth-login')) {
-          console.warn('[NASHTY AUTH] Received ' + response.status + ' response, token may be expired');
-          handleUnauthorized();
-        }
-        return response;
-      });
+      // Call original fetch WITHOUT 401 handling (no auto-kick)
+      return originalFetch(url, options);
     };
 
     console.log('[NASHTY AUTH] Fetch interceptor installed');
   }
 
   /**
-   * Initialize authentication system
+   * Sync authentication data with window.API.session if it exists
+   */
+  function syncAuthWithAPI() {
+    if (typeof window.API !== 'undefined' && window.API.session) {
+      const authData = getAuthData();
+      if (authData.token && authData.user) {
+        console.log('[NASHTY AUTH] Syncing auth data with API.session');
+        window.API.session.token = authData.token;
+        window.API.session.user = authData.user;
+        window.API.session.tenantId = authData.user.tenant_id || authData.user.tenantId || '00000000-0000-0000-0000-000000000001';
+        window.API.session.outletId = authData.outlet?.id || authData.outlet?.outlet_id || authData.user.outlet_id || '00000000-0000-0000-0000-000000000002';
+      }
+    }
+  }
+
+  /**
+   * Initialize authentication system (NO AUTO-REDIRECT)
    */
   function init() {
-    console.log('[NASHTY AUTH] Initializing authentication system...');
+    console.log('[NASHTY AUTH v2.0] Initializing authentication system (simple mode)...');
     
     // Set up message listener
     initMessageListener();
@@ -198,22 +195,18 @@
     if (!hasValidAuth()) {
       console.warn('[NASHTY AUTH] No valid authentication found');
       
-      // DEV MODE: Skip redirect on localhost, auto-set demo credentials
+      // DEV MODE: Auto-set demo credentials on localhost
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        console.log('[NASHTY AUTH] DEV MODE — Skipping auth redirect, using demo credentials');
+        console.log('[NASHTY AUTH] DEV MODE — Using demo credentials');
         storeAuthData('dev-token', 
           { id: 'admin', name: 'Admin Demo', role: 'admin', tenantId: '00000000-0000-0000-0000-000000000001', outletId: '00000000-0000-0000-0000-000000000002' },
           { id: '00000000-0000-0000-0000-000000000002', name: 'Demo Outlet' }
         );
         syncAuthWithAPI();
       } else {
-        // Production: wait for postMessage then redirect (increased timeout)
-        setTimeout(function() {
-          if (!hasValidAuth()) {
-            console.warn('[NASHTY AUTH] Still no auth after waiting. API requests will fail securely.');
-            // redirectToLauncher(); // Disabled: let the API 401 handle the redirect if needed
-          }
-        }, 5000); // Increased from 2s to 5s to allow proper auth initialization
+        // PRODUCTION: Just log warning, DON'T REDIRECT
+        console.warn('[NASHTY AUTH] No auth found. User needs to login via app UI.');
+        // Apps should show their own login screen if needed
       }
     } else {
       console.log('[NASHTY AUTH] Valid authentication found');
@@ -226,47 +219,25 @@
     }
   }
 
-  /**
-   * Sync authentication data with window.API.session if it exists
-   */
-  function syncAuthWithAPI() {
-    if (typeof window.API !== 'undefined' && window.API.session) {
-      const authData = getAuthData();
-      if (authData.token && authData.user && authData.outlet) {
-        console.log('[NASHTY AUTH] Syncing auth data with API.session');
-        window.API.session.token = authData.token;
-        window.API.session.user = authData.user;
-        window.API.session.tenantId = authData.user.tenant_id || authData.user.tenantId || '00000000-0000-0000-0000-000000000001';
-        window.API.session.outletId = authData.outlet.id || authData.outlet.outlet_id || '00000000-0000-0000-0000-000000000002';
-      }
-    }
-  }
-
   // Export API for use in modules
   window.NASHTY_AUTH = {
     hasValidAuth: hasValidAuth,
     getAuthData: getAuthData,
     getToken: function() {
-      return localStorage.getItem(NASHTY_AUTH.STORAGE_KEYS.TOKEN);
+      const authData = getAuthData();
+      return authData.token;
     },
     getUser: function() {
-      try {
-        return JSON.parse(localStorage.getItem(NASHTY_AUTH.STORAGE_KEYS.USER) || 'null');
-      } catch (e) {
-        return null;
-      }
+      const authData = getAuthData();
+      return authData.user;
     },
     getOutlet: function() {
-      try {
-        return JSON.parse(localStorage.getItem(NASHTY_AUTH.STORAGE_KEYS.OUTLET) || 'null');
-      } catch (e) {
-        return null;
-      }
+      const authData = getAuthData();
+      return authData.outlet;
     },
     clearAuth: clearAuthData,
-    redirectToLauncher: redirectToLauncher,
-    handleUnauthorized: handleUnauthorized,
-    syncWithAPI: syncAuthWithAPI
+    syncWithAPI: syncAuthWithAPI,
+    storeAuth: storeAuthData
   };
 
   // Initialize when DOM is ready
