@@ -82,7 +82,24 @@
     localStorage.removeItem(NASHTY_AUTH.STORAGE_KEYS.TOKEN);
     localStorage.removeItem(NASHTY_AUTH.STORAGE_KEYS.USER);
     localStorage.removeItem(NASHTY_AUTH.STORAGE_KEYS.OUTLET);
+    localStorage.removeItem(NASHTY_AUTH.STORAGE_KEYS.SESSION);
     console.log('[NASHTY AUTH] Authentication data cleared');
+    
+    if (window.NASHTY_SSO_CHANNEL) {
+      // Small timeout to prevent infinite loops if multiple tabs clear at the same time
+      setTimeout(() => {
+        window.NASHTY_SSO_CHANNEL.postMessage({ type: 'LOGOUT' });
+      }, 100);
+    }
+    
+    // Clear API session if available
+    if (typeof window !== 'undefined' && window.API && window.API.session) {
+      window.API.session.token = null;
+      window.API.session.user = null;
+    }
+    
+    // Optionally redirect
+    redirectToLauncher();
   }
 
   /**
@@ -177,13 +194,62 @@
   }
 
   /**
-   * Initialize authentication system (NO AUTO-REDIRECT)
+   * Initialize SSO (Single Sign-On) across tabs via BroadcastChannel
+   */
+  function initSSO() {
+    try {
+      const authChannel = new BroadcastChannel('nashty_sso_channel');
+      authChannel.onmessage = function(event) {
+        if (!event.data) return;
+        
+        if (event.data.type === 'SYNC_AUTH') {
+          // Only sync if we don't have valid auth, to avoid overwrite loops
+          if (!hasValidAuth() && event.data.session) {
+            localStorage.setItem(NASHTY_AUTH.STORAGE_KEYS.SESSION, JSON.stringify(event.data.session));
+            if (event.data.token) localStorage.setItem(NASHTY_AUTH.STORAGE_KEYS.TOKEN, event.data.token);
+            syncAuthWithAPI();
+          }
+        } 
+        else if (event.data.type === 'LOGOUT') {
+          // If another tab logged out, we log out too
+          if (hasValidAuth()) {
+            console.warn('[NASHTY AUTH] Cross-tab logout triggered');
+            clearAuthData();
+          }
+        }
+      };
+      
+      // Store the channel so it can be used for broadcasting
+      window.NASHTY_SSO_CHANNEL = authChannel;
+      
+      // If we already have auth, broadcast it to other tabs that might be waiting
+      if (hasValidAuth()) {
+        const sessionStr = localStorage.getItem(NASHTY_AUTH.STORAGE_KEYS.SESSION);
+        const tokenStr = localStorage.getItem(NASHTY_AUTH.STORAGE_KEYS.TOKEN);
+        if (sessionStr) {
+           authChannel.postMessage({
+             type: 'SYNC_AUTH',
+             session: JSON.parse(sessionStr),
+             token: tokenStr
+           });
+        }
+      }
+    } catch (e) {
+      console.error('[NASHTY AUTH] SSO initialization failed', e);
+    }
+  }
+
+  /**
+   * Initialize authentication system
    */
   function init() {
-    console.log('[NASHTY AUTH v2.0] Initializing authentication system (simple mode)...');
+    console.log('[NASHTY AUTH] Initializing NASHTY OS Authentication System');
     
-    // Set up message listener
+    // Listen for auth tokens from parent window (Launcher)
     initMessageListener();
+    
+    // Initialize Cross-Tab SSO
+    initSSO();
     
     // Intercept fetch to add Authorization header
     createAuthenticatedFetch();

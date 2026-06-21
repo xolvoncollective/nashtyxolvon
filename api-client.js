@@ -56,6 +56,15 @@ const API = {
       });
 
       const data = await response.json();
+      
+      // Global 401 Handler
+      if (response.status === 401 && functionName !== 'auth-login') {
+          console.warn('[API] 401 Unauthorized detected. Forcing logout.');
+          if (typeof window.NASHTY_AUTH !== 'undefined') window.NASHTY_AUTH.clearAuth();
+          if (API.auth && typeof API.auth.logout === 'function') API.auth.logout();
+          throw new Error('Sesi telah kedaluwarsa. Silakan login kembali.');
+      }
+      
       if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
       return data;
     } catch (error) {

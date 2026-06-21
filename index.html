@@ -320,6 +320,32 @@
     .app-card.backoffice { border-left: 3px solid #3B82F6; }
     .app-card.cost { border-left: 3px solid #F59E0B; }
     .app-card.crm { border-left: 3px solid #8B5CF6; }
+    .app-card.settings { border-left: 3px solid #DC2626; }
+    
+    .app-card.locked {
+      opacity: 0.4;
+      cursor: not-allowed;
+      position: relative;
+    }
+    
+    .app-card.locked:hover {
+      border-color: var(--border-dim);
+      transform: none;
+    }
+    
+    .app-lock {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 3rem;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    
+    .app-card.locked .app-lock {
+      opacity: 0.6;
+    }
     
     /* Loading Overlay */
     .loading-overlay {
@@ -529,6 +555,12 @@
             <div class="app-icon">👥</div>
             <div class="app-title">CRM</div>
             <div class="app-desc">Customer Relations</div>
+          </div>
+          <div class="app-card settings" id="settingsCard" onclick="triggerApp('settings')">
+            <div class="app-icon">⚙️</div>
+            <div class="app-title">Settings</div>
+            <div class="app-desc">System Configuration</div>
+            <div class="app-lock">🔒</div>
           </div>
         </div>
       </div>
@@ -925,6 +957,7 @@
         mainSession = {
           token: data.token,
           user: data.user,
+          username: data.user.username, // Store username for access control
           outletId: outletId,
           outletName: outletName,
           loginTime: Date.now() // Track session start time
@@ -956,6 +989,17 @@
       loginSection.style.display = 'none';
       launcherButtons.style.display = 'block';
       welcomeUser.innerText = `Identifier: ${mainSession.user.username} | Outlet: ${mainSession.outletName}`;
+      
+      // Check if user is superadmin to unlock settings
+      const settingsCard = document.getElementById('settingsCard');
+      if (settingsCard) {
+        const isSuperadmin = mainSession.user.username === 'superadmin@nashty';
+        if (isSuperadmin) {
+          settingsCard.classList.remove('locked');
+        } else {
+          settingsCard.classList.add('locked');
+        }
+      }
     }
 
     function handleLogout() {
@@ -981,6 +1025,18 @@
       // SECURITY: Validate session before opening app
       if (!validateSession()) {
         alert('⏱️ Your session has expired. Please login again.');
+        return;
+      }
+      
+      // Check if settings is locked (only superadmin can access)
+      if (app === 'settings') {
+        const isSuperadmin = mainSession.username === 'superadmin@nashty';
+        if (!isSuperadmin) {
+          alert('🔒 Settings hanya bisa diakses oleh Superadmin (superadmin@nashty)');
+          return;
+        }
+        // Open settings in new window
+        window.open('/settings.html', '_blank');
         return;
       }
       
