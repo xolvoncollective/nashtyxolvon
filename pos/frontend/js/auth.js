@@ -2,23 +2,48 @@
        LOGIN
     ════════════════════════ */
     async function initLogin() {
-      // Auto-login staff if session already exists
+      // 1. Try to restore PIN session from localStorage (survives refresh/SW update)
+      try {
+        const saved = localStorage.getItem('nashty_session');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          // Session valid if token exists and not expired (tokenExpiry check)
+          const notExpired = !parsed.tokenExpiry || Date.now() < parsed.tokenExpiry;
+          if (parsed.token && parsed.user && notExpired) {
+            console.log('✓ [POS Auth] Restoring PIN session from localStorage...');
+            Object.assign(API.session, parsed);
+            doLogin(API.session.user);
+            return;
+          } else {
+            console.log('⚠️ [POS Auth] Saved session expired, clearing...');
+            localStorage.removeItem('nashty_session');
+          }
+        }
+      } catch(e) { console.error('[POS Auth] Failed to restore session', e); }
+
+      // 2. Try in-memory session (e.g. SPA navigation)
       if (API.session && API.session.user && API.session.token) {
         console.log('✓ Found active staff session, auto-resuming...');
         doLogin(API.session.user);
         return;
       }
       
-      // Fallback to launcher auth for staff selection
+      // 3. Fallback to launcher auth for staff selection (when loaded via iframe)
       if (typeof NASHTY_AUTH !== 'undefined' && NASHTY_AUTH.hasValidAuth()) {
         const user = NASHTY_AUTH.getUser();
         const outlet = NASHTY_AUTH.getOutlet();
         if (user && outlet) {
           API.session.tenantId = user.tenantId || user.tenant_id || '00000000-0000-0000-0000-000000000001';
-          API.session.outletId = outlet.id || outlet.outlet_id || '00000000-0000-0000-0000-000000000002';
+          API.session.outletId = outlet.id || outlet.outlet_id || '00000000-0000-0000-0000-000000000101';
           loadStaff();
+          return;
         }
       }
+
+      // 4. Last resort: load staff for default outlet (standalone POS)
+      API.session.tenantId = '00000000-0000-0000-0000-000000000001';
+      API.session.outletId = '00000000-0000-0000-0000-000000000101';
+      loadStaff();
     }
     
     window.onAuthReceived = function(authData) {
@@ -111,13 +136,14 @@
       currentUser = staff;
       if (typeof API !== 'undefined' && API.session) {
         API.session.user = staff;
-        API.session.outletId = staff.outletId || '00000000-0000-0000-0000-000000000002';
+        API.session.outletId = staff.outletId || '00000000-0000-0000-0000-000000000101';
         API.session.tenantId = staff.tenantId || '00000000-0000-0000-0000-000000000001';
         
-        // Prevent shared/auth.js from redirecting out after 5 seconds
+        // Persist full session to localStorage for survive-across-refresh
+        localStorage.setItem('nashty_session', JSON.stringify(API.session));
         localStorage.setItem('nashty_token', API.session.token || 'pos-session-token');
         localStorage.setItem('nashty_user', JSON.stringify(staff));
-        localStorage.setItem('nashty_outlet', JSON.stringify({id: API.session.outletId, name: 'POS Outlet'}));
+        localStorage.setItem('nashty_outlet', JSON.stringify({id: API.session.outletId, name: 'Galaxy Mall'}));
       }
       document.getElementById('login-screen').style.display = 'none';
       const shell = document.getElementById('app-shell');
@@ -324,6 +350,17 @@
 
     function doLogout() {
       currentUser = null; loginSel = null; loginPinArr = []; cart = []; discount = 0; curMember = null;
+      // Clear session from localStorage so we show login on next load
+      localStorage.removeItem('nashty_session');
+      localStorage.removeItem('nashty_token');
+      localStorage.removeItem('nashty_user');
+      // Clear in-memory session
+      if (typeof API !== 'undefined' && API.session) {
+        API.session.token = null;
+        API.session.refreshToken = null;
+        API.session.user = null;
+        API.session.shiftId = null;
+      }
       document.getElementById('app-shell').style.display = 'none';
       document.getElementById('login-screen').style.display = 'flex';
       backToStaff();
