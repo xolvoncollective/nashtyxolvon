@@ -91,10 +91,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadCustomers() {
         try {
             customersTableBody.innerHTML = '<tr><td colspan="6" class="text-center empty-state">Memuat data pelanggan...</td></tr>';
-            const { data, error } = await API.supabase
-                .from('customers') // assuming the table is customers
-                .select('*')
-                .eq('tenant_id', API.session.tenantId);
+            const data = JSON.parse(localStorage.getItem('nashty_customers') || '[]');
+            const error = null;
             
             if (error) throw error;
             
@@ -140,7 +138,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const id = e.target.getAttribute('data-id');
                 if (confirm('Hapus pelanggan ini beserta poinnya?')) {
                     try {
-                        const { error } = await API.supabase.from('customers').delete().eq('id', id);
+                        let customers = JSON.parse(localStorage.getItem('nashty_customers') || '[]');
+                        customers = customers.filter(c => c.id !== id);
+                        localStorage.setItem('nashty_customers', JSON.stringify(customers));
+                        const error = null;
                         if (error) throw error;
                         loadCustomers();
                     } catch (err) { alert('Error: ' + err.message); }
@@ -154,10 +155,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadRewards() {
         try {
             rewardsGrid.innerHTML = '<div class="empty-state">Memuat katalog reward...</div>';
-            const { data, error } = await API.supabase
-                .from('rewards')
-                .select('*')
-                .eq('tenant_id', API.session.tenantId);
+            const data = JSON.parse(localStorage.getItem('nashty_rewards') || '[]');
+            const error = null;
             
             if (error) throw error;
             
@@ -193,7 +192,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const id = e.target.getAttribute('data-id');
                 if (confirm('Hapus reward ini dari katalog?')) {
                     try {
-                        const { error } = await API.supabase.from('rewards').delete().eq('id', id);
+                        let rewards = JSON.parse(localStorage.getItem('nashty_rewards') || '[]');
+                        rewards = rewards.filter(r => r.id !== id);
+                        localStorage.setItem('nashty_rewards', JSON.stringify(rewards));
+                        const error = null;
                         if (error) throw error;
                         loadRewards();
                     } catch (err) { alert('Error: ' + err.message); }
@@ -205,11 +207,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadTransactions() {
         try {
             transactionsTableBody.innerHTML = '<tr><td colspan="4" class="text-center empty-state">Memuat riwayat poin...</td></tr>';
-            const { data: txs, error } = await API.supabase
-                .from('point_transactions')
-                .select('*')
-                .eq('tenant_id', API.session.tenantId)
-                .order('created_at', { ascending: false });
+            let txs = JSON.parse(localStorage.getItem('nashty_point_txs') || '[]');
+            txs = txs.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+            const error = null;
             
             if (error) throw error;
             
@@ -263,12 +263,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         submitBtn.disabled = true;
 
         try {
-            const { error } = await API.supabase.from('customers').insert([{
+            let customers = JSON.parse(localStorage.getItem('nashty_customers') || '[]');
+            customers.push({
+                id: 'cust_' + Date.now(),
                 tenant_id: API.session.tenantId,
                 name: document.getElementById('customerName').value,
                 phone: document.getElementById('customerPhone').value,
-                email: document.getElementById('customerEmail').value
-            }]);
+                email: document.getElementById('customerEmail').value,
+                points: 0,
+                total_spent: 0,
+                visit_count: 0
+            });
+            localStorage.setItem('nashty_customers', JSON.stringify(customers));
+            const error = null;
             if (error) throw error;
             
             customerModal.classList.remove('active');
@@ -287,12 +294,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         submitBtn.disabled = true;
 
         try {
-            const { error } = await API.supabase.from('rewards').insert([{
+            let rewards = JSON.parse(localStorage.getItem('nashty_rewards') || '[]');
+            rewards.push({
+                id: 'rw_' + Date.now(),
                 tenant_id: API.session.tenantId,
                 title: document.getElementById('rewardTitle').value,
                 points_required: Number(document.getElementById('rewardPoints').value),
                 description: document.getElementById('rewardDesc').value
-            }]);
+            });
+            localStorage.setItem('nashty_rewards', JSON.stringify(rewards));
+            const error = null;
             if (error) throw error;
             
             rewardModal.classList.remove('active');

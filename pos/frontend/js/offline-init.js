@@ -10,12 +10,12 @@
 
   try {
     // 1. Initialize Database Schema
-    if (window.DBSchema) {
+    if (window.DatabaseSchema) {
       console.log('1. Initializing IndexedDB Schema...');
-      await window.DBSchema.init();
+      await window.DatabaseSchema.getDatabase();
       console.log('✓ IndexedDB initialized with all stores');
     } else {
-      console.error('✗ DBSchema not loaded');
+      console.error('✗ DatabaseSchema not loaded');
     }
 
     // 2. Initialize Encryption Service  (will be set up on login)
@@ -27,9 +27,9 @@
     }
 
     // 3. Initialize Cache Manager
-    if (window.CacheManager && window.DBSchema) {
+    if (window.CacheManager && window.DatabaseSchema) {
       console.log('3. Initializing Cache Manager...');
-      await window.CacheManager.init(window.DBSchema);
+      await window.CacheManager.init(window.DatabaseSchema);
       console.log('✓ Cache Manager initialized');
       
       // Start periodic sync (5 minutes)

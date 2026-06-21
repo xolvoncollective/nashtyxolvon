@@ -1,0 +1,389 @@
+<!-- Quick Access Grid Component -->
+<div id="quick-access-grid" class="quick-access-grid collapsed">
+  <div class="grid-header">
+    <h3>Quick Access</h3>
+    <button class="toggle-btn" onclick="toggleQuickAccessGrid()">
+      <span class="icon-expand">◀</span>
+      <span class="icon-collapse">▶</span>
+    </button>
+  </div>
+
+  <div class="grid-tabs">
+    <button class="tab-btn active" data-tab="favorites" onclick="switchTab('favorites')">
+      ⭐ Favorit
+    </button>
+    <button class="tab-btn" data-tab="recent" onclick="switchTab('recent')">
+      🕐 Terakhir
+    </button>
+    <button class="tab-btn" data-tab="autosuggest" onclick="switchTab('autosuggest')">
+      📈 Populer
+    </button>
+  </div>
+
+  <div class="grid-content">
+    <!-- Favorites Tab -->
+    <div id="favorites-tab" class="tab-content active">
+      <div id="favorites-grid" class="product-grid" ondrop="handleDrop(event)" ondragover="handleDragOver(event)">
+        <p class="empty-state">Belum ada favorit. Klik kanan produk untuk menambahkan.</p>
+      </div>
+    </div>
+
+    <!-- Recent Tab -->
+    <div id="recent-tab" class="tab-content">
+      <div id="recent-grid" class="product-grid">
+        <p class="empty-state">Belum ada item terakhir.</p>
+      </div>
+    </div>
+
+    <!-- Auto-Suggest Tab -->
+    <div id="autosuggest-tab" class="tab-content">
+      <div id="autosuggest-grid" class="product-grid">
+        <p class="empty-state">Loading produk populer...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.quick-access-grid {
+  position: fixed;
+  right: 0;
+  top: 60px;
+  height: calc(100vh - 60px);
+  width: 300px;
+  background: white;
+  border-left: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+  z-index: 100;
+}
+
+.quick-access-grid.collapsed {
+  transform: translateX(100%);
+}
+
+.grid-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+.toggle-btn {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.collapsed .icon-collapse { display: inline; }
+.collapsed .icon-expand { display: none; }
+.quick-access-grid:not(.collapsed) .icon-collapse { display: none; }
+.quick-access-grid:not(.collapsed) .icon-expand { display: inline; }
+
+.grid-tabs {
+  display: flex;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px 8px;
+  background: white;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  border-bottom: 3px solid transparent;
+}
+
+.tab-btn.active {
+  border-bottom-color: #4CAF50;
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.grid-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.product-card {
+  background: #f9f9f9;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.product-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.product-card[draggable="true"] {
+  cursor: move;
+}
+
+.product-card.dragging {
+  opacity: 0.5;
+}
+
+.product-img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.product-name {
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product-price {
+  font-size: 13px;
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.empty-state {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+  font-size: 14px;
+}
+
+.trending-badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-top: 4px;
+}
+
+.trending-badge.up {
+  background: #4CAF50;
+  color: white;
+}
+
+.trending-badge.down {
+  background: #f44336;
+  color: white;
+}
+
+.trending-badge.stable {
+  background: #9E9E9E;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .quick-access-grid {
+    width: 250px;
+  }
+  .product-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<script>
+function toggleQuickAccessGrid() {
+  const grid = document.getElementById('quick-access-grid');
+  grid.classList.toggle('collapsed');
+}
+
+function switchTab(tabName) {
+  // Update tab buttons
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tabName);
+  });
+
+  // Update tab content
+  document.querySelectorAll('.tab-content').forEach(content => {
+    content.classList.toggle('active', content.id === `${tabName}-tab`);
+  });
+
+  // Load content if needed
+  if (tabName === 'favorites') loadFavorites();
+  if (tabName === 'recent') loadRecentItems();
+  if (tabName === 'autosuggest') loadAutoSuggest();
+}
+
+async function loadFavorites() {
+  const userId = window.API?.session?.userId;
+  if (!userId) return;
+
+  try {
+    const favorites = await window.FavoritesManager.getFavorites(userId);
+    const grid = document.getElementById('favorites-grid');
+    
+    if (favorites.length === 0) {
+      grid.innerHTML = '<p class="empty-state">Belum ada favorit. Klik kanan produk untuk menambahkan.</p>';
+      return;
+    }
+
+    grid.innerHTML = favorites.map(fav => {
+      const product = window.productsCache?.get(fav.productId);
+      if (!product) return '';
+      
+      return `
+        <div class="product-card" 
+             draggable="true" 
+             ondragstart="handleDragStart(event, '${product.id}')"
+             ondragend="handleDragEnd(event)"
+             onclick="addProductToCart('${product.id}')">
+          <img src="${product.image || '/img/placeholder.png'}" class="product-img" alt="${product.name}">
+          <div class="product-name">${product.name}</div>
+          <div class="product-price">Rp ${product.price.toLocaleString()}</div>
+        </div>
+      `;
+    }).join('');
+  } catch (error) {
+    console.error('Failed to load favorites:', error);
+  }
+}
+
+async function loadRecentItems() {
+  const userId = window.API?.session?.userId;
+  if (!userId) return;
+
+  try {
+    const recent = await window.RecentItemsTracker.getRecentItems(userId);
+    const grid = document.getElementById('recent-grid');
+    
+    if (recent.length === 0) {
+      grid.innerHTML = '<p class="empty-state">Belum ada item terakhir.</p>';
+      return;
+    }
+
+    grid.innerHTML = recent.map(item => {
+      const product = window.productsCache?.get(item.productId);
+      if (!product) return '';
+      
+      return `
+        <div class="product-card" onclick="addProductToCart('${product.id}')">
+          <img src="${product.image || '/img/placeholder.png'}" class="product-img" alt="${product.name}">
+          <div class="product-name">${product.name}</div>
+          <div class="product-price">Rp ${product.price.toLocaleString()}</div>
+          <small style="color: #666;">${item.usageCount}x digunakan</small>
+        </div>
+      `;
+    }).join('');
+  } catch (error) {
+    console.error('Failed to load recent items:', error);
+  }
+}
+
+async function loadAutoSuggest() {
+  const outletId = window.API?.session?.outletId;
+  if (!outletId) return;
+
+  try {
+    const response = await fetch(`/api/analytics/top-products?outletId=${outletId}&days=7&limit=20`);
+    const data = await response.json();
+    const grid = document.getElementById('autosuggest-grid');
+    
+    if (!data.products || data.products.length === 0) {
+      grid.innerHTML = '<p class="empty-state">Belum ada data penjualan.</p>';
+      return;
+    }
+
+    grid.innerHTML = data.products.map(product => {
+      const trendClass = product.trend || 'stable';
+      const trendIcon = trendClass === 'up' ? '↑' : trendClass === 'down' ? '↓' : '→';
+      
+      return `
+        <div class="product-card" onclick="addProductToCart('${product.id}')">
+          <img src="${product.image || '/img/placeholder.png'}" class="product-img" alt="${product.name}">
+          <div class="product-name">${product.name}</div>
+          <div class="product-price">Rp ${product.price.toLocaleString()}</div>
+          <span class="trending-badge ${trendClass}">${trendIcon} ${product.salesCount} terjual</span>
+        </div>
+      `;
+    }).join('');
+  } catch (error) {
+    console.error('Failed to load auto-suggest:', error);
+    document.getElementById('autosuggest-grid').innerHTML = '<p class="empty-state">Gagal memuat data.</p>';
+  }
+}
+
+// Drag and drop handlers
+let draggedProductId = null;
+
+function handleDragStart(event, productId) {
+  draggedProductId = productId;
+  event.target.classList.add('dragging');
+}
+
+function handleDragEnd(event) {
+  event.target.classList.remove('dragging');
+}
+
+function handleDragOver(event) {
+  event.preventDefault();
+}
+
+async function handleDrop(event) {
+  event.preventDefault();
+  
+  const targetCard = event.target.closest('.product-card');
+  if (!targetCard || !draggedProductId) return;
+
+  const targetProductId = targetCard.onclick.toString().match(/'([^']+)'/)[1];
+  
+  // Get all product IDs in current order
+  const cards = Array.from(document.querySelectorAll('#favorites-grid .product-card'));
+  const productIds = cards.map(card => card.onclick.toString().match(/'([^']+)'/)[1]);
+  
+  // Reorder
+  const draggedIndex = productIds.indexOf(draggedProductId);
+  const targetIndex = productIds.indexOf(targetProductId);
+  
+  productIds.splice(draggedIndex, 1);
+  productIds.splice(targetIndex, 0, draggedProductId);
+  
+  // Save new order
+  const userId = window.API?.session?.userId;
+  await window.FavoritesManager.reorderFavorites(userId, productIds);
+  
+  // Reload
+  await loadFavorites();
+}
+
+// Initialize on load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    loadFavorites();
+  });
+} else {
+  loadFavorites();
+}
+</script>

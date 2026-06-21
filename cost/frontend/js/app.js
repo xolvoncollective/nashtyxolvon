@@ -21,18 +21,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         alert('System Error: API Client missing');
         return;
     }
+    // Function to initialize Cost App once auth is ready
+    function initCost(authData) {
+        if (!authData || !authData.token) return;
+        
+        // Update API session
+        API.session.token = authData.token;
+        API.session.user = authData.user;
+        API.session.tenantId = authData.user.tenantId || '00000000-0000-0000-0000-000000000001';
+        API.session.outletId = authData.outlet?.id || authData.user.outletId || null;
 
-    // Verify authentication
-    if (!API.session || !API.session.token) {
-        alert('Anda belum login. Silakan login dari Launcher.');
-        window.location.href = '/';
-        return;
+        // Update UI with user info
+        document.getElementById('userName').textContent = authData.user.name || authData.user.username || 'User';
+        document.getElementById('userRole').textContent = authData.user.role || 'Staff';
+        document.getElementById('userAvatar').textContent = (authData.user.name || authData.user.username || 'U').charAt(0).toUpperCase();
+
+        // Initial Load
+        loadCosts();
     }
 
-    // Update UI with user info
-    document.getElementById('userName').textContent = API.session.user.name;
-    document.getElementById('userRole').textContent = API.session.user.role;
-    document.getElementById('userAvatar').textContent = API.session.user.name.charAt(0).toUpperCase();
+    window.onAuthReceived = initCost;
+
+    // If already authenticated (e.g. reload)
+    if (typeof NASHTY_AUTH !== 'undefined' && NASHTY_AUTH.hasValidAuth()) {
+        initCost(NASHTY_AUTH.getAuthData());
+    }
 
     // Elements
     const costTableBody = document.getElementById('costTableBody');
@@ -200,5 +213,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     filterDateFrom.value = firstDay.toISOString().split('T')[0];
     filterDateTo.value = today.toISOString().split('T')[0];
     
-    loadCosts();
+    // loadCosts();
 });

@@ -1,260 +1,154 @@
 /**
  * NASHTY OS - Customer Display Manager
- * Manages secondary screen for customer-facing order display
+ * Manages secondary display for customers
  */
 
-export class CustomerDisplayManager {
+class CustomerDisplayManager {
   constructor() {
-    this.displayWindow = null;
-    this.isActive = false;
+    this.customerWindow = null;
     this.idleTimeout = null;
-    this.idleThreshold = 30000; // 30 seconds
-    this.lastActivity = Date.now();
+    this.idleDelay = 30 * 1000; // 30 seconds
   }
 
-  /**
-   * Initialize customer display
-   */
-  async init() {
-    // Check for multiple screens
+  async detectScreens() {
     if ('getScreenDetails' in window) {
       try {
-        const screens = await window.getScreenDetails();
-        if (screens.screens.length > 1) {
-          this.showEnablePrompt();
+        const permission = await navigator.permissions.query({ name: 'window-management' });
+        if (permission.state === 'granted') {
+          const screenDetails = await window.getScreenDetails();
+          return screenDetails.screens;
         }
       } catch (error) {
-        console.log('Screen detection not supported or permission denied');
+        console.warn('Window Management API not available:', error);
       }
-    } else {
-      // Fallback - manual trigger
-      this.addManualTrigger();
     }
+
+    return [{
+      isPrimary: true,
+      width: screen.width,
+      height: screen.height
+    }];
   }
 
-  /**
-   * Show enable prompt
-   */
-  showEnablePrompt() {
-    const notification = document.createElement('div');
-    notification.className = 'screen-notification';
-    notification.innerHTML = `
-      <div class="notification-content">
-        <h3>🖥️ Multiple Screens Detected</h3>
-        <p>Enable customer display on second screen?</p>
-        <button onclick="window.customerDisplay.enable()" class="btn-primary">Enable</button>
-        <button onclick="this.closest('.screen-notification').remove()" class="btn-secondary">Not Now</button>
+  async openCustomerDisplay() {
+    const screens = await this.detectScreens();
+    
+    if (screens.length < 2) {
+      const useManual = confirm('Monitor kedua tidak terdeteksi. Buka di window baru?');
+      if (!useManual) return false;
+    }
+
+    const secondaryScreen = screens.length > 1 ? screens[1] : screens[0];
+    const left = secondaryScreen.availLeft || 0;
+    const top = secondaryScreen.availTop || 0;
+    const width = secondaryScreen.availWidth || 1024;
+    const height = secondaryScreen.availHeight || 768;
+
+    this.customerWindow = window.open(
+      '/customer-display.html',
+      'CustomerDisplay',
+      `left=${left},top=${top},width=${width},height=${height},fullscreen=yes`
+    );
+
+    if (!this.customerWindow) {
+      alert('Gagal membuka customer display. Periksa popup blocker.');
+      return false;
+    }
+
+    this.customerWindow.addEventListener('load', () => {
+      this.initializeCustomerDisplay();
+    });
+
+    return true;
+  }
+
+  initializeCustomerDisplay() {
+    if (!this.customerWindow) return;
+
+    const settings = window.outletSettings || {};
+    const doc = this.customerWindow.document;
+    doc.body.style.backgroundColor = settings.displayBackgroundColor || '#ffffff';
+    doc.body.style.color = settings.displayTextColor || '#000000';
+
+    this.showIdleScreen();
+  }
+
+  syncCartToDisplay(cart) {
+    if (!this.customerWindow) return;
+
+    this.resetIdleTimer();
+
+    if (cart.items.length === 0) {
+      this.showIdleScreen();
+      return;
+    }
+
+    const doc = this.customerWindow.document;
+    const container = doc.getElementById('display-content');
+    
+    if (!container) return;
+
+    const itemsHtml = cart.items.map(item => `
+      <div class="display-item">
+        <div class="item-name">${item.name}</div>
+        <div class="item-details">
+          <span>${item.quantity}x</span>
+          <span>Rp ${item.price.toLocaleString()}</span>
+          <span>Rp ${(item.price * item.quantity).toLocaleString()}</span>
+        </div>
+      </div>
+    `).join('');
+
+    container.innerHTML = `
+      <div class="cart-view">
+        <div class="items-list">${itemsHtml}</div>
+        <div class="cart-totals">
+          <div class="total-row">
+            <span>Subtotal:</span>
+            <span>Rp ${cart.subtotal.toLocaleString()}</span>
+          </div>
+          <div class="total-row grand-total">
+            <span>TOTAL:</span>
+            <span>Rp ${cart.total.toLocaleString()}</span>
+          </div>
+        </div>
       </div>
     `;
-    document.body.appendChild(notification);
   }
 
-  /**
-   * Add manual trigger button
-   */
-  addManualTrigger() {
-    const trigger = document.createElement('button');
-    trigger.id = 'customer-display-trigger';
-    trigger.className = 'customer-display-trigger';
-    trigger.innerHTML = '🖥️';
-    trigger.title = 'Open Customer Display';
-    trigger.onclick = () => this.enable();
-    document.body.appendChild(trigger);
-  }
+  showIdleScreen() {
+    if (!this.customerWindow) return;
 
-  /**
-   * Enable customer display
-   */
-  async enable() {
-    if (this.displayWindow && !this.displayWindow.closed) {
-      this.displayWindow.focus();
-      return;
-    }
-
-    try {
-      // Get second screen if available
-      let targetScreen = null;
-      if ('getScreenDetails' in window) {
-        const screens = await window.getScreenDetails();
-        if (screens.screens.length > 1) {
-          // Use second screen
-          targetScreen = screens.screens[1];
-        }
-      }
-
-      // Window features
-      const features = targetScreen 
-        ? `left=${targetScreen.left},top=${targetScreen.top},width=${targetScreen.width},height=${targetScreen.height},fullscreen=yes`
-        : 'width=1024,height=768,fullscreen=yes';
-
-      // Open display window
-      this.displayWindow = window.open(
-        '/pos/frontend/customer-display.html',
-        'customerDisplay',
-        features
-      );
-
-      if (this.displayWindow) {
-        this.isActive = true;
-        this.displayWindow.onload = () => {
-          this.syncCart();
-          this.startIdleDetection();
-        };
-
-        // Handle window close
-        this.displayWindow.onbeforeunload = () => {
-          this.isActive = false;
-          this.stopIdleDetection();
-        };
-
-        // Monitor for screen disconnect
-        this.monitorScreens();
-      }
-    } catch (error) {
-      console.error('Failed to open customer display:', error);
-      alert('Failed to open customer display. Please check permissions.');
-    }
-  }
-
-  /**
-   * Disable customer display
-   */
-  disable() {
-    if (this.displayWindow && !this.displayWindow.closed) {
-      this.displayWindow.close();
-    }
-    this.isActive = false;
-    this.stopIdleDetection();
-  }
-
-  /**
-   * Sync cart to display
-   */
-  syncCart() {
-    if (!this.isActive || !this.displayWindow || this.displayWindow.closed) {
-      return;
-    }
-
-    const cart = window.cart || { items: [], subtotal: 0, tax: 0, total: 0 };
+    const doc = this.customerWindow.document;
+    const container = doc.getElementById('display-content');
     
-    this.displayWindow.postMessage({
-      type: 'UPDATE_CART',
-      cart: {
-        items: cart.items,
-        subtotal: cart.subtotal,
-        tax: cart.tax,
-        total: cart.total
-      }
-    }, '*');
+    if (!container) return;
 
-    this.resetIdleTimer();
+    container.innerHTML = `
+      <div class="idle-screen">
+        <img src="/logo.png" class="idle-logo" />
+        <div class="idle-tagline">Selamat Datang!</div>
+      </div>
+    `;
   }
 
-  /**
-   * Start idle detection
-   */
-  startIdleDetection() {
-    this.resetIdleTimer();
-  }
-
-  /**
-   * Reset idle timer
-   */
   resetIdleTimer() {
-    this.lastActivity = Date.now();
-    
-    if (this.idleTimeout) {
-      clearTimeout(this.idleTimeout);
-    }
-
-    this.idleTimeout = setTimeout(() => {
-      this.enterIdleMode();
-    }, this.idleThreshold);
+    if (this.idleTimeout) clearTimeout(this.idleTimeout);
+    this.idleTimeout = setTimeout(() => this.showIdleScreen(), this.idleDelay);
   }
 
-  /**
-   * Stop idle detection
-   */
-  stopIdleDetection() {
-    if (this.idleTimeout) {
-      clearTimeout(this.idleTimeout);
-      this.idleTimeout = null;
+  closeCustomerDisplay() {
+    if (this.customerWindow) {
+      this.customerWindow.close();
+      this.customerWindow = null;
     }
+    if (this.idleTimeout) clearTimeout(this.idleTimeout);
   }
 
-  /**
-   * Enter idle mode
-   */
-  enterIdleMode() {
-    if (!this.isActive || !this.displayWindow || this.displayWindow.closed) {
-      return;
-    }
-
-    this.displayWindow.postMessage({
-      type: 'ENTER_IDLE',
-      outletId: window.currentOutlet?.id
-    }, '*');
-  }
-
-  /**
-   * Exit idle mode
-   */
-  exitIdleMode() {
-    if (!this.isActive || !this.displayWindow || this.displayWindow.closed) {
-      return;
-    }
-
-    this.displayWindow.postMessage({
-      type: 'EXIT_IDLE'
-    }, '*');
-
-    this.resetIdleTimer();
-  }
-
-  /**
-   * Monitor screens for disconnect
-   */
-  async monitorScreens() {
-    if (!('getScreenDetails' in window)) return;
-
-    try {
-      const screens = await window.getScreenDetails();
-      screens.addEventListener('screenschange', () => {
-        this.handleScreensChange();
-      });
-    } catch (error) {
-      console.error('Screen monitoring error:', error);
-    }
-  }
-
-  /**
-   * Handle screens change
-   */
-  async handleScreensChange() {
-    if (!('getScreenDetails' in window)) return;
-
-    try {
-      const screens = await window.getScreenDetails();
-      if (screens.screens.length < 2 && this.isActive) {
-        this.disable();
-        alert('Second screen disconnected. Customer display closed.');
-      }
-    } catch (error) {
-      console.error('Screen change handling error:', error);
-    }
-  }
-
-  /**
-   * Update display settings
-   */
-  updateSettings(settings) {
-    if (!this.isActive || !this.displayWindow || this.displayWindow.closed) {
-      return;
-    }
-
-    this.displayWindow.postMessage({
-      type: 'UPDATE_SETTINGS',
-      settings
-    }, '*');
+  isOpen() {
+    return this.customerWindow && !this.customerWindow.closed;
   }
 }
+
+window.CustomerDisplayManager = new CustomerDisplayManager();
+console.log('✅ CustomerDisplayManager loaded');

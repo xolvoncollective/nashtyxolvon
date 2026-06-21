@@ -1,310 +1,117 @@
 /**
  * NASHTY OS - Favorites Manager
- * Manages user favorite products with offline support
+ * Manages favorite products for quick access
  */
 
 class FavoritesManager {
-  constructor() {
-    this.favorites = [];
+  constructor(db, apiClient) {
+    this.db = db;
+    this.api = apiClient;
     this.maxFavorites = 50;
-    this.userId = null;
   }
 
-  async init(userId) {
-    this.userId = userId;
-    await this.loadFavorites();
-  }
-
-  async loadFavorites() {
-    try {
-      if (navigator.onLine) {
-        await this.loadFromServer();
-      } else {
-        await this.loadFromCache();
-      }
-    } catch (error) {
-      console.error('Failed to load favorites:', error);
-      await this.loadFromCache();
-    }
-  }
-
-  async loadFromServer() {
-    try {
-      const { data, error } = await window.API.supabase
-        .from('pos_favorites')
-        .select('*, products(*)')
-        .eq('user_id', this.userId)
-        .order('position', { ascending: true });
-
-      if (error) {
-        console.warn('Failed to load favorites from Supabase (table might not exist):', error.message);
-        throw error;
-      }
-      
-      this.favorites = data || [];
-    } catch (e) {
-      throw e;
-    }
-
-    // Cache to IndexedDB
-    await this.cacheToIndexedDB();
-
-    console.log(`✅ Loaded ${this.favorites.length} favorites from server`);
-  }
-
-  async loadFromCache() {
-    if (!window.DatabaseSchema) return;
-
-    const db = await window.DatabaseSchema.getDatabase();
-    const tx = db.transaction('favorites', 'readonly');
-    const store = tx.objectStore('favorites');
-    const index = store.index('userId');
+  async addFavorite(userId, productId) {
+    const count = await this.getFavoriteCount(userId);
     
-    const cached = await index.getAll(this.userId);
-    
-    // Get product details from cache
-    const favoritesWithProducts = [];
-    for (const fav of cached) {
-      const product = await window.DatabaseSchema.getProduct(fav.productId);
-      if (product) {
-        favoritesWithProducts.push({
-          id: fav.id,
-          product_id: fav.productId,
-          position: fav.position,
-          products: product
-        });
-      }
+    if (count >= this.maxFavorites) {
+      throw new Error(`Maksimal ${this.maxFavorites} favorit diperbolehkan`);
     }
 
-    this.favorites = favoritesWithProducts.sort((a, b) => a.position - b.position);
-    console.log(`✅ Loaded ${this.favorites.length} favorites from cache`);
-  }
+    const position = await this.getNextPosition(userId);
 
-  async cacheToIndexedDB() {
-    if (!window.DatabaseSchema) return;
-
-    const db = await window.DatabaseSchema.getDatabase();
-    const tx = db.transaction('favorites', 'readwrite');
-    const store = tx.objectStore('favorites');
-
-    // Clear existing
-    const index = store.index('userId');
-    const existing = await index.getAllKeys(this.userId);
-    for (const key of existing) {
-      await store.delete(key);
-    }
-
-    // Add current favorites
-    for (const fav of this.favorites) {
-      await store.add({
-        userId: this.userId,
-        productId: fav.product_id,
-        position: fav.position,
-        createdAt: new Date().toISOString()
-      });
-    }
-  }
-
-  async addFavorite(productId) {
-    if (this.favorites.length >= this.maxFavorites) {
-      throw new Error(`Maximum ${this.maxFavorites} favorites reached`);
-    }
-
-    if (this.isFavorite(productId)) {
-      throw new Error('Product already in favorites');
-    }
-
-    try {
-      if (navigator.onLine) {
-        await this.addFavoriteOnline(productId);
-      } else {
-        await this.addFavoriteOffline(productId);
-      }
-    } catch (error) {
-      console.error('Failed to add favorite:', error);
-      await this.addFavoriteOffline(productId);
-    }
-  }
-
-  async addFavoriteOnline(productId) {
-    const token = sessionStorage.getItem('token');
-    const apiBase = window.API_BASE || '';
-
-    const response = await fetch(`${apiBase}/api/favorites`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        userId: this.userId,
-        productId
-      })
-    });
-
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    const data = await response.json();
-    
-    // Get product details
-    const product = await window.OfflineOrderHandler.getProduct(productId);
-    
-    this.favorites.push({
-      id: data.favorite.id,
-      product_id: productId,
-      position: data.favorite.position,
-      products: product
-    });
-
-    await this.cacheToIndexedDB();
-    console.log(`✅ Added favorite: ${product.name}`);
-  }
-
-  async addFavoriteOffline(productId) {
-    const product = await window.DatabaseSchema.getProduct(productId);
-    if (!product) throw new Error('Product not found in cache');
-
-    const position = this.favorites.length > 0 
-      ? Math.max(...this.favorites.map(f => f.position)) + 1 
-      : 1;
-
-    const tempId = 'fav_' + Date.now();
-    
-    this.favorites.push({
-      id: tempId,
-      product_id: productId,
+    const favorite = {
+      userId,
+      productId,
       position,
-      products: product,
-      _offline: true
-    });
+      createdAt: new Date().toISOString()
+    };
 
-    await this.cacheToIndexedDB();
+    // Save locally
+    const tx = this.db.transaction('favorites', 'readwrite');
+    const store = tx.objectStore('favorites');
+    await store.put(favorite);
 
-    // Queue for sync
-    if (window.OfflineSyncManager) {
-      await window.DatabaseSchema.addToQueue({
-        timestamp: Date.now(),
-        status: 'pending',
-        orderType: 'favorite_add',
-        data: JSON.stringify({ userId: this.userId, productId }),
-        retryCount: 0,
-        userId: this.userId,
-        outletId: sessionStorage.getItem('currentOutletId')
-      });
-    }
-
-    console.log(`📴 Added favorite offline: ${product.name}`);
-  }
-
-  async removeFavorite(favoriteId) {
-    const favorite = this.favorites.find(f => f.id === favoriteId);
-    if (!favorite) return;
-
-    try {
-      if (navigator.onLine && !favorite._offline) {
-        await this.removeFavoriteOnline(favoriteId);
-      } else {
-        await this.removeFavoriteOffline(favoriteId);
-      }
-    } catch (error) {
-      console.error('Failed to remove favorite:', error);
-      await this.removeFavoriteOffline(favoriteId);
-    }
-  }
-
-  async removeFavoriteOnline(favoriteId) {
-    const token = sessionStorage.getItem('token');
-    const apiBase = window.API_BASE || '';
-
-    const response = await fetch(`${apiBase}/api/favorites/${favoriteId}?userId=${this.userId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    this.favorites = this.favorites.filter(f => f.id !== favoriteId);
-    await this.cacheToIndexedDB();
-    console.log(`✅ Removed favorite`);
-  }
-
-  async removeFavoriteOffline(favoriteId) {
-    this.favorites = this.favorites.filter(f => f.id !== favoriteId);
-    await this.cacheToIndexedDB();
-
-    // Queue for sync
-    if (window.OfflineSyncManager) {
-      await window.DatabaseSchema.addToQueue({
-        timestamp: Date.now(),
-        status: 'pending',
-        orderType: 'favorite_remove',
-        data: JSON.stringify({ userId: this.userId, favoriteId }),
-        retryCount: 0,
-        userId: this.userId,
-        outletId: sessionStorage.getItem('currentOutletId')
-      });
-    }
-
-    console.log(`📴 Removed favorite offline`);
-  }
-
-  async reorderFavorites(newOrder) {
-    // newOrder is array of { id, position }
-    const reordered = [];
-    for (const item of newOrder) {
-      const fav = this.favorites.find(f => f.id === item.id);
-      if (fav) {
-        fav.position = item.position;
-        reordered.push(fav);
+    // Sync to server if online
+    if (navigator.onLine) {
+      try {
+        await this.api.post('/api/favorites', favorite);
+      } catch (error) {
+        console.error('Failed to sync favorite to server:', error);
       }
     }
 
-    this.favorites = reordered.sort((a, b) => a.position - b.position);
-    await this.cacheToIndexedDB();
+    return favorite;
+  }
 
-    try {
-      if (navigator.onLine) {
-        await this.reorderOnline(newOrder);
+  async removeFavorite(userId, productId) {
+    const tx = this.db.transaction('favorites', 'readwrite');
+    const store = tx.objectStore('favorites');
+    const index = store.index('userProduct');
+    
+    const cursor = await index.openCursor([userId, productId]);
+    if (cursor) {
+      await cursor.delete();
+    }
+
+    // Sync to server
+    if (navigator.onLine) {
+      try {
+        await this.api.delete(`/api/favorites/${productId}`);
+      } catch (error) {
+        console.error('Failed to delete favorite from server:', error);
       }
-    } catch (error) {
-      console.error('Failed to sync reorder:', error);
     }
   }
 
-  async reorderOnline(newOrder) {
-    const token = sessionStorage.getItem('token');
-    const apiBase = window.API_BASE || '';
-
-    await fetch(`${apiBase}/api/favorites/reorder`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        userId: this.userId,
-        favorites: newOrder
-      })
-    });
-
-    console.log(`✅ Favorites reordered`);
+  async getFavorites(userId) {
+    const tx = this.db.transaction('favorites', 'readonly');
+    const store = tx.objectStore('favorites');
+    const index = store.index('userId');
+    
+    const favorites = await index.getAll(userId);
+    
+    return favorites.sort((a, b) => a.position - b.position);
   }
 
-  isFavorite(productId) {
-    return this.favorites.some(f => f.product_id === productId);
+  async reorderFavorites(userId, productIds) {
+    const tx = this.db.transaction('favorites', 'readwrite');
+    const store = tx.objectStore('favorites');
+    const index = store.index('userProduct');
+
+    for (let i = 0; i < productIds.length; i++) {
+      const cursor = await index.openCursor([userId, productIds[i]]);
+      if (cursor) {
+        const favorite = cursor.value;
+        favorite.position = i;
+        await cursor.update(favorite);
+      }
+    }
+
+    if (navigator.onLine) {
+      try {
+        await this.api.put('/api/favorites/reorder', { productIds });
+      } catch (error) {
+        console.error('Failed to sync favorite order:', error);
+      }
+    }
   }
 
-  getFavorites() {
-    return this.favorites;
+  async getFavoriteCount(userId) {
+    const tx = this.db.transaction('favorites', 'readonly');
+    const store = tx.objectStore('favorites');
+    const index = store.index('userId');
+    return await index.count(userId);
   }
 
-  getCount() {
-    return this.favorites.length;
+  async getNextPosition(userId) {
+    const favorites = await this.getFavorites(userId);
+    if (favorites.length === 0) return 0;
+    return Math.max(...favorites.map(f => f.position)) + 1;
   }
 }
 
-window.FavoritesManager = new FavoritesManager();
+window.FavoritesManager = new FavoritesManager(
+  window.DatabaseSchema.db,
+  window.API
+);
 console.log('✅ FavoritesManager loaded');

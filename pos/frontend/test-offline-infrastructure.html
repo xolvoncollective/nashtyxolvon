@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline Infrastructure Test</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+      border-bottom: 3px solid #4CAF50;
+      padding-bottom: 10px;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .test-case {
+      padding: 15px;
+      margin: 10px 0;
+      border-left: 4px solid #ddd;
+      background: #fafafa;
+    }
+    .test-case.pass {
+      border-left-color: #4CAF50;
+      background: #f1f8f4;
+    }
+    .test-case.fail {
+      border-left-color: #f44336;
+      background: #fef1f0;
+    }
+    .test-case.pending {
+      border-left-color: #ff9800;
+      background: #fff8e1;
+    }
+    .status {
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    .status.pass { background: #4CAF50; color: white; }
+    .status.fail { background: #f44336; color: white; }
+    .status.pending { background: #ff9800; color: white; }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    pre {
+      background: #263238;
+      color: #aed581;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .summary {
+      display: flex;
+      justify-content: space-around;
+      margin: 20px 0;
+    }
+    .summary-item {
+      text-align: center;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      flex: 1;
+      margin: 0 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .summary-item .number {
+      font-size: 48px;
+      font-weight: bold;
+      color: #333;
+    }
+    .summary-item .label {
+      color: #666;
+      font-size: 14px;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 Task 1: Offline Infrastructure Test Suite</h1>
+  
+  <div class="test-section">
+    <h2>Test Controls</h2>
+    <button onclick="runAllTests()">Run All Tests</button>
+    <button onclick="location.reload()">Reset</button>
+  </div>
+
+  <div class="summary" id="summary">
+    <div class="summary-item">
+      <div class="number" id="total-tests">0</div>
+      <div class="label">Total Tests</div>
+    </div>
+    <div class="summary-item">
+      <div class="number" id="passed-tests" style="color: #4CAF50;">0</div>
+      <div class="label">Passed</div>
+    </div>
+    <div class="summary-item">
+      <div class="number" id="failed-tests" style="color: #f44336;">0</div>
+      <div class="label">Failed</div>
+    </div>
+  </div>
+
+  <div class="test-section" id="test-results">
+    <h2>Test Results</h2>
+    <p>Click "Run All Tests" to start...</p>
+  </div>
+
+  <div class="test-section" id="console-output">
+    <h2>Console Output</h2>
+    <pre id="console-log"></pre>
+  </div>
+
+  <!-- Load dependencies -->
+  <script src="js/db-schema.js"></script>
+  <script src="js/services/encryption-service.js"></script>
+  <script src="js/services/cache-manager.js"></script>
+  <script src="js/services/offline-queue.js"></script>
+  <script src="js/services/sync-manager.js"></script>
+  <script src="js/services/connection-monitor.js"></script>
+  <script src="js/sw-register.js"></script>
+
+  <script>
+    // Capture console output
+    const consoleLog = [];
+    const originalLog = console.log;
+    const originalError = console.error;
+    const originalWarn = console.warn;
+
+    console.log = function(...args) {
+      consoleLog.push({ type: 'log', message: args.join(' ') });
+      originalLog.apply(console, args);
+      updateConsoleOutput();
+    };
+
+    console.error = function(...args) {
+      consoleLog.push({ type: 'error', message: args.join(' ') });
+      originalError.apply(console, args);
+      updateConsoleOutput();
+    };
+
+    console.warn = function(...args) {
+      consoleLog.push({ type: 'warn', message: args.join(' ') });
+      originalWarn.apply(console, args);
+      updateConsoleOutput();
+    };
+
+    function updateConsoleOutput() {
+      const logEl = document.getElementById('console-log');
+      logEl.textContent = consoleLog.map(log => 
+        `[${log.type.toUpperCase()}] ${log.message}`
+      ).join('\n');
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // Test suite
+    const tests = [];
+    let passed = 0;
+    let failed = 0;
+
+    function addTest(name, testFn) {
+      tests.push({ name, testFn, status: 'pending' });
+    }
+
+    function updateSummary() {
+      document.getElementById('total-tests').textContent = tests.length;
+      document.getElementById('passed-tests').textContent = passed;
+      document.getElementById('failed-tests').textContent = failed;
+    }
+
+    function displayTestResult(test, index) {
+      const resultsDiv = document.getElementById('test-results');
+      const testDiv = document.createElement('div');
+      testDiv.className = `test-case ${test.status}`;
+      testDiv.innerHTML = `
+        <span class="status ${test.status}">${test.status}</span>
+        <strong>Test ${index + 1}:</strong> ${test.name}
+        ${test.error ? `<br><code style="color: red;">${test.error}</code>` : ''}
+        ${test.details ? `<br><small>${test.details}</small>` : ''}
+      `;
+      resultsDiv.appendChild(testDiv);
+    }
+
+    async function runAllTests() {
+      const resultsDiv = document.getElementById('test-results');
+      resultsDiv.innerHTML = '<h2>Test Results</h2>';
+      passed = 0;
+      failed = 0;
+
+      for (let i = 0; i < tests.length; i++) {
+        const test = tests[i];
+        try {
+          await test.testFn();
+          test.status = 'pass';
+          test.error = null;
+          passed++;
+        } catch (error) {
+          test.status = 'fail';
+          test.error = error.message;
+          failed++;
+        }
+        displayTestResult(test, i);
+        updateSummary();
+      }
+
+      // Final summary
+      const summaryDiv = document.createElement('div');
+      summaryDiv.style.cssText = 'margin-top: 20px; padding: 20px; background: #f0f0f0; border-radius: 8px;';
+      summaryDiv.innerHTML = `
+        <h3>Test Summary</h3>
+        <p><strong>Total:</strong> ${tests.length} | 
+           <strong style="color: #4CAF50;">Passed:</strong> ${passed} | 
+           <strong style="color: #f44336;">Failed:</strong> ${failed}</p>
+        <p><strong>Success Rate:</strong> ${((passed / tests.length) * 100).toFixed(1)}%</p>
+      `;
+      resultsDiv.appendChild(summaryDiv);
+    }
+
+    // ═══════════════════════════════════════
+    // SUB-TASK 1: Dependencies (Workbox, idb)
+    // ═══════════════════════════════════════
+    addTest('1.1: Service Worker script exists', async () => {
+      const response = await fetch('/sw.js');
+      if (!response.ok) throw new Error('sw.js not found');
+    });
+
+    addTest('1.2: Workbox loaded in Service Worker', async () => {
+      const response = await fetch('/sw.js');
+      const content = await response.text();
+      if (!content.includes('workbox')) throw new Error('Workbox not found in sw.js');
+    });
+
+    // ═══════════════════════════════════════
+    // SUB-TASK 2: Service Worker Registration
+    // ═══════════════════════════════════════
+    addTest('2.1: Service Worker API available', async () => {
+      if (!('serviceWorker' in navigator)) {
+        throw new Error('Service Worker API not supported');
+      }
+    });
+
+    addTest('2.2: ServiceWorkerManager loaded', async () => {
+      if (!window.SWManager) {
+        throw new Error('ServiceWorkerManager not initialized');
+      }
+    });
+
+    addTest('2.3: Service Worker can register', async () => {
+      if (!window.SWManager.registration) {
+        throw new Error('Service Worker not registered');
+      }
+    });
+
+    // ═══════════════════════════════════════
+    // SUB-TASK 3: IndexedDB Schema
+    // ═══════════════════════════════════════
+    addTest('3.1: IndexedDB API available', async () => {
+      if (!window.indexedDB) {
+        throw new Error('IndexedDB not supported');
+      }
+    });
+
+    addTest('3.2: DatabaseSchema loaded', async () => {
+      if (!window.DatabaseSchema) {
+        throw new Error('DatabaseSchema not initialized');
+      }
+    });
+
+    addTest('3.3: Database opens successfully', async () => {
+      const db = await window.DatabaseSchema.getDatabase();
+      if (!db) throw new Error('Database failed to open');
+    });
+
+    addTest('3.4: Products store exists', async () => {
+      const db = await window.DatabaseSchema.getDatabase();
+      if (!db.objectStoreNames.contains('products')) {
+        throw new Error('products store not found');
+      }
+    });
+
+    addTest('3.5: Categories store exists', async () => {
+      const db = await window.DatabaseSchema.getDatabase();
+      if (!db.objectStoreNames.contains('categories')) {
+        throw new Error('categories store not found');
+      }
+    });
+
+    addTest('3.6: Offline queue store exists', async () => {
+      const db = await window.DatabaseSchema.getDatabase();
+      if (!db.objectStoreNames.contains('offline_queue')) {
+        throw new Error('offline_queue store not found');
+      }
+    });
+
+    addTest('3.7: Favorites store exists', async () => {
+      const db = await window.DatabaseSchema.getDatabase();
+      if (!db.objectStoreNames.contains('favorites')) {
+        throw new Error('favorites store not found');
+      }
+    });
+
+    addTest('3.8: Recent items store exists', async () => {
+      const db = await window.DatabaseSchema.getDatabase();
+      if (!db.objectStoreNames.contains('recent_items')) {
+        throw new Error('recent_items store not found');
+      }
+    });
+
+    addTest('3.9: Keyboard shortcuts store exists', async () => {
+      const db = await window.DatabaseSchema.getDatabase();
+      if (!db.objectStoreNames.contains('keyboard_shortcuts')) {
+        throw new Error('keyboard_shortcuts store not found');
+      }
+    });
+
+    addTest('3.10: Settings store exists', async () => {
+      const db = await window.DatabaseSchema.getDatabase();
+      if (!db.objectStoreNames.contains('settings')) {
+        throw new Error('settings store not found');
+      }
+    });
+
+    addTest('3.11: Encryption keys store exists', async () => {
+      const db = await window.DatabaseSchema.getDatabase();
+      if (!db.objectStoreNames.contains('encryption_keys')) {
+        throw new Error('encryption_keys store not found');
+      }
+    });
+
+    // ═══════════════════════════════════════
+    // SUB-TASK 4: Cache Manager
+    // ═══════════════════════════════════════
+    addTest('4.1: CacheManager loaded', async () => {
+      if (!window.CacheManager) {
+        throw new Error('CacheManager not initialized');
+      }
+    });
+
+    addTest('4.2: CacheManager has syncAll method', async () => {
+      if (typeof window.CacheManager.syncAll !== 'function') {
+        throw new Error('CacheManager.syncAll method not found');
+      }
+    });
+
+    addTest('4.3: CacheManager has startSync method', async () => {
+      if (typeof window.CacheManager.startSync !== 'function') {
+        throw new Error('CacheManager.startSync method not found');
+      }
+    });
+
+    // ═══════════════════════════════════════
+    // SUB-TASK 5: Encryption Service
+    // ═══════════════════════════════════════
+    addTest('5.1: Web Crypto API available', async () => {
+      if (!window.crypto || !window.crypto.subtle) {
+        throw new Error('Web Crypto API not supported');
+      }
+    });
+
+    addTest('5.2: EncryptionService loaded', async () => {
+      if (!window.EncryptionService) {
+        throw new Error('EncryptionService not initialized');
+      }
+    });
+
+    addTest('5.3: EncryptionService can encrypt/decrypt', async () => {
+      const userId = 'test-user-' + Date.now();
+      const sessionToken = 'test-token-' + Date.now();
+      
+      // Derive key
+      await window.EncryptionService.deriveKey(userId, sessionToken);
+      
+      // Test encrypt/decrypt
+      const plaintext = 'Hello, World!';
+      const encrypted = await window.EncryptionService.encrypt(userId, plaintext);
+      const decrypted = await window.EncryptionService.decrypt(userId, encrypted);
+      
+      if (decrypted !== plaintext) {
+        throw new Error('Encryption/decryption mismatch');
+      }
+      
+      // Cleanup
+      window.EncryptionService.clearKeys(userId);
+    });
+
+    // ═══════════════════════════════════════
+    // SUB-TASK 6: Update Notification UI
+    // ═══════════════════════════════════════
+    addTest('6.1: Update notification can be created', async () => {
+      if (typeof window.SWManager.createUpdateModal !== 'function') {
+        throw new Error('createUpdateModal method not found');
+      }
+    });
+
+    addTest('6.2: Update activation method exists', async () => {
+      if (typeof window.SWManager.activateUpdate !== 'function') {
+        throw new Error('activateUpdate method not found');
+      }
+    });
+
+    // Update summary initially
+    updateSummary();
+
+    console.log('Test suite initialized with', tests.length, 'tests');
+  </script>
+</body>
+</html>

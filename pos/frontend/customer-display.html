@@ -3,347 +3,173 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Customer Display - NASHTY OS</title>
+  <title>Customer Display - Nashty POS</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      font-family: 'Inter', sans-serif; 
-      background: var(--bg-color, #1a1a1a);
-      color: var(--text-color, #ffffff);
-      overflow: hidden;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #ffffff;
+      color: #000000;
       height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
-    .header { 
-      padding: 24px;
-      text-align: center;
-      border-bottom: 2px solid var(--accent-color, #f59e0b);
+
+    #outlet-logo {
+      max-width: 200px;
+      max-height: 80px;
+      margin: 20px auto;
+      display: block;
     }
-    .logo { max-width: 200px; max-height: 80px; margin-bottom: 12px; }
-    .restaurant-name { font-size: 28px; font-weight: 700; }
-    .tagline { font-size: 16px; opacity: 0.8; margin-top: 8px; }
-    .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-    .cart-view { flex: 1; display: flex; flex-direction: column; padding: 24px; }
-    .cart-items { flex: 1; overflow-y: auto; }
-    .cart-item { 
-      display: flex; 
-      justify-content: space-between; 
-      padding: 16px 24px;
-      margin-bottom: 12px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 8px;
-      font-size: 24px;
-    }
-    .item-info { display: flex; gap: 16px; align-items: center; flex: 1; }
-    .item-qty { 
-      background: var(--accent-color, #f59e0b);
-      color: #000;
-      width: 40px;
-      height: 40px;
+
+    #display-content {
+      flex: 1;
       display: flex;
+      flex-direction: column;
+      justify-content: center;
       align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-      font-weight: 700;
+      padding: 40px;
+      font-size: 24pt;
     }
-    .item-name { flex: 1; font-weight: 500; }
-    .item-price { font-weight: 600; }
-    .totals { 
-      background: rgba(255,255,255,0.08);
-      padding: 24px;
-      border-radius: 12px;
-      margin-top: 24px;
+
+    .idle-screen {
+      text-align: center;
     }
-    .total-row { 
-      display: flex; 
-      justify-content: space-between; 
-      padding: 12px 0;
-      font-size: 24px;
+
+    .idle-logo {
+      max-width: 300px;
+      margin-bottom: 30px;
     }
-    .total-row.grand { 
-      font-size: 36px; 
-      font-weight: 700; 
-      border-top: 2px solid var(--accent-color, #f59e0b);
-      padding-top: 16px;
-      margin-top: 8px;
+
+    .idle-tagline {
+      font-size: 36pt;
+      font-weight: bold;
+      animation: pulse 2s infinite;
     }
-    .idle-view { 
-      display: none; 
-      flex: 1; 
-      align-items: center; 
-      justify-content: center;
-      padding: 48px;
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
     }
-    .slideshow { 
-      width: 100%; 
-      height: 100%; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center;
+
+    .cart-view {
+      width: 100%;
+      max-width: 800px;
     }
-    .slideshow img { 
-      max-width: 90%; 
-      max-height: 90%; 
-      object-fit: contain;
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+
+    .items-list {
+      max-height: 60vh;
+      overflow-y: auto;
+      margin-bottom: 30px;
     }
-    .empty-cart { 
-      text-align: center; 
-      padding: 48px; 
-      font-size: 24px;
-      opacity: 0.6;
+
+    .display-item {
+      padding: 20px;
+      border-bottom: 2px solid #e0e0e0;
     }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    .cart-item { animation: fadeIn 0.3s ease; }
+
+    .item-name {
+      font-size: 28pt;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .item-details {
+      display: flex;
+      justify-content: space-between;
+      font-size: 24pt;
+      color: #666;
+    }
+
+    .cart-totals {
+      border-top: 4px solid #333;
+      padding-top: 20px;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 28pt;
+      margin: 15px 0;
+    }
+
+    .grand-total {
+      font-size: 36pt;
+      font-weight: bold;
+      color: #4CAF50;
+      border-top: 2px solid #333;
+      padding-top: 20px;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
-  <div class="header">
-    <img id="logo" class="logo" src="" alt="" style="display: none;">
-    <div class="restaurant-name" id="restaurant-name">NASHTY OS</div>
-    <div class="tagline" id="tagline">Point of Sale System</div>
-  </div>
-
-  <div class="content">
-    <!-- Cart View (Active Order) -->
-    <div class="cart-view" id="cart-view">
-      <div class="cart-items" id="cart-items">
-        <div class="empty-cart">Menunggu pesanan...</div>
-      </div>
-      <div class="totals" id="totals" style="display: none;">
-        <div class="total-row">
-          <span>Subtotal</span>
-          <span id="subtotal">Rp 0</span>
-        </div>
-        <div class="total-row">
-          <span>Pajak (10%)</span>
-          <span id="tax">Rp 0</span>
-        </div>
-        <div class="total-row grand">
-          <span>TOTAL</span>
-          <span id="grand-total">Rp 0</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Idle View (Promotional Slideshow) -->
-    <div class="idle-view" id="idle-view">
-      <div class="slideshow" id="slideshow">
-        <img id="slide-image" src="" alt="Promo">
-      </div>
+  <img id="outlet-logo" src="/logo.png" alt="Logo" />
+  <div id="display-content">
+    <div class="idle-screen">
+      <img src="/logo.png" class="idle-logo" />
+      <div class="idle-tagline">Selamat Datang!</div>
     </div>
   </div>
 
   <script>
-    // Configuration
-    const IDLE_TIMEOUT = 30000; // 30 seconds
-    const SLIDE_INTERVAL = 10000; // 10 seconds
-    
-    let idleTimer = null;
-    let slideTimer = null;
-    let currentSlideIndex = 0;
-    let promoImages = [];
-    let isIdle = false;
-
-    // Connect to parent window via BroadcastChannel
-    const channel = new BroadcastChannel('pos-customer-display');
-
-    // Listen for cart updates from POS
-    channel.onmessage = (event) => {
-      const { type, data } = event.data;
-      
-      switch (type) {
-        case 'CART_UPDATE':
-          updateCart(data);
-          break;
-        case 'CART_CLEAR':
-          clearCart();
-          break;
-        case 'SETTINGS_UPDATE':
-          applySettings(data);
-          break;
-        case 'PROMO_IMAGES':
-          promoImages = data;
-          break;
+    // Listen for cart updates from main window
+    window.addEventListener('message', (event) => {
+      if (event.data.type === 'cart-update') {
+        updateCart(event.data.cart);
       }
-    };
+    });
 
-    // Update cart display
     function updateCart(cart) {
-      exitIdleMode();
-      resetIdleTimer();
-
-      const cartItemsEl = document.getElementById('cart-items');
-      const totalsEl = document.getElementById('totals');
-
-      if (!cart || !cart.items || cart.items.length === 0) {
-        cartItemsEl.innerHTML = '<div class="empty-cart">Menunggu pesanan...</div>';
-        totalsEl.style.display = 'none';
+      const container = document.getElementById('display-content');
+      
+      if (!cart || cart.items.length === 0) {
+        showIdleScreen();
         return;
       }
 
-      // Render items
-      cartItemsEl.innerHTML = cart.items.map(item => `
-        <div class="cart-item">
-          <div class="item-info">
-            <div class="item-qty">${item.quantity}</div>
-            <div class="item-name">${item.name}</div>
+      const itemsHtml = cart.items.map(item => `
+        <div class="display-item">
+          <div class="item-name">${item.name}</div>
+          <div class="item-details">
+            <span>${item.quantity}x</span>
+            <span>Rp ${item.price.toLocaleString()}</span>
+            <span>Rp ${(item.price * item.quantity).toLocaleString()}</span>
           </div>
-          <div class="item-price">${formatCurrency(item.price * item.quantity)}</div>
         </div>
       `).join('');
 
-      // Render totals
-      const subtotal = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      const tax = subtotal * 0.1;
-      const total = subtotal + tax;
-
-      document.getElementById('subtotal').textContent = formatCurrency(subtotal);
-      document.getElementById('tax').textContent = formatCurrency(tax);
-      document.getElementById('grand-total').textContent = formatCurrency(total);
-      totalsEl.style.display = 'block';
-
-      // Scroll to bottom if more than 8 items
-      if (cart.items.length > 8) {
-        cartItemsEl.scrollTop = cartItemsEl.scrollHeight;
-      }
+      container.innerHTML = `
+        <div class="cart-view">
+          <div class="items-list">${itemsHtml}</div>
+          <div class="cart-totals">
+            <div class="total-row">
+              <span>Subtotal:</span>
+              <span>Rp ${cart.subtotal.toLocaleString()}</span>
+            </div>
+            <div class="total-row grand-total">
+              <span>TOTAL:</span>
+              <span>Rp ${cart.total.toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+      `;
     }
 
-    // Clear cart
-    function clearCart() {
-      const cartItemsEl = document.getElementById('cart-items');
-      const totalsEl = document.getElementById('totals');
-      
-      cartItemsEl.innerHTML = '<div class="empty-cart">Menunggu pesanan...</div>';
-      totalsEl.style.display = 'none';
-      
-      resetIdleTimer();
-    }
-
-    // Format currency
-    function formatCurrency(amount) {
-      return 'Rp ' + amount.toLocaleString('id-ID');
-    }
-
-    // Idle mode management
-    function resetIdleTimer() {
-      clearTimeout(idleTimer);
-      idleTimer = setTimeout(() => {
-        enterIdleMode();
-      }, IDLE_TIMEOUT);
-    }
-
-    function enterIdleMode() {
-      if (isIdle) return;
-      isIdle = true;
-
-      document.getElementById('cart-view').style.display = 'none';
-      document.getElementById('idle-view').style.display = 'flex';
-
-      if (promoImages.length > 0) {
-        startSlideshow();
-      } else {
-        // Show logo fallback
-        const logoUrl = document.getElementById('logo').src;
-        if (logoUrl) {
-          document.getElementById('slide-image').src = logoUrl;
-        }
-      }
-    }
-
-    function exitIdleMode() {
-      if (!isIdle) return;
-      isIdle = false;
-
-      stopSlideshow();
-      document.getElementById('cart-view').style.display = 'flex';
-      document.getElementById('idle-view').style.display = 'none';
-    }
-
-    // Slideshow management
-    function startSlideshow() {
-      if (promoImages.length === 0) return;
-      
-      showSlide(currentSlideIndex);
-      
-      slideTimer = setInterval(() => {
-        currentSlideIndex = (currentSlideIndex + 1) % promoImages.length;
-        showSlide(currentSlideIndex);
-      }, SLIDE_INTERVAL);
-    }
-
-    function stopSlideshow() {
-      clearInterval(slideTimer);
-      currentSlideIndex = 0;
-    }
-
-    function showSlide(index) {
-      const img = document.getElementById('slide-image');
-      img.style.opacity = '0';
-      
-      setTimeout(() => {
-        img.src = promoImages[index];
-        img.style.transition = 'opacity 0.5s';
-        img.style.opacity = '1';
-      }, 300);
-    }
-
-    // Apply settings (colors, branding)
-    function applySettings(settings) {
-      if (settings.backgroundColor) {
-        document.body.style.setProperty('--bg-color', settings.backgroundColor);
-      }
-      if (settings.textColor) {
-        document.body.style.setProperty('--text-color', settings.textColor);
-      }
-      if (settings.accentColor) {
-        document.body.style.setProperty('--accent-color', settings.accentColor);
-      }
-      if (settings.logo) {
-        const logo = document.getElementById('logo');
-        logo.src = settings.logo;
-        logo.style.display = 'block';
-      }
-      if (settings.restaurantName) {
-        document.getElementById('restaurant-name').textContent = settings.restaurantName;
-      }
-      if (settings.tagline) {
-        document.getElementById('tagline').textContent = settings.tagline;
-      }
-    }
-
-    // Request initial data from parent
-    window.addEventListener('load', () => {
-      channel.postMessage({ type: 'DISPLAY_READY' });
-      resetIdleTimer();
-    });
-
-    // Handle window close
-    window.addEventListener('beforeunload', () => {
-      channel.postMessage({ type: 'DISPLAY_CLOSING' });
-      channel.close();
-    });
-
-    // Validate contrast ratio
-    function validateContrast(bgColor, textColor) {
-      // Simple luminance calculation
-      const getLuminance = (hex) => {
-        const rgb = parseInt(hex.slice(1), 16);
-        const r = (rgb >> 16) & 0xff;
-        const g = (rgb >> 8) & 0xff;
-        const b = (rgb >> 0) & 0xff;
-        return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-      };
-
-      const bgLum = getLuminance(bgColor);
-      const textLum = getLuminance(textColor);
-      const ratio = bgLum > textLum 
-        ? (bgLum + 0.05) / (textLum + 0.05)
-        : (textLum + 0.05) / (bgLum + 0.05);
-
-      return ratio >= 4.5; // WCAG AA standard
+    function showIdleScreen() {
+      const container = document.getElementById('display-content');
+      container.innerHTML = `
+        <div class="idle-screen">
+          <img src="/logo.png" class="idle-logo" />
+          <div class="idle-tagline">Selamat Datang!</div>
+        </div>
+      `;
     }
   </script>
 </body>

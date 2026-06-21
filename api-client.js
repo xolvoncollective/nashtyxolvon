@@ -813,10 +813,43 @@ const API = {
         return { success: true, logs: data || [] };
       }
 
-      // Costs endpoints (table does not exist yet - placeholder)
+      // Costs endpoints (Local Storage Mock)
       if (endpoint.startsWith('/costs')) {
-        console.warn('[API] costs table does not exist yet');
-        return { success: true, costs: [] };
+        let costs = JSON.parse(localStorage.getItem('nashty_costs') || '[]');
+        if (method === 'POST') {
+          body.id = 'cost_' + Date.now();
+          body.created_at = new Date().toISOString();
+          costs.push(body);
+          localStorage.setItem('nashty_costs', JSON.stringify(costs));
+          return { success: true, costs };
+        }
+        if (method === 'DELETE') {
+          const idMatch = endpoint.match(/\/costs\/([^?]+)/);
+          if (idMatch) {
+            costs = costs.filter(c => c.id !== idMatch[1]);
+            localStorage.setItem('nashty_costs', JSON.stringify(costs));
+          }
+          return { success: true };
+        }
+        if (method === 'PUT') {
+          const idMatch = endpoint.match(/\/costs\/([^?]+)/);
+          if (idMatch) {
+            const index = costs.findIndex(c => c.id === idMatch[1]);
+            if (index !== -1) {
+              costs[index] = { ...costs[index], ...body, id: idMatch[1] };
+              localStorage.setItem('nashty_costs', JSON.stringify(costs));
+              return { success: true, cost: costs[index] };
+            }
+          }
+          return { success: false, error: 'Cost not found' };
+        }
+        
+        // Filter for GET
+        const urlObj = new URL('http://dummy' + endpoint);
+        const category = urlObj.searchParams.get('category');
+        if (category) costs = costs.filter(c => c.category === category);
+        
+        return { success: true, costs };
       }
 
       // Health check

@@ -24,8 +24,13 @@ const API = {
 
   async request(endpoint, options = {}) {
     try {
-      const headers = { 'Content-Type': 'application/json', ...options.headers };
-      if (API.session.token) headers['Authorization'] = `Bearer ${API.session.token}`;
+      const headers = {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        ...options.headers
+      };
+      if (API.session.token) headers['x-nashty-token'] = API.session.token;
       const response = await fetch(`${API_BASE_URL}${endpoint}`, { headers, ...options });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Request failed');
