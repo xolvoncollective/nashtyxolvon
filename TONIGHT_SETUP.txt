@@ -1,0 +1,224 @@
+╔═══════════════════════════════════════════════════════════╗
+║                                                           ║
+║   🚀 NASHTY OS - TONIGHT'S SETUP (30 MINUTES)           ║
+║                                                           ║
+╚═══════════════════════════════════════════════════════════╝
+
+⏱️  TOTAL TIME: 30 minutes
+📅 DATE: June 21, 2026 (Tonight before sleep)
+🎯 GOAL: Backend ready for restaurant launch tomorrow
+
+═══════════════════════════════════════════════════════════
+
+⚠️  CRITICAL: Complete ALL steps tonight!
+
+═══════════════════════════════════════════════════════════
+
+STEP 1: DEPLOY EDGE FUNCTIONS (10 minutes)
+───────────────────────────────────────────────────────────
+
+Open Terminal:
+```bash
+cd C:\Users\farsya\NashtyBerubah
+bash scripts/deploy-edge-functions.sh
+```
+
+What it does:
+✅ Checks Supabase CLI installed
+✅ Deploys 7 Edge Functions
+✅ Sets JWT secrets (answer 'y' when prompted)
+
+Expected Output:
+✅ Successful: 7
+✅ Failed: 0
+✅ "ALL EDGE FUNCTIONS DEPLOYED SUCCESSFULLY!"
+
+───────────────────────────────────────────────────────────
+
+STEP 2: CREATE STORAGE BUCKETS (5 minutes)
+───────────────────────────────────────────────────────────
+
+Open Browser:
+https://supabase.com/dashboard/project/mzucfndifneytbesirkx/storage
+
+Create Bucket 1:
+- Name: receipts
+- Public: ✅ YES
+- File size limit: 2 MB
+- MIME types: image/png, image/jpeg
+
+Create Bucket 2:
+- Name: promotions
+- Public: ✅ YES
+- File size limit: 5 MB
+- MIME types: image/png, image/jpeg, image/gif
+
+───────────────────────────────────────────────────────────
+
+STEP 3: POPULATE INITIAL DATA (5 minutes)
+───────────────────────────────────────────────────────────
+
+Open Browser:
+https://supabase.com/dashboard/project/mzucfndifneytbesirkx/editor
+
+Steps:
+1. Click "New query"
+2. Open file: database/initial-data-production.sql
+3. Copy entire content (Ctrl+A, Ctrl+C)
+4. Paste into SQL editor (Ctrl+V)
+5. Click "Run" or press Ctrl+Enter
+6. Wait for completion (~30 seconds)
+
+Expected Output:
+✅ Users created: 5
+✅ Categories created: 5
+✅ Products created: 17
+✅ Modifiers created: 8
+
+───────────────────────────────────────────────────────────
+
+STEP 4: TEST SYSTEM (5 minutes)
+───────────────────────────────────────────────────────────
+
+Open Terminal:
+```bash
+bash scripts/test-production-system.sh
+```
+
+Expected Output:
+✅ Passed: 25+
+✅ Failed: 0
+✅ "SYSTEM READY FOR PRODUCTION!"
+
+If failed:
+- Check which tests failed
+- Fix issues (see MANUAL_SETUP_GUIDE.md)
+- Re-run test script
+
+───────────────────────────────────────────────────────────
+
+STEP 5: MANUAL BROWSER TEST (5 minutes)
+───────────────────────────────────────────────────────────
+
+Test 1: Login
+- Open: https://nashtyxolvon2.pages.dev
+- Login: admin1 / nashty1111
+- Expected: Dashboard with 5 system cards
+
+Test 2: POS
+- Click: POS card
+- Select: Citra Dewi (PIN: 8888)
+- Start Shift: Kas awal Rp 500.000
+- Expected: Products grid loads (17+ items)
+
+Test 3: Create Order
+- Click: "Ayam Bakar Madu"
+- Select: "Pedas Sedang"
+- Add: "Nasi Putih"
+- Click: "Add to Cart"
+- Set Table: T01
+- Set Payment: Tunai
+- Enter: Rp 100000
+- Click: "Complete Payment"
+- Expected: Receipt modal appears
+
+Test 4: KDS Real-Time
+- Open new tab: https://nashtyxolvon2.pages.dev/kds/frontend
+- Enter PIN: 9999
+- Expected: Test order appears
+- Swipe order right
+- Expected: Order moves to completed
+
+───────────────────────────────────────────────────────────
+
+STEP 6: GIT PUSH (5 minutes)
+───────────────────────────────────────────────────────────
+
+⚠️  ONLY PUSH IF ALL TESTS PASSED!
+
+Open Terminal:
+```bash
+git push origin main
+```
+
+What happens:
+1. GitHub receives push
+2. Cloudflare auto-deploys (2-3 minutes)
+3. New version live at nashtyxolvon2.pages.dev
+
+Monitor Deploy:
+https://dash.cloudflare.com/pages/nashtyxolvon2
+
+Expected:
+✅ Build successful
+✅ Deployment complete
+✅ Site live
+
+───────────────────────────────────────────────────────────
+
+✅ FINAL VERIFICATION
+───────────────────────────────────────────────────────────
+
+After Cloudflare deploy completes:
+
+1. Open: https://nashtyxolvon2.pages.dev
+2. Login: admin1 / nashty1111
+3. Test complete order flow again
+4. Verify KDS receives order
+5. Check browser console (F12) - no errors
+
+If all OK:
+✅ YOU ARE READY FOR LAUNCH TOMORROW! 🚀
+
+───────────────────────────────────────────────────────────
+
+🎯 SUCCESS CHECKLIST
+───────────────────────────────────────────────────────────
+
+Tonight (Before Sleep):
+[ ] Edge Functions deployed (7/7)
+[ ] Storage buckets created (2/2)
+[ ] Initial data populated (5 users, 17 products)
+[ ] Test script passed (25+ tests)
+[ ] Manual browser test passed
+[ ] Git pushed to GitHub
+[ ] Cloudflare deployed
+[ ] Final verification OK
+
+Tomorrow (Launch Day):
+[ ] Arrive at Galaxy Mall 8:00 AM
+[ ] Hardware setup (30 min)
+[ ] Staff training (2 hours)
+[ ] First customer 12:00 PM
+[ ] Target: 50+ transactions
+
+───────────────────────────────────────────────────────────
+
+📞 EMERGENCY HELP
+───────────────────────────────────────────────────────────
+
+If stuck, check these files:
+- MANUAL_SETUP_GUIDE.md (Complete step-by-step)
+- QUICK_FIX_COMMANDS.md (Emergency SQL queries)
+- PRODUCTION_DEPLOYMENT_PLAN.md (Detailed launch plan)
+
+Supabase Dashboard:
+https://supabase.com/dashboard/project/mzucfndifneytbesirkx
+
+Cloudflare Dashboard:
+https://dash.cloudflare.com/pages/nashtyxolvon2
+
+───────────────────────────────────────────────────────────
+
+💪 YOU GOT THIS!
+
+Complete these 6 steps tonight (30 minutes)
+Tomorrow: RESTAURANT LAUNCH! 🔥
+
+───────────────────────────────────────────────────────────
+
+Last Updated: June 21, 2026 - 23:00 WIB
+Status: Ready to Execute
+Next: Follow steps above sequentially
+
+═══════════════════════════════════════════════════════════

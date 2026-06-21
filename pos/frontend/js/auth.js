@@ -2,6 +2,14 @@
        LOGIN
     ════════════════════════ */
     async function initLogin() {
+      // Auto-login staff if session already exists
+      if (API.session && API.session.user && API.session.token) {
+        console.log('✓ Found active staff session, auto-resuming...');
+        doLogin(API.session.user);
+        return;
+      }
+      
+      // Fallback to launcher auth for staff selection
       if (typeof NASHTY_AUTH !== 'undefined' && NASHTY_AUTH.hasValidAuth()) {
         const user = NASHTY_AUTH.getUser();
         const outlet = NASHTY_AUTH.getOutlet();
@@ -17,7 +25,13 @@
       if (authData && authData.outlet) {
         API.session.tenantId = authData.user.tenantId || authData.user.tenant_id || '00000000-0000-0000-0000-000000000001';
         API.session.outletId = authData.outlet.id || authData.outlet.outlet_id || '00000000-0000-0000-0000-000000000002';
-        loadStaff();
+        
+        // Check if we can auto-login
+        if (API.session && API.session.user && API.session.token) {
+           doLogin(API.session.user);
+        } else {
+           loadStaff();
+        }
       }
     };
 

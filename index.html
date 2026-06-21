@@ -834,6 +834,20 @@
       }
     });
     
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'LOGOUT_REQUEST') {
+        console.log('📡 Logout request received from iframe app');
+        handleLogout();
+        
+        // Remove iframe container
+        const appContainer = document.getElementById('spa-app-container');
+        if (appContainer) appContainer.remove();
+        
+        const authWrapper = document.querySelector('.auth-wrapper');
+        if (authWrapper) authWrapper.style.display = 'flex';
+      }
+    });
+    
     function broadcastSessionUpdate() {
       authChannel.postMessage({
         type: 'SESSION_UPDATED',
