@@ -640,6 +640,9 @@ const API = {
         if (options.method === 'PUT') return await API.settings.update(JSON.parse(options.body).settings);
         return await API.settings.get();
       }
+      if (endpoint.startsWith('/health')) {
+        return { status: 'ok', message: 'Pure Supabase is online' };
+      }
       if (endpoint.startsWith('/activity-logs')) {
         const { data } = await API.supabase.from('activity_logs').select('*')
           .eq('tenant_id', API.session.tenantId).order('created_at', { ascending: false }).limit(20);
