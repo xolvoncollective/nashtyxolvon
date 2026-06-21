@@ -17,7 +17,7 @@ async function testPINAuthentication() {
     { name: 'Manager', pin: '1212', expected: true },
     { name: 'Kasir', pin: '8888', expected: true },
     { name: 'Owner', pin: '9999', expected: true },
-    { name: 'Kasir', pin: '1234', expected: false } // Wrong PIN
+    { name: 'Invalid', pin: '1234', expected: false } // Wrong PIN
   ];
 
   for (const test of testCases) {
@@ -26,12 +26,13 @@ async function testPINAuthentication() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`  // REQUIRED by Edge Function
         },
         body: JSON.stringify({
-          type: 'pin',
-          name: test.name,
-          pin: test.pin
+          action: 'pin-login',
+          pin: test.pin,
+          outletId: '00000000-0000-0000-0000-000000000002'
         })
       });
 
@@ -39,15 +40,15 @@ async function testPINAuthentication() {
       
       if (test.expected) {
         if (response.ok && data.token) {
-          console.log(`✓ ${test.name} with PIN ${test.pin}: SUCCESS`);
+          console.log(`✓ ${test.name} with PIN ${test.pin}: SUCCESS (user: ${data.user?.name})`);
         } else {
-          console.log(`✗ ${test.name} with PIN ${test.pin}: FAILED (should work)`);
+          console.log(`✗ ${test.name} with PIN ${test.pin}: FAILED (${data.error || 'no token'})`);
         }
       } else {
         if (!response.ok) {
-          console.log(`✓ ${test.name} with wrong PIN ${test.pin}: Correctly rejected`);
+          console.log(`✓ Wrong PIN ${test.pin}: Correctly rejected`);
         } else {
-          console.log(`✗ ${test.name} with wrong PIN ${test.pin}: SECURITY ISSUE (should fail)`);
+          console.log(`✗ Wrong PIN ${test.pin}: SECURITY ISSUE (should fail but got: ${data.user?.name})`);
         }
       }
     } catch (error) {
