@@ -12,8 +12,6 @@
 -- 5. Verify success messages
 -- =====================================================================
 
-BEGIN;
-
 -- ─────────────────────────────────────────────────────────────────────
 -- PART 1: CREATE MISSING TABLES
 -- ─────────────────────────────────────────────────────────────────────
@@ -88,7 +86,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-RAISE NOTICE '✅ Part 1: All 4 tables created (favorites, outlet_settings, token_blacklist, analytics_cache)';
+DO $$
+BEGIN
+  RAISE NOTICE '✅ Part 1: All 4 tables created (favorites, outlet_settings, token_blacklist, analytics_cache)';
+END $$;
 
 -- ─────────────────────────────────────────────────────────────────────
 -- PART 2: DEPLOY PERFORMANCE INDEXES
@@ -143,7 +144,10 @@ CREATE INDEX IF NOT EXISTS idx_activity_logs_user ON activity_logs(user_id, crea
 CREATE INDEX IF NOT EXISTS idx_activity_logs_entity ON activity_logs(entity_type, entity_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_activity_logs_action ON activity_logs(tenant_id, action, created_at DESC);
 
-RAISE NOTICE '✅ Part 2: 35+ performance indexes deployed';
+DO $$
+BEGIN
+  RAISE NOTICE '✅ Part 2: 35+ performance indexes deployed';
+END $$;
 
 -- ─────────────────────────────────────────────────────────────────────
 -- PART 3: RLS POLICIES & TRIGGERS
@@ -213,7 +217,10 @@ DROP POLICY IF EXISTS "analytics_cache_service_role" ON analytics_cache;
 CREATE POLICY "analytics_cache_service_role" ON analytics_cache
   USING (auth.role() = 'service_role');
 
-RAISE NOTICE '✅ Part 3: RLS policies and triggers configured';
+DO $$
+BEGIN
+  RAISE NOTICE '✅ Part 3: RLS policies and triggers configured';
+END $$;
 
 -- ─────────────────────────────────────────────────────────────────────
 -- PART 4: STORAGE BUCKETS
@@ -269,31 +276,31 @@ DROP POLICY IF EXISTS "promotions_auth_update" ON storage.objects;
 CREATE POLICY "promotions_auth_update" ON storage.objects
   FOR UPDATE USING (bucket_id = 'promotions' AND (auth.role() = 'authenticated' OR auth.role() = 'service_role'));
 
-RAISE NOTICE '✅ Part 4: Storage buckets configured (receipts, promotions)';
+DO $$
+BEGIN
+  RAISE NOTICE '✅ Part 4: Storage buckets configured (receipts, promotions)';
+END $$;
 
 -- ─────────────────────────────────────────────────────────────────────
--- PART 5: VACUUM ANALYZE (Optimize Query Planner)
+-- PART 5: OPTIMIZE DATABASE (Run separately after main script)
 -- ─────────────────────────────────────────────────────────────────────
-
-VACUUM ANALYZE tenants;
-VACUUM ANALYZE outlets;
-VACUUM ANALYZE users;
-VACUUM ANALYZE products;
-VACUUM ANALYZE categories;
-VACUUM ANALYZE orders;
-VACUUM ANALYZE order_items;
-VACUUM ANALYZE payments;
-VACUUM ANALYZE shifts;
-VACUUM ANALYZE members;
-VACUUM ANALYZE activity_logs;
-VACUUM ANALYZE favorites;
-VACUUM ANALYZE outlet_settings;
-VACUUM ANALYZE token_blacklist;
-VACUUM ANALYZE analytics_cache;
-
-RAISE NOTICE '✅ Part 5: Database optimized (VACUUM ANALYZE complete)';
-
-COMMIT;
+-- NOTE: VACUUM cannot run inside a transaction, run these separately:
+--
+-- VACUUM ANALYZE tenants;
+-- VACUUM ANALYZE outlets;
+-- VACUUM ANALYZE users;
+-- VACUUM ANALYZE products;
+-- VACUUM ANALYZE categories;
+-- VACUUM ANALYZE orders;
+-- VACUUM ANALYZE order_items;
+-- VACUUM ANALYZE payments;
+-- VACUUM ANALYZE shifts;
+-- VACUUM ANALYZE members;
+-- VACUUM ANALYZE activity_logs;
+-- VACUUM ANALYZE favorites;
+-- VACUUM ANALYZE outlet_settings;
+-- VACUUM ANALYZE token_blacklist;
+-- VACUUM ANALYZE analytics_cache;
 
 -- ─────────────────────────────────────────────────────────────────────
 -- SUCCESS SUMMARY
