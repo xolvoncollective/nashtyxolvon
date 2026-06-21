@@ -568,8 +568,8 @@
         // Production: wait for postMessage then redirect
         setTimeout(() => {
           if (!this.validateSession()) {
-            console.warn('[AUTH v2] No auth received, redirecting to launcher');
-            this.redirectToLauncher();
+            console.warn('[AUTH v2] No auth received. API requests will fail securely.');
+            // this.redirectToLauncher(); // Disabled: let the API 401 handle the redirect if needed
           }
         }, 5000);
       }

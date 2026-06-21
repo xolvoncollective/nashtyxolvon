@@ -210,8 +210,8 @@
         // Production: wait for postMessage then redirect (increased timeout)
         setTimeout(function() {
           if (!hasValidAuth()) {
-            console.warn('[NASHTY AUTH] Still no auth after waiting, redirecting to launcher');
-            redirectToLauncher();
+            console.warn('[NASHTY AUTH] Still no auth after waiting. API requests will fail securely.');
+            // redirectToLauncher(); // Disabled: let the API 401 handle the redirect if needed
           }
         }, 5000); // Increased from 2s to 5s to allow proper auth initialization
       }
