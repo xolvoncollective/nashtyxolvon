@@ -99,6 +99,11 @@
         API.session.user = staff;
         API.session.outletId = staff.outletId || '00000000-0000-0000-0000-000000000002';
         API.session.tenantId = staff.tenantId || '00000000-0000-0000-0000-000000000001';
+        
+        // Prevent shared/auth.js from redirecting out after 5 seconds
+        localStorage.setItem('nashty_token', API.session.token || 'pos-session-token');
+        localStorage.setItem('nashty_user', JSON.stringify(staff));
+        localStorage.setItem('nashty_outlet', JSON.stringify({id: API.session.outletId, name: 'POS Outlet'}));
       }
       document.getElementById('login-screen').style.display = 'none';
       const shell = document.getElementById('app-shell');
