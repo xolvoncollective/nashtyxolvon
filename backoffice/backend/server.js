@@ -18,12 +18,14 @@ const favoritesRoutes = require('./routes/favorites');
 const analyticsRoutes = require('./routes/analytics');
 const receiptSettingsRoutes = require('./routes/receipt-settings');
 const displaySettingsRoutes = require('./routes/display-settings');
+const qrisUploadRoutes = require('./routes/qris-upload');
 
 // Register API routes
 app.use('/api/favorites', favoritesRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/outlets', receiptSettingsRoutes); // Handles /api/outlets/:id/receipt-settings
 app.use('/api/outlets', displaySettingsRoutes); // Handles /api/outlets/:id/display-settings
+app.use('/api/outlets', qrisUploadRoutes); // Handles /api/outlets/:id/qris/*
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -53,6 +55,9 @@ app.listen(PORT, () => {
   console.log(`   - PUT    /api/outlets/:id/receipt-settings`);
   console.log(`   - GET    /api/outlets/:id/display-settings`);
   console.log(`   - PUT    /api/outlets/:id/display-settings`);
+  console.log(`   - GET    /api/outlets/:id/qris`);
+  console.log(`   - POST   /api/outlets/:id/qris/upload`);
+  console.log(`   - DELETE /api/outlets/:id/qris`);
 });
 
 module.exports = app;

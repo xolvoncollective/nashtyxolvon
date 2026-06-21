@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pengaturan QRIS - NASHTY Backoffice</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    .qris-settings {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background: var(--sf);
+      border-radius: 8px;
+    }
+    .qris-preview {
+      text-align: center;
+      margin: 20px 0;
+      padding: 20px;
+      background: var(--sf2);
+      border-radius: 8px;
+    }
+    .qris-preview img {
+      max-width: 300px;
+      max-height: 300px;
+      border: 2px solid var(--brd);
+      border-radius: 8px;
+    }
+    .qris-upload {
+      margin: 20px 0;
+    }
+    .upload-btn {
+      padding: 12px 24px;
+      background: var(--or);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .upload-btn:hover {
+      background: var(--orD);
+    }
+    .delete-btn {
+      padding: 12px 24px;
+      background: var(--rd);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-left: 10px;
+    }
+    .help-text {
+      font-size: 12px;
+      color: var(--txt3);
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="qris-settings">
+    <h2>Pengaturan QRIS Static</h2>
+    <p>Upload gambar QRIS yang akan ditampilkan di POS saat pembayaran QRIS</p>
+    
+    <div class="qris-preview" id="qris-preview">
+      <p id="no-qris-text">Belum ada QRIS diupload</p>
+      <img id="qris-image" style="display:none;" />
+    </div>
+    
+    <div class="qris-upload">
+      <input type="file" id="qris-file" accept="image/png,image/jpeg,image/jpg" style="display:none">
+      <button class="upload-btn" onclick="document.getElementById('qris-file').click()">
+        📤 Upload QRIS
+      </button>
+      <button class="delete-btn" id="delete-qris-btn" style="display:none" onclick="deleteQRIS()">
+        🗑️ Hapus QRIS
+      </button>
+      <p class="help-text">Format: PNG, JPG, JPEG | Ukuran max: 2MB | Resolusi ideal: 512x512px</p>
+    </div>
+  </div>
+
+  <script>
+    const outletId = localStorage.getItem('nashty_outlet_id');
+    
+    // Load existing QRIS
+    async function loadQRIS() {
+      try {
+        const response = await fetch(`/api/outlets/${outletId}/qris`);
+        const data = await response.json();
+        
+        if (data.qris_static_url) {
+          document.getElementById('qris-image').src = data.qris_static_url;
+          document.getElementById('qris-image').style.display = 'block';
+          document.getElementById('no-qris-text').style.display = 'none';
+          document.getElementById('delete-qris-btn').style.display = 'inline-block';
+        }
+      } catch (error) {
+        console.error('Failed to load QRIS:', error);
+      }
+    }
+    
+    // Handle file upload
+    document.getElementById('qris-file').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      // Validate file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Ukuran file terlalu besar! Maksimal 2MB');
+        return;
+      }
+      
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const imageBase64 = event.target.result;
+        
+        try {
+          const response = await fetch(`/api/outlets/${outletId}/qris/upload`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              imageBase64,
+              fileName: file.name
+            })
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            alert('QRIS berhasil diupload!');
+            loadQRIS();
+          } else {
+            alert('Gagal upload QRIS: ' + result.error);
+          }
+        } catch (error) {
+          alert('Gagal upload QRIS: ' + error.message);
+        }
+      };
+      
+      reader.readAsDataURL(file);
+    });
+    
+    // Delete QRIS
+    async function deleteQRIS() {
+      if (!confirm('Hapus QRIS yang sudah diupload?')) return;
+      
+      try {
+        const response = await fetch(`/api/outlets/${outletId}/qris`, {
+          method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          alert('QRIS berhasil dihapus');
+          document.getElementById('qris-image').style.display = 'none';
+          document.getElementById('no-qris-text').style.display = 'block';
+          document.getElementById('delete-qris-btn').style.display = 'none';
+        }
+      } catch (error) {
+        alert('Gagal hapus QRIS: ' + error.message);
+      }
+    }
+    
+    // Load on page load
+    loadQRIS();
+  </script>
+</body>
+</html>

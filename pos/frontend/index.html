@@ -3,8 +3,15 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
   <title>NASHTY OS — POS</title>
+  
+  <!-- PWA Manifest for Android -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#FF5A1F">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -3908,6 +3915,9 @@
   <script src="js/services/keyboard-shortcuts.js"></script>
   <script src="js/services/receipt-generator.js"></script>
   <script src="js/services/customer-display-manager.js"></script>
+  
+  <!-- Android Printer Integration for Moka -->
+  <script src="js/android-printer.js"></script>
   
   <script src="js/utils.js"></script>
   <script src="js/state.js"></script>

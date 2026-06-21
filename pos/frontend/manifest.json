@@ -1,21 +1,26 @@
 {
-  "name": "Nashty POS",
-  "short_name": "Nashty POS",
-  "description": "Nashty Chicken Point of Sale",
-  "start_url": "./index.html",
+  "name": "NASHTY POS",
+  "short_name": "NASHTY",
+  "description": "Point of Sale System for Restaurants - Powered by NASHTY",
+  "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#0B0E14",
-  "theme_color": "#E4540C",
+  "background_color": "#0B0F19",
+  "theme_color": "#FF5A1F",
+  "orientation": "any",
   "icons": [
     {
-      "src": "./icon-192x192.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "./icon-512x512.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  ]
+  ],
+  "categories": ["business", "finance", "productivity"],
+  "prefer_related_applications": false
 }
