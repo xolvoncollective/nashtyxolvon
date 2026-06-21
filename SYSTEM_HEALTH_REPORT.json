@@ -1,0 +1,1274 @@
+{
+  "timestamp": "2026-06-21T18:12:31.915Z",
+  "systems": {
+    "POS": "pos/frontend",
+    "KDS": "kds/frontend",
+    "Backoffice": "backoffice/frontend",
+    "CustomerDisplay": "customer-display",
+    "Cost": "cost/frontend"
+  },
+  "criticalIssues": 0,
+  "apiCallsToValidate": 140,
+  "issues": [
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\app.js",
+      "line": 23,
+      "type": "API_CALL",
+      "message": "API call: API.orders.getAll",
+      "code": "const res = await API.orders.getAll({ limit: 1000, dateFrom: today, dateTo: today });",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\app.js",
+      "line": 87,
+      "type": "API_CALL",
+      "message": "API call: API.session._shiftStartCash",
+      "code": "const startCash = API.session._shiftStartCash || 0;",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\app.js",
+      "line": 152,
+      "type": "API_CALL",
+      "message": "API call: API.session.tenantId",
+      "code": "if (!API.session.tenantId) {",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\app.js",
+      "line": 153,
+      "type": "API_CALL",
+      "message": "API call: API.session.tenantId",
+      "code": "API.session.tenantId = '00000000-0000-0000-0000-000000000001';",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\app.js",
+      "line": 154,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "API.session.outletId = '00000000-0000-0000-0000-000000000002';",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\app.js",
+      "line": 167,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "console.log('Fetching menu from API for outlet:', API.session.outletId);",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\app.js",
+      "line": 168,
+      "type": "API_CALL",
+      "message": "API call: API.menu.getOutletMenu",
+      "code": "const res = await API.menu.getOutletMenu(API.session.outletId);",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 15,
+      "type": "API_CALL",
+      "message": "API call: API.session.user",
+      "code": "doLogin(API.session.user);",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 25,
+      "type": "API_CALL",
+      "message": "API call: API.session.user",
+      "code": "if (API.session && API.session.user && API.session.token) {",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 27,
+      "type": "API_CALL",
+      "message": "API call: API.session.user",
+      "code": "doLogin(API.session.user);",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 36,
+      "type": "API_CALL",
+      "message": "API call: API.session.tenantId",
+      "code": "API.session.tenantId = user.tenantId || user.tenant_id || '00000000-0000-0000-0000-000000000001';",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 37,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "API.session.outletId = outlet.id || outlet.outlet_id || '00000000-0000-0000-0000-000000000101';",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 44,
+      "type": "API_CALL",
+      "message": "API call: API.session.tenantId",
+      "code": "API.session.tenantId = '00000000-0000-0000-0000-000000000001';",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 45,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "API.session.outletId = '00000000-0000-0000-0000-000000000101';",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 51,
+      "type": "API_CALL",
+      "message": "API call: API.session.tenantId",
+      "code": "API.session.tenantId = authData.user.tenantId || authData.user.tenant_id || '00000000-0000-0000-0000-000000000001';",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 52,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "API.session.outletId = authData.outlet.id || authData.outlet.outlet_id || '00000000-0000-0000-0000-000000000002';",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 55,
+      "type": "API_CALL",
+      "message": "API call: API.session.user",
+      "code": "if (API.session && API.session.user && API.session.token) {",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 56,
+      "type": "API_CALL",
+      "message": "API call: API.session.user",
+      "code": "doLogin(API.session.user);",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 64,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "if (!API.session.outletId) return;",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 69,
+      "type": "API_CALL",
+      "message": "API call: API.auth.getStaff",
+      "code": "const res = await API.auth.getStaff(API.session.outletId);",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 111,
+      "type": "API_CALL",
+      "message": "API call: API.auth.login",
+      "code": "const res = await API.auth.login(loginPinArr.join(''), API.session.outletId);",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 138,
+      "type": "API_CALL",
+      "message": "API call: API.session.user",
+      "code": "API.session.user = staff;",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 139,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "API.session.outletId = staff.outletId || '00000000-0000-0000-0000-000000000101';",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 140,
+      "type": "API_CALL",
+      "message": "API call: API.session.tenantId",
+      "code": "API.session.tenantId = staff.tenantId || '00000000-0000-0000-0000-000000000001';",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 144,
+      "type": "API_CALL",
+      "message": "API call: API.session.token",
+      "code": "localStorage.setItem('nashty_token', API.session.token || 'pos-session-token');",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 146,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "localStorage.setItem('nashty_outlet', JSON.stringify({id: API.session.outletId, name: 'Galaxy Mall'}));",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 159,
+      "type": "API_CALL",
+      "message": "API call: API.shifts.getActive",
+      "code": "const shiftRes = await API.shifts.getActive();",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 162,
+      "type": "API_CALL",
+      "message": "API call: API.session.shiftId",
+      "code": "API.session.shiftId = shiftRes.shift.id;",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 174,
+      "type": "API_CALL",
+      "message": "API call: API.menu.getOutletMenu",
+      "code": "const res = await API.menu.getOutletMenu(API.session.outletId);",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 262,
+      "type": "API_CALL",
+      "message": "API call: API.shifts.start",
+      "code": "const data = await API.shifts.start(startCash);",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 266,
+      "type": "API_CALL",
+      "message": "API call: API.session._shiftStartCash",
+      "code": "API.session._shiftStartCash = startCash;",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 278,
+      "type": "API_CALL",
+      "message": "API call: API.session.shiftId",
+      "code": "if (API.session.shiftId) {",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 280,
+      "type": "API_CALL",
+      "message": "API call: API.session.shiftId",
+      "code": "const res = await API.request('/shifts/' + API.session.shiftId + '/summary');",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 328,
+      "type": "API_CALL",
+      "message": "API call: API.session.shiftId",
+      "code": "const shiftId = API.session.shiftId;",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 336,
+      "type": "API_CALL",
+      "message": "API call: API.shifts.end",
+      "code": "const data = await API.shifts.end(shiftId, endCash, notes);",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 359,
+      "type": "API_CALL",
+      "message": "API call: API.session.token",
+      "code": "API.session.token = null;",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 360,
+      "type": "API_CALL",
+      "message": "API call: API.session.refreshToken",
+      "code": "API.session.refreshToken = null;",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 361,
+      "type": "API_CALL",
+      "message": "API call: API.session.user",
+      "code": "API.session.user = null;",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\auth.js",
+      "line": 362,
+      "type": "API_CALL",
+      "message": "API call: API.session.shiftId",
+      "code": "API.session.shiftId = null;",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\history.js",
+      "line": 41,
+      "type": "API_CALL",
+      "message": "API call: API.orders.getAll",
+      "code": "const res = await API.orders.getAll(filters);",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\history.js",
+      "line": 255,
+      "type": "API_CALL",
+      "message": "API call: API.session.user",
+      "code": "const voidBy = API.session.user ? API.session.user.id : null;",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\history.js",
+      "line": 259,
+      "type": "API_CALL",
+      "message": "API call: API.orders.void",
+      "code": "const res = await API.orders.void(selTxn.id, reason, voidBy, pin);",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\history.js",
+      "line": 329,
+      "type": "API_CALL",
+      "message": "API call: API.orders.closeBill",
+      "code": "const res = await API.orders.closeBill(selTxn.id, paymentMethod, [{",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\modifiers.js",
+      "line": 21,
+      "type": "API_CALL",
+      "message": "API call: API.session.token",
+      "code": "headers: { 'Authorization': `Bearer ${API.session.token}` }",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\offline-init.js",
+      "line": 62,
+      "type": "API_CALL",
+      "message": "API call: API.session.userId",
+      "code": "window.API.session.userId,",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\orders.js",
+      "line": 268,
+      "type": "API_CALL",
+      "message": "API call: API.orders.create",
+      "code": "const res = await API.orders.create(orderData);",
+      "needsValidation": true
+    },
+    {
+      "system": "POS",
+      "file": "pos\\frontend\\js\\orders.js",
+      "line": 544,
+      "type": "API_CALL",
+      "message": "API call: API.orders.createOpenBill",
+      "code": "const res = await API.orders.createOpenBill(orderData);",
+      "needsValidation": true
+    },
+    {
+      "system": "KDS",
+      "file": "kds\\frontend\\js\\app.js",
+      "line": 11,
+      "type": "API_CALL",
+      "message": "API call: API.session.tenantId",
+      "code": "if (!API.session.tenantId) {",
+      "needsValidation": true
+    },
+    {
+      "system": "KDS",
+      "file": "kds\\frontend\\js\\app.js",
+      "line": 12,
+      "type": "API_CALL",
+      "message": "API call: API.session.tenantId",
+      "code": "API.session.tenantId = '00000000-0000-0000-0000-000000000001';",
+      "needsValidation": true
+    },
+    {
+      "system": "KDS",
+      "file": "kds\\frontend\\js\\app.js",
+      "line": 13,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "API.session.outletId = '00000000-0000-0000-0000-000000000002';",
+      "needsValidation": true
+    },
+    {
+      "system": "KDS",
+      "file": "kds\\frontend\\js\\app.js",
+      "line": 17,
+      "type": "API_CALL",
+      "message": "API call: API.session.token",
+      "code": "if (!API.session.token) {",
+      "needsValidation": true
+    },
+    {
+      "system": "KDS",
+      "file": "kds\\frontend\\js\\app.js",
+      "line": 19,
+      "type": "API_CALL",
+      "message": "API call: API.auth.login",
+      "code": "await API.auth.login('1234', '00000000-0000-0000-0000-000000000002');",
+      "needsValidation": true
+    },
+    {
+      "system": "KDS",
+      "file": "kds\\frontend\\js\\app.js",
+      "line": 26,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "if (API.session.outletId) {",
+      "needsValidation": true
+    },
+    {
+      "system": "KDS",
+      "file": "kds\\frontend\\js\\app.js",
+      "line": 28,
+      "type": "API_CALL",
+      "message": "API call: API.settings.get",
+      "code": "const res = await API.settings.get();",
+      "needsValidation": true
+    },
+    {
+      "system": "KDS",
+      "file": "kds\\frontend\\js\\app.js",
+      "line": 44,
+      "type": "API_CALL",
+      "message": "API call: API.orders.getKDSQueue",
+      "code": "const data = await API.orders.getKDSQueue();",
+      "needsValidation": true
+    },
+    {
+      "system": "KDS",
+      "file": "kds\\frontend\\js\\interactions.js",
+      "line": 77,
+      "type": "API_CALL",
+      "message": "API call: API.orders.updateKitchenStatus",
+      "code": "await window.API.orders.updateKitchenStatus(orderId, 'ready');",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\activity-logs.js",
+      "line": 23,
+      "type": "API_CALL",
+      "message": "API call: API.session.token",
+      "code": "headers: { 'Authorization': `Bearer ${API.session.token}` }",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\business.js",
+      "line": 5,
+      "type": "API_CALL",
+      "message": "API call: API.outlets.getAll",
+      "code": "const res = await API.outlets.getAll();",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\business.js",
+      "line": 89,
+      "type": "API_CALL",
+      "message": "API call: API.outlets.update",
+      "code": "await API.outlets.update(id, { name, address, phone });",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\business.js",
+      "line": 92,
+      "type": "API_CALL",
+      "message": "API call: API.outlets.create",
+      "code": "await API.outlets.create({ name, address, phone });",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\business.js",
+      "line": 104,
+      "type": "API_CALL",
+      "message": "API call: API.outlets.update",
+      "code": "await API.outlets.update(id, { status });",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\business.js",
+      "line": 143,
+      "type": "API_CALL",
+      "message": "API call: API.reports.getSales",
+      "code": "API.reports.getSales(range),",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\business.js",
+      "line": 144,
+      "type": "API_CALL",
+      "message": "API call: API.reports.getProducts",
+      "code": "API.reports.getProducts(range),",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\business.js",
+      "line": 145,
+      "type": "API_CALL",
+      "message": "API call: API.reports.getCashiers",
+      "code": "API.reports.getCashiers(range)",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\costs.js",
+      "line": 4,
+      "type": "API_CALL",
+      "message": "API call: API.session.tenantId",
+      "code": "const params = 'tenantId=' + API.session.tenantId + (API.session.outletId ? '&outletId=' + API.session.outletId : '');",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\costs.js",
+      "line": 82,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "} else if (API.session.outletId) {",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\costs.js",
+      "line": 83,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "outletOptions += `<option value=\"${API.session.outletId}\" selected>Outlet Saat Ini</option>`;",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\costs.js",
+      "line": 134,
+      "type": "API_CALL",
+      "message": "API call: API.session.tenantId",
+      "code": "tenantId: API.session.tenantId || '00000000-0000-0000-0000-000000000001',",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\dashboard.js",
+      "line": 22,
+      "type": "API_CALL",
+      "message": "API call: API.session.tenantId",
+      "code": "if (!API.session.tenantId) API.session.tenantId = '00000000-0000-0000-0000-000000000001';",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\dashboard.js",
+      "line": 24,
+      "type": "API_CALL",
+      "message": "API call: API.session.tenantId",
+      "code": "const kpiParams = 'tenantId=' + API.session.tenantId + (API.session.outletId ? '&outletId=' + API.session.outletId : '');",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\engineering.js",
+      "line": 10,
+      "type": "API_CALL",
+      "message": "API call: API.reports.getMenuEngineering",
+      "code": "const res = await API.reports.getMenuEngineering(range);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\kds.js",
+      "line": 5,
+      "type": "API_CALL",
+      "message": "API call: API.settings.get",
+      "code": "const res = await API.settings.get();",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\kds.js",
+      "line": 32,
+      "type": "API_CALL",
+      "message": "API call: API.settings.update",
+      "code": "await API.settings.update({ kds_workflow: newWf });",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\kds.js",
+      "line": 108,
+      "type": "API_CALL",
+      "message": "API call: API.categories.getAll",
+      "code": "const res = await API.categories.getAll();",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\kds.js",
+      "line": 111,
+      "type": "API_CALL",
+      "message": "API call: API.products.getAll",
+      "code": "const pRes = await API.products.getAll();",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\kds.js",
+      "line": 128,
+      "type": "API_CALL",
+      "message": "API call: API.kds.updateCategoryProductionTime",
+      "code": "await API.kds.updateCategoryProductionTime(catId, timeMinutes);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\kds.js",
+      "line": 167,
+      "type": "API_CALL",
+      "message": "API call: API.settings.get",
+      "code": "const res = await API.settings.get();",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\kds.js",
+      "line": 180,
+      "type": "API_CALL",
+      "message": "API call: API.settings.update",
+      "code": "await API.settings.update({",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\kds.js",
+      "line": 227,
+      "type": "API_CALL",
+      "message": "API call: API.kds.getAnalytics",
+      "code": "const res = await API.kds.getAnalytics();",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 68,
+      "type": "API_CALL",
+      "message": "API call: API.categories.create",
+      "code": "const res = await API.categories.create({ name, description: desc });",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 120,
+      "type": "API_CALL",
+      "message": "API call: API.categories.getProducts",
+      "code": "const res = await API.categories.getProducts(catId);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 219,
+      "type": "API_CALL",
+      "message": "API call: API.categories.update",
+      "code": "const updateRes = await API.categories.update(catId, { name, description: desc });",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 221,
+      "type": "API_CALL",
+      "message": "API call: API.categories.updateStatus",
+      "code": "const statusRes = await API.categories.updateStatus(catId, status);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 242,
+      "type": "API_CALL",
+      "message": "API call: API.categories.delete",
+      "code": "const res = await API.categories.delete(catId);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 260,
+      "type": "API_CALL",
+      "message": "API call: API.products.updateStatus",
+      "code": "const res = await API.products.updateStatus(prodId, status);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 282,
+      "type": "API_CALL",
+      "message": "API call: API.products.removeFromCategory",
+      "code": "const res = await API.products.removeFromCategory(prodId);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 303,
+      "type": "API_CALL",
+      "message": "API call: API.products.delete",
+      "code": "const res = await API.products.delete(prodId);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 327,
+      "type": "API_CALL",
+      "message": "API call: API.categories.getAll",
+      "code": "const catRes = await API.categories.getAll();",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 338,
+      "type": "API_CALL",
+      "message": "API call: API.products.getAll",
+      "code": "const prodRes = await API.products.getAll({ status: 'all' });",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 352,
+      "type": "API_CALL",
+      "message": "API call: API.modifiers.getAll",
+      "code": "const modRes = await API.modifiers.getAll();",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 463,
+      "type": "API_CALL",
+      "message": "API call: API.products.updateStatus",
+      "code": "const res = await API.products.updateStatus(id, status);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 496,
+      "type": "API_CALL",
+      "message": "API call: API.products.delete",
+      "code": "const res = await API.products.delete(id);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 524,
+      "type": "API_CALL",
+      "message": "API call: API.products.getById",
+      "code": "const r = await API.products.getById(prodId);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 665,
+      "type": "API_CALL",
+      "message": "API call: API.modifiers.create",
+      "code": "const res = await API.modifiers.create({ name: name.trim(), type, required, minSelect: 0, maxSelect: type === 'single' ? 1 : 10, options });",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 731,
+      "type": "API_CALL",
+      "message": "API call: API.products.update",
+      "code": "res = await API.products.update(prodId, payload);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 733,
+      "type": "API_CALL",
+      "message": "API call: API.products.updateStatus",
+      "code": "await API.products.updateStatus(prodId, status);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 736,
+      "type": "API_CALL",
+      "message": "API call: API.products.create",
+      "code": "res = await API.products.create(payload);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 906,
+      "type": "API_CALL",
+      "message": "API call: API.modifiers.update",
+      "code": "res = await API.modifiers.update(groupId, payload);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 908,
+      "type": "API_CALL",
+      "message": "API call: API.modifiers.create",
+      "code": "res = await API.modifiers.create(payload);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 930,
+      "type": "API_CALL",
+      "message": "API call: API.modifiers.delete",
+      "code": "const res = await API.modifiers.delete(id);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 977,
+      "type": "API_CALL",
+      "message": "API call: API.modifiers.createOption",
+      "code": "const res = await API.modifiers.createOption(groupId, { name: name.trim(), priceAdjustment: price });",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 997,
+      "type": "API_CALL",
+      "message": "API call: API.modifiers.deleteOption",
+      "code": "const res = await API.modifiers.deleteOption(optionId);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 1027,
+      "type": "API_CALL",
+      "message": "API call: API.modifiers.getProducts",
+      "code": "const res = await API.modifiers.getProducts(groupId);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 1055,
+      "type": "API_CALL",
+      "message": "API call: API.modifiers.unassignProduct",
+      "code": "const res = await API.modifiers.unassignProduct(groupId, productId);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 1080,
+      "type": "API_CALL",
+      "message": "API call: API.modifiers.getProducts",
+      "code": "const res = await API.modifiers.getProducts(groupId);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 1162,
+      "type": "API_CALL",
+      "message": "API call: API.modifiers.assignProduct",
+      "code": "...toAssign.map(pid => API.modifiers.assignProduct(groupId, pid)),",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\menu.js",
+      "line": 1163,
+      "type": "API_CALL",
+      "message": "API call: API.modifiers.unassignProduct",
+      "code": "...toUnassign.map(pid => API.modifiers.unassignProduct(groupId, pid))",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\pos.js",
+      "line": 5,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "const res = await API.request('/settings/' + API.session.outletId);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\pos.js",
+      "line": 20,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "await API.request('/settings/' + API.session.outletId, { method: 'PUT', body: JSON.stringify({ settings: s }) });",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\pos.js",
+      "line": 56,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "const res = await API.request('/settings/' + API.session.outletId);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\pos.js",
+      "line": 80,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "await API.request('/settings/' + API.session.outletId, { method: 'PUT', body: JSON.stringify({ settings: { paymentMethods: JSON.stringify(settings.paymentMethods) } }) });",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\pos.js",
+      "line": 131,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "const res = await API.request('/settings/' + API.session.outletId);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\pos.js",
+      "line": 154,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "await API.request('/settings/' + API.session.outletId, { method: 'PUT', body: JSON.stringify({ settings: s }) });",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\system.js",
+      "line": 9,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "const res = await API.request('/settings/' + API.session.outletId, {",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\system.js",
+      "line": 40,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "const res = await API.request('/settings/' + API.session.outletId + '/logo', {",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\system.js",
+      "line": 76,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "if (window.API && API.outletSettings && API.session.outletId) {",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\system.js",
+      "line": 78,
+      "type": "API_CALL",
+      "message": "API call: API.outletSettings.uploadQris",
+      "code": "const res = await API.outletSettings.uploadQris(file);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\system.js",
+      "line": 101,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "if (window.API && API.outletSettings && API.session.outletId) {",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\system.js",
+      "line": 102,
+      "type": "API_CALL",
+      "message": "API call: API.outletSettings.removeQris",
+      "code": "await API.outletSettings.removeQris();",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\system.js",
+      "line": 120,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "if (window.API && API.session.outletId) {",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\system.js",
+      "line": 122,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "const res = await API.request('/settings/' + API.session.outletId);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\system.js",
+      "line": 130,
+      "type": "API_CALL",
+      "message": "API call: API.outletSettings.getQris",
+      "code": "const qrisRes = await API.outletSettings.getQris(API.session.outletId);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\system.js",
+      "line": 191,
+      "type": "API_CALL",
+      "message": "API call: API.session.tenantId",
+      "code": "if (window.API && API.session.tenantId) {",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\system.js",
+      "line": 193,
+      "type": "API_CALL",
+      "message": "API call: API.session.tenantId",
+      "code": "const res = await API.request('/activity-logs?tenantId=' + API.session.tenantId);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\system.js",
+      "line": 269,
+      "type": "API_CALL",
+      "message": "API call: API.session.tenantId",
+      "code": "if (window.API && API.session.tenantId) {",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\system.js",
+      "line": 271,
+      "type": "API_CALL",
+      "message": "API call: API.session.tenantId",
+      "code": "const res = await API.request('/activity-logs?tenantId=' + API.session.tenantId);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\team.js",
+      "line": 8,
+      "type": "API_CALL",
+      "message": "API call: API.users.getAll",
+      "code": "API.users.getAll({ role }),",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\team.js",
+      "line": 9,
+      "type": "API_CALL",
+      "message": "API call: API.outlets.getAll",
+      "code": "API.outlets ? API.outlets.getAll() : Promise.resolve({ outlets: [] })",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\team.js",
+      "line": 21,
+      "type": "API_CALL",
+      "message": "API call: API.users.updateStatus",
+      "code": "await API.users.updateStatus(id, newStatus);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\team.js",
+      "line": 51,
+      "type": "API_CALL",
+      "message": "API call: API.users.update",
+      "code": "await API.users.update(id, payload);",
+      "needsValidation": true
+    },
+    {
+      "system": "Backoffice",
+      "file": "backoffice\\frontend\\js\\pages\\team.js",
+      "line": 53,
+      "type": "API_CALL",
+      "message": "API call: API.users.create",
+      "code": "await API.users.create(payload);",
+      "needsValidation": true
+    },
+    {
+      "system": "Cost",
+      "file": "cost\\frontend\\js\\app.js",
+      "line": 29,
+      "type": "API_CALL",
+      "message": "API call: API.session.token",
+      "code": "API.session.token = authData.token;",
+      "needsValidation": true
+    },
+    {
+      "system": "Cost",
+      "file": "cost\\frontend\\js\\app.js",
+      "line": 30,
+      "type": "API_CALL",
+      "message": "API call: API.session.user",
+      "code": "API.session.user = authData.user;",
+      "needsValidation": true
+    },
+    {
+      "system": "Cost",
+      "file": "cost\\frontend\\js\\app.js",
+      "line": 31,
+      "type": "API_CALL",
+      "message": "API call: API.session.tenantId",
+      "code": "API.session.tenantId = authData.user.tenantId || '00000000-0000-0000-0000-000000000001';",
+      "needsValidation": true
+    },
+    {
+      "system": "Cost",
+      "file": "cost\\frontend\\js\\app.js",
+      "line": 32,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "API.session.outletId = authData.outlet?.id || authData.user.outletId || null;",
+      "needsValidation": true
+    },
+    {
+      "system": "Cost",
+      "file": "cost\\frontend\\js\\app.js",
+      "line": 75,
+      "type": "API_CALL",
+      "message": "API call: API.session.tenantId",
+      "code": "tenantId: API.session.tenantId",
+      "needsValidation": true
+    },
+    {
+      "system": "Cost",
+      "file": "cost\\frontend\\js\\app.js",
+      "line": 79,
+      "type": "API_CALL",
+      "message": "API call: API.session.user",
+      "code": "if (API.session.user.role !== 'owner' && API.session.outletId) {",
+      "needsValidation": true
+    },
+    {
+      "system": "Cost",
+      "file": "cost\\frontend\\js\\app.js",
+      "line": 80,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "params.append('outletId', API.session.outletId);",
+      "needsValidation": true
+    },
+    {
+      "system": "Cost",
+      "file": "cost\\frontend\\js\\app.js",
+      "line": 181,
+      "type": "API_CALL",
+      "message": "API call: API.session.tenantId",
+      "code": "tenantId: API.session.tenantId,",
+      "needsValidation": true
+    },
+    {
+      "system": "Cost",
+      "file": "cost\\frontend\\js\\app.js",
+      "line": 182,
+      "type": "API_CALL",
+      "message": "API call: API.session.outletId",
+      "code": "outletId: API.session.outletId,",
+      "needsValidation": true
+    }
+  ]
+}

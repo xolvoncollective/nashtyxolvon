@@ -29,12 +29,9 @@
     // 3. Initialize Cache Manager
     if (window.CacheManager && window.DatabaseSchema) {
       console.log('3. Initializing Cache Manager...');
-      await window.CacheManager.init(window.DatabaseSchema);
-      console.log('✓ Cache Manager initialized');
-      
-      // Start periodic sync (5 minutes)
+      // CacheManager is already initialized, just start sync
       await window.CacheManager.startSync();
-      console.log('✓ Periodic sync started (every 5 minutes)');
+      console.log('✓ Cache Manager initialized and sync started');
     } else {
       console.error('✗ CacheManager not loaded');
     }

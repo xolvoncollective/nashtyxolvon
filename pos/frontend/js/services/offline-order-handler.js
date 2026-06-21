@@ -3,7 +3,7 @@
  * Integrates offline capabilities into POS order creation flow
  */
 
-export class OfflineOrderHandler {
+class OfflineOrderHandler {
   constructor(db, cacheManager, offlineQueue, connectionMonitor) {
     this.db = db;
     this.cacheManager = cacheManager;
@@ -282,4 +282,9 @@ export class OfflineOrderHandler {
   showToast(message, type = 'info') {
     this.connectionMonitor.showNotification(message, type);
   }
+}
+
+// Expose to window
+if (typeof window !== 'undefined') {
+  window.OfflineOrderHandler = OfflineOrderHandler;
 }
