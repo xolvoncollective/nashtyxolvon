@@ -153,10 +153,24 @@
     </div>
   </div>
 
+  <script src="../../../api-client.js"></script>
   <script>
     let uploadedLogoUrl = null;
+    let currentOutletId = null;
+    const apiClient = window.NashtyAPI;
 
-    function handleLogoUpload(event) {
+    // Get outlet ID from session
+    async function initOutlet() {
+      const user = await apiClient.auth.getCurrentUser();
+      if (!user) {
+        window.location.href = '/backoffice/frontend/index.html';
+        return;
+      }
+      currentOutletId = user.outlet_id;
+      loadSettings();
+    }
+
+    async function handleLogoUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
 
@@ -175,20 +189,40 @@
         return;
       }
 
-      // Preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const preview = document.getElementById('logo-preview');
-        preview.innerHTML = `<img src="${e.target.result}" alt="Logo">`;
-        uploadedLogoUrl = e.target.result;
-        updatePreview();
-      };
-      reader.readAsDataURL(file);
+      try {
+        // Upload to Supabase Storage
+        const fileName = `receipt-logos/${currentOutletId}-${Date.now()}.${file.name.split('.').pop()}`;
+        const { data, error } = await apiClient.supabase.storage
+          .from('receipts')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
 
-      // TODO: Upload to Supabase Storage
-      // const formData = new FormData();
-      // formData.append('logo', file);
-      // fetch('/api/upload-logo', { method: 'POST', body: formData })
+        if (error) throw error;
+
+        // Get public URL
+        const { data: { publicUrl } } = apiClient.supabase.storage
+          .from('receipts')
+          .getPublicUrl(fileName);
+
+        uploadedLogoUrl = publicUrl;
+
+        // Preview
+        const preview = document.getElementById('logo-preview');
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          preview.innerHTML = `<img src="${e.target.result}" alt="Logo">`;
+          updatePreview();
+        };
+        reader.readAsDataURL(file);
+
+        alert('Logo uploaded successfully!');
+      } catch (error) {
+        console.error('Upload error:', error);
+        alert('Failed to upload logo: ' + error.message);
+        event.target.value = '';
+      }
     }
 
     function toggleQR() {
@@ -221,7 +255,7 @@
       // Logo
       const previewLogo = document.getElementById('preview-logo');
       if (uploadedLogoUrl) {
-        previewLogo.innerHTML = `<img src="${uploadedLogoUrl}" style="max-width: 150px; max-height: 60px;">`;
+        previewLogo.innerHTML = `<img src="${uploadedLogoUrl}" style="max-width: 200px; max-height: 80px;" onerror="this.style.display='none'">`;
       }
 
       // Header
@@ -241,7 +275,17 @@
       // QR Code
       const qrEnabled = document.getElementById('qr-toggle').classList.contains('active');
       const qrUrl = document.getElementById('qr-url').value;
-      document.getElementById('preview-qr').style.display = qrEnabled && qrUrl ? 'block' : 'none';
+      const previewQr = document.getElementById('preview-qr');
+      if (qrEnabled && qrUrl && qrUrl.startsWith('https://')) {
+        previewQr.style.display = 'block';
+        // Generate QR code using simple placeholder - in production use qrcode.js
+        previewQr.innerHTML = `
+          <div style="width: 100px; height: 100px; margin: 0 auto; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border: 1px solid #ddd;">QR</div>
+          <div style="margin-top: 4px;">Scan for Feedback</div>
+        `;
+      } else {
+        previewQr.style.display = 'none';
+      }
 
       // Social Media
       const social = [];
@@ -250,12 +294,12 @@
       const twitter = document.getElementById('social-twitter').value;
       const tiktok = document.getElementById('social-tiktok').value;
       
-      if (facebook) social.push('FB: ' + facebook);
-      if (instagram) social.push('IG: ' + instagram);
-      if (twitter) social.push('TW: ' + twitter);
-      if (tiktok) social.push('TT: ' + tiktok);
+      if (facebook && facebook.includes('facebook.com')) social.push('📘 ' + facebook.split('/').pop());
+      if (instagram && instagram.includes('instagram.com')) social.push('📷 ' + instagram.split('/').pop());
+      if (twitter && twitter.includes('twitter.com')) social.push('🐦 ' + twitter.split('/').pop());
+      if (tiktok && tiktok.includes('tiktok.com')) social.push('🎵 ' + tiktok.split('/').pop());
       
-      document.getElementById('preview-social').innerHTML = social.length ? social.join('<br>') : '';
+      document.getElementById('preview-social').innerHTML = social.length ? social.join(' | ') : '';
 
       // Promo (random one for preview)
       const promos = [
@@ -266,7 +310,8 @@
       
       const previewPromo = document.getElementById('preview-promo');
       if (promos.length > 0) {
-        previewPromo.textContent = promos[Math.floor(Math.random() * promos.length)];
+        const randomPromo = promos[Math.floor(Math.random() * promos.length)];
+        previewPromo.textContent = randomPromo;
         previewPromo.style.display = 'block';
       } else {
         previewPromo.style.display = 'none';
@@ -274,48 +319,159 @@
     }
 
     async function saveSettings() {
-      const settings = {
-        logo: uploadedLogoUrl,
-        headerText: document.getElementById('header-text').value,
-        footerText: document.getElementById('footer-text').value,
-        fontSize: document.getElementById('font-size').value,
-        qrCode: {
-          enabled: document.getElementById('qr-toggle').classList.contains('active'),
-          url: document.getElementById('qr-url').value
-        },
-        socialMedia: {
-          facebook: document.getElementById('social-facebook').value,
-          instagram: document.getElementById('social-instagram').value,
-          twitter: document.getElementById('social-twitter').value,
-          tiktok: document.getElementById('social-tiktok').value
-        },
-        promoMessages: [
-          document.getElementById('promo-1').value,
-          document.getElementById('promo-2').value,
-          document.getElementById('promo-3').value
-        ].filter(p => p)
-      };
+      try {
+        // Validate social media URLs
+        const facebook = document.getElementById('social-facebook').value;
+        const instagram = document.getElementById('social-instagram').value;
+        const twitter = document.getElementById('social-twitter').value;
+        const tiktok = document.getElementById('social-tiktok').value;
 
-      // TODO: Save to backend
-      console.log('Saving settings:', settings);
-      
-      // Example API call:
-      // const response = await fetch('/api/outlets/settings', {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(settings)
-      // });
-      
-      alert('Settings saved successfully!');
+        if (facebook && !facebook.includes('facebook.com')) {
+          alert('Invalid Facebook URL');
+          return;
+        }
+        if (instagram && !instagram.includes('instagram.com')) {
+          alert('Invalid Instagram URL');
+          return;
+        }
+        if (twitter && !twitter.includes('twitter.com')) {
+          alert('Invalid Twitter URL');
+          return;
+        }
+        if (tiktok && !tiktok.includes('tiktok.com')) {
+          alert('Invalid TikTok URL');
+          return;
+        }
+
+        // Validate QR URL is HTTPS
+        const qrEnabled = document.getElementById('qr-toggle').classList.contains('active');
+        const qrUrl = document.getElementById('qr-url').value;
+        if (qrEnabled && qrUrl && !qrUrl.startsWith('https://')) {
+          alert('QR Code URL must use HTTPS');
+          return;
+        }
+
+        const settings = {
+          receipt_logo_url: uploadedLogoUrl,
+          receipt_header_text: document.getElementById('header-text').value.substring(0, 200),
+          receipt_footer_text: document.getElementById('footer-text').value.substring(0, 300),
+          receipt_font_size: document.getElementById('font-size').value,
+          receipt_qr_enabled: qrEnabled,
+          receipt_qr_url: qrUrl || null,
+          receipt_social_facebook: facebook || null,
+          receipt_social_instagram: instagram || null,
+          receipt_social_twitter: twitter || null,
+          receipt_social_tiktok: tiktok || null,
+          receipt_promo_messages: [
+            document.getElementById('promo-1').value.substring(0, 150),
+            document.getElementById('promo-2').value.substring(0, 150),
+            document.getElementById('promo-3').value.substring(0, 150)
+          ].filter(p => p)
+        };
+
+        // Save to database via settings API
+        const response = await fetch(`${apiClient.config.functionsUrl}/settings-api`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${await apiClient.auth.getAccessToken()}`
+          },
+          body: JSON.stringify({
+            action: 'update',
+            outlet_id: currentOutletId,
+            settings: settings
+          })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || 'Failed to save settings');
+        }
+
+        alert('Receipt settings saved successfully!');
+      } catch (error) {
+        console.error('Save error:', error);
+        alert('Failed to save settings: ' + error.message);
+      }
     }
 
-    // Load existing settings on page load
-    window.addEventListener('DOMContentLoaded', async () => {
-      // TODO: Load from backend
-      // const response = await fetch('/api/outlets/settings');
-      // const settings = await response.json();
-      // Apply settings to form...
-    });
+    async function loadSettings() {
+      try {
+        const response = await fetch(`${apiClient.config.functionsUrl}/settings-api?outlet_id=${currentOutletId}`, {
+          headers: {
+            'Authorization': `Bearer ${await apiClient.auth.getAccessToken()}`
+          }
+        });
+
+        if (!response.ok) {
+          console.log('No existing settings, using defaults');
+          return;
+        }
+
+        const data = await response.json();
+        const settings = data.settings || {};
+
+        // Apply settings to form
+        if (settings.receipt_logo_url) {
+          uploadedLogoUrl = settings.receipt_logo_url;
+          document.getElementById('logo-preview').innerHTML = `<img src="${uploadedLogoUrl}" alt="Logo">`;
+        }
+
+        if (settings.receipt_header_text) {
+          document.getElementById('header-text').value = settings.receipt_header_text;
+        }
+
+        if (settings.receipt_footer_text) {
+          document.getElementById('footer-text').value = settings.receipt_footer_text;
+        }
+
+        if (settings.receipt_font_size) {
+          document.getElementById('font-size').value = settings.receipt_font_size;
+        }
+
+        if (settings.receipt_qr_enabled) {
+          document.getElementById('qr-toggle').classList.add('active');
+          document.getElementById('qr-url').style.display = 'block';
+          if (settings.receipt_qr_url) {
+            document.getElementById('qr-url').value = settings.receipt_qr_url;
+          }
+        }
+
+        if (settings.receipt_social_facebook) {
+          document.getElementById('social-facebook').value = settings.receipt_social_facebook;
+        }
+        if (settings.receipt_social_instagram) {
+          document.getElementById('social-instagram').value = settings.receipt_social_instagram;
+        }
+        if (settings.receipt_social_twitter) {
+          document.getElementById('social-twitter').value = settings.receipt_social_twitter;
+        }
+        if (settings.receipt_social_tiktok) {
+          document.getElementById('social-tiktok').value = settings.receipt_social_tiktok;
+        }
+
+        if (settings.receipt_promo_messages && Array.isArray(settings.receipt_promo_messages)) {
+          settings.receipt_promo_messages.forEach((msg, i) => {
+            const input = document.getElementById(`promo-${i + 1}`);
+            if (input) input.value = msg;
+          });
+        }
+
+        // Update character counters
+        updateCharCount('header');
+        updateCharCount('footer');
+        updateCharCount('promo1');
+        updateCharCount('promo2');
+        updateCharCount('promo3');
+
+        updatePreview();
+      } catch (error) {
+        console.error('Load error:', error);
+      }
+    }
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', initOutlet);
   </script>
 </body>
 </html>
