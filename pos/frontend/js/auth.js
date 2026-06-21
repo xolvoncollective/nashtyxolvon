@@ -27,9 +27,9 @@
       if (!grid) return;
       grid.innerHTML = '<div style="color:var(--txt3);grid-column:1/-1;text-align:center;padding:20px">Memuat data kasir...</div>';
       try {
-        const res = await API.users.getAll({ outletId: API.session.outletId });
-        if (res && res.users && res.users.length > 0) {
-          grid.innerHTML = res.users.map(s => `
+        const res = await API.auth.getStaff(API.session.outletId);
+        if (res && res.staff && res.staff.length > 0) {
+          grid.innerHTML = res.staff.map(s => `
             <div class="staff-btn" id="sbtn-${s.id}" onclick="selectStaff({id:'${s.id}', name:'${s.name}', role:'${s.role}', tenantId:'${s.tenant_id}', outletId:'${s.outlet_id}'})">
               <div class="staff-av">${s.name[0].toUpperCase()}</div>
               <div class="staff-n">${s.name}</div>
