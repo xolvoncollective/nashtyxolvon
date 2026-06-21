@@ -14,6 +14,8 @@ app.use(cors());
 app.use(express.json());
 
 // Import route modules
+const authRoutes = require('./routes/auth');
+const usersRoutes = require('./routes/users');
 const favoritesRoutes = require('./routes/favorites');
 const analyticsRoutes = require('./routes/analytics');
 const receiptSettingsRoutes = require('./routes/receipt-settings');
@@ -21,6 +23,8 @@ const displaySettingsRoutes = require('./routes/display-settings');
 const qrisUploadRoutes = require('./routes/qris-upload');
 
 // Register API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/users', usersRoutes);
 app.use('/api/favorites', favoritesRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/outlets', receiptSettingsRoutes); // Handles /api/outlets/:id/receipt-settings
