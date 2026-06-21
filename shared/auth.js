@@ -167,7 +167,8 @@
 
       // Call original fetch and handle 401/403 responses
       return originalFetch(url, options).then(response => {
-        if (response.status === 401 || response.status === 403) {
+        // Skip 401 handling for login endpoints to prevent auto-logout on wrong password/pin
+        if ((response.status === 401 || response.status === 403) && !url.toString().includes('auth-login')) {
           console.warn('[NASHTY AUTH] Received ' + response.status + ' response, token may be expired');
           handleUnauthorized();
         }
