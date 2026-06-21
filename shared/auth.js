@@ -76,6 +76,24 @@
   }
 
   /**
+   * Redirect to the launcher (root page)
+   */
+  function redirectToLauncher() {
+    console.warn('[NASHTY AUTH] Redirecting to launcher...');
+    if (window.top !== window.self) {
+      // Inside iframe - notify parent to handle navigation
+      try {
+        window.top.postMessage({ type: 'NASHTY_LOGOUT' }, '*');
+      } catch (e) {
+        // Cross-origin, just redirect the iframe
+        window.location.href = '/';
+      }
+    } else {
+      window.location.href = '/';
+    }
+  }
+
+  /**
    * Clear authentication data
    */
   function clearAuthData() {
@@ -311,6 +329,7 @@
       return authData.outlet;
     },
     clearAuth: clearAuthData,
+    redirectToLauncher: redirectToLauncher,
     syncWithAPI: syncAuthWithAPI,
     storeAuth: storeAuthData
   };
