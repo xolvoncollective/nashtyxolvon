@@ -289,11 +289,9 @@
     
     // URL Hijacking Mitigation: Ensure app is running inside an iframe or launcher
     if (window.location.pathname !== '/' && window.top === window.self) {
-      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-        console.warn('[NASHTY AUTH] URL Hijacking detected. Redirecting to Launcher.');
-        redirectToLauncher();
-        return;
-      }
+      console.warn('[NASHTY AUTH] URL Hijacking detected. Redirecting to Launcher.');
+      redirectToLauncher();
+      return;
     }
     
     // Sync auth data with API object if it exists
@@ -303,19 +301,9 @@
     if (!hasValidAuth()) {
       console.warn('[NASHTY AUTH] No valid authentication found');
       
-      // DEV MODE: Auto-set demo credentials on localhost
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        console.log('[NASHTY AUTH] DEV MODE — Using demo credentials');
-        storeAuthData('dev-token', 
-          { id: 'admin', name: 'Admin Demo', role: 'admin', tenantId: '00000000-0000-0000-0000-000000000001', outletId: '00000000-0000-0000-0000-000000000002' },
-          { id: '00000000-0000-0000-0000-000000000002', name: 'Demo Outlet' }
-        );
-        syncAuthWithAPI();
-      } else {
-        // PRODUCTION: Just log warning, DON'T REDIRECT
-        console.warn('[NASHTY AUTH] No auth found. User needs to login via app UI.');
-        // Apps should show their own login screen if needed
-      }
+      // PRODUCTION: Just log warning, DON'T REDIRECT
+      console.warn('[NASHTY AUTH] No auth found. User needs to login via app UI.');
+      // Apps should show their own login screen if needed
     } else {
       console.log('[NASHTY AUTH] Valid authentication found');
       const authData = getAuthData();

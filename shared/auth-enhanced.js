@@ -315,11 +315,9 @@
 
       // URL Hijacking Mitigation: Ensure app is running inside an iframe or launcher
       if (window.location.pathname !== '/' && window.top === window.self) {
-        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-          console.warn('[AUTH v2] URL Hijacking detected. Redirecting to Launcher.');
-          this.redirectToLauncher();
-          return;
-        }
+        console.warn('[AUTH v2] URL Hijacking detected. Redirecting to Launcher.');
+        this.redirectToLauncher();
+        return;
       }
 
       // 2. Setup auth interceptors
@@ -557,37 +555,13 @@
      * Handle no authentication scenario
      */
     async handleNoAuth() {
-      // DEV MODE: Auto-set demo credentials
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        console.log('[AUTH v2] DEV MODE — Using demo credentials');
-        
-        const demoToken = this.createDemoToken();
-        await this.storeAuthData(
-          demoToken,
-          'dev-refresh-token',
-          { 
-            id: 'admin', 
-            name: 'Admin Demo', 
-            role: 'admin', 
-            tenantId: '00000000-0000-0000-0000-000000000001', 
-            outletId: '00000000-0000-0000-0000-000000000002' 
-          },
-          { 
-            id: '00000000-0000-0000-0000-000000000002', 
-            name: 'Demo Outlet' 
-          }
-        );
-
-        await this.startSession();
-      } else {
-        // Production: wait for postMessage then redirect
-        setTimeout(() => {
-          if (!this.validateSession()) {
-            console.warn('[AUTH v2] No auth received. API requests will fail securely.');
-            // this.redirectToLauncher(); // Disabled: let the API 401 handle the redirect if needed
-          }
-        }, 5000);
-      }
+      // Production: wait for postMessage then redirect
+      setTimeout(() => {
+        if (!this.validateSession()) {
+          console.warn('[AUTH v2] No auth received. API requests will fail securely.');
+          // this.redirectToLauncher(); // Disabled: let the API 401 handle the redirect if needed
+        }
+      }, 5000);
     }
 
     /**
