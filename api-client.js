@@ -59,12 +59,18 @@ const API = {
 
       const data = await response.json();
       
-      // Global 401 Handler - only for explicit auth failures from our Edge Functions
+      // Global 401 Handler - DISABLED FOR LOGIN SAFETY
+      // Only handle 401 if we're actually logged in and it's not a login attempt
       if (response.status === 401 && functionName !== 'auth-login' && data.code !== 'UNAUTHORIZED_LEGACY_JWT') {
-          console.warn('[API] 401 Unauthorized detected. Forcing logout.');
-          if (typeof window.NASHTY_AUTH !== 'undefined') window.NASHTY_AUTH.clearAuth();
-          if (API.auth && typeof API.auth.logout === 'function') API.auth.logout();
-          throw new Error('Sesi telah kedaluwarsa. Silakan login kembali.');
+          console.warn('[API] 401 Unauthorized detected from', functionName);
+          // DON'T auto-logout during login flows or staff selection
+          // Only logout if we're truly authenticated and session expired
+          const hasValidAuth = typeof window.NASHTY_AUTH !== 'undefined' && window.NASHTY_AUTH.hasValidAuth && window.NASHTY_AUTH.hasValidAuth();
+          if (hasValidAuth) {
+            console.warn('[API] Clearing expired session');
+            if (typeof window.NASHTY_AUTH !== 'undefined') window.NASHTY_AUTH.clearAuth();
+          }
+          throw new Error(data.error || 'Sesi telah kedaluwarsa. Silakan login kembali.');
       }
       
       if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);

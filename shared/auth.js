@@ -77,8 +77,16 @@
 
   /**
    * Redirect to the launcher (root page)
+   * SAFE MODE: Won't redirect if inside login flow
    */
   function redirectToLauncher() {
+    // Don't redirect if we're in the middle of login or on login screen
+    if (document.getElementById('login-screen') && 
+        document.getElementById('login-screen').style.display !== 'none') {
+      console.log('[NASHTY AUTH] Skipping redirect - on login screen');
+      return;
+    }
+    
     console.warn('[NASHTY AUTH] Redirecting to launcher...');
     if (window.top !== window.self) {
       // Inside iframe - notify parent to handle navigation
@@ -95,6 +103,7 @@
 
   /**
    * Clear authentication data
+   * SAFE MODE: Won't auto-redirect
    */
   function clearAuthData() {
     localStorage.removeItem(NASHTY_AUTH.STORAGE_KEYS.TOKEN);
@@ -116,8 +125,8 @@
       window.API.session.user = null;
     }
     
-    // Optionally redirect
-    redirectToLauncher();
+    // DON'T auto-redirect - let app handle it
+    console.log('[NASHTY AUTH] Cleared auth data - app should handle logout UI');
   }
 
   /**
@@ -172,6 +181,7 @@
 
   /**
    * Add Authorization header to fetch requests (SIMPLE VERSION)
+   * NO 401 handling, NO auto-kick, NO popup conflicts
    */
   function createAuthenticatedFetch() {
     const originalFetch = window.fetch;
@@ -188,11 +198,16 @@
         }
       }
 
-      // Call original fetch WITHOUT 401 handling (no auto-kick)
-      return originalFetch(url, options);
+      // Call original fetch WITHOUT any 401 handling
+      // Let the app handle errors as needed
+      return originalFetch(url, options).catch(error => {
+        // Network errors only - log but don't kick user
+        console.error('[NASHTY AUTH] Network error:', error);
+        throw error;
+      });
     };
 
-    console.log('[NASHTY AUTH] Fetch interceptor installed');
+    console.log('[NASHTY AUTH] Fetch interceptor installed (non-aggressive mode)');
   }
 
   /**
