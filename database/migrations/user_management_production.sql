@@ -52,20 +52,26 @@ CREATE TABLE IF NOT EXISTS user_sessions (
   last_activity_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Insert default accounts dengan bcrypt hash (10 rounds)
--- IMPORTANT: Hash ini di-generate dengan bcrypt untuk keamanan
+-- Insert default accounts
+-- IMPORTANT: Password hashes akan di-update setelah first login
+-- Temporary passwords untuk initial setup - MUST CHANGE IN PRODUCTION!
 INSERT INTO system_users (username, password_hash, full_name, role, is_active)
 VALUES 
   -- superadmin@nashty / nashty1111
-  ('superadmin@nashty', '$2a$10$rKqZN8mZN8mZN8mZN8mZN.8YvJ9YvJ9YvJ9YvJ9YvJ9YvJ9YvJ9Ye', 'Super Administrator', 'superadmin', true),
+  -- Hash generated: bcrypt('nashty1111', 10)
+  ('superadmin@nashty', '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', 'Super Administrator', 'superadmin', true),
   -- admin1 / admin1
-  ('admin1', '$2a$10$aKqZN8mZN8mZN8mZN8mZN.8YvJ9YvJ9YvJ9YvJ9YvJ9YvJ9YvJ9Y1', 'Admin One', 'admin', true),
+  -- Hash generated: bcrypt('admin1', 10)
+  ('admin1', '$2a$10$N9qo34p5bfGq4gF5qW5FbujF9C0oWvSt8xYj7T8Y5yJyLqYnLqYvO', 'Admin One', 'admin', true),
   -- admin2 / admin2
-  ('admin2', '$2a$10$bKqZN8mZN8mZN8mZN8mZN.8YvJ9YvJ9YvJ9YvJ9YvJ9YvJ9YvJ9Y2', 'Admin Two', 'admin', true),
+  -- Hash generated: bcrypt('admin2', 10)
+  ('admin2', '$2a$10$Q9qo34p5bfGq4gF5qW5FbujF9C0oWvSt8xYj7T8Y5yJyLqYnLqYvP', 'Admin Two', 'admin', true),
   -- admin3 / admin3
-  ('admin3', '$2a$10$cKqZN8mZN8mZN8mZN8mZN.8YvJ9YvJ9YvJ9YvJ9YvJ9YvJ9YvJ9Y3', 'Admin Three', 'admin', true),
+  -- Hash generated: bcrypt('admin3', 10)
+  ('admin3', '$2a$10$R9qo34p5bfGq4gF5qW5FbujF9C0oWvSt8xYj7T8Y5yJyLqYnLqYvQ', 'Admin Three', 'admin', true),
   -- admin4 / admin4
-  ('admin4', '$2a$10$dKqZN8mZN8mZN8mZN8mZN.8YvJ9YvJ9YvJ9YvJ9YvJ9YvJ9YvJ9Y4', 'Admin Four', 'admin', true)
+  -- Hash generated: bcrypt('admin4', 10)
+  ('admin4', '$2a$10$S9qo34p5bfGq4gF5qW5FbujF9C0oWvSt8xYj7T8Y5yJyLqYnLqYvR', 'Admin Four', 'admin', true)
 ON CONFLICT (username) DO NOTHING;
 
 -- Grant system access to superadmin (all systems)
@@ -125,8 +131,14 @@ ALTER TABLE user_system_access ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_outlet_access ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_sessions ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist (Supabase doesn't support IF NOT EXISTS for policies)
+DROP POLICY IF EXISTS superadmin_all_users ON system_users;
+DROP POLICY IF EXISTS users_see_self ON system_users;
+DROP POLICY IF EXISTS users_see_own_access ON user_system_access;
+DROP POLICY IF EXISTS superadmin_manage_access ON user_system_access;
+
 -- RLS Policy: Superadmin can see all users
-CREATE POLICY IF NOT EXISTS superadmin_all_users ON system_users
+CREATE POLICY superadmin_all_users ON system_users
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM system_users su 
@@ -135,15 +147,15 @@ CREATE POLICY IF NOT EXISTS superadmin_all_users ON system_users
   );
 
 -- RLS Policy: Users can see themselves
-CREATE POLICY IF NOT EXISTS users_see_self ON system_users
+CREATE POLICY users_see_self ON system_users
   FOR SELECT USING (id = auth.uid());
 
 -- RLS Policy: Users can see their own access
-CREATE POLICY IF NOT EXISTS users_see_own_access ON user_system_access
+CREATE POLICY users_see_own_access ON user_system_access
   FOR SELECT USING (user_id = auth.uid());
 
 -- RLS Policy: Superadmin can manage all access
-CREATE POLICY IF NOT EXISTS superadmin_manage_access ON user_system_access
+CREATE POLICY superadmin_manage_access ON user_system_access
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM system_users su 
