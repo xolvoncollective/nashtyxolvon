@@ -15,8 +15,8 @@ test.describe('NASHTY OS - Comprehensive UAT Execution', () => {
     await page.fill('#usernameInput', 'superadmin');
     await page.fill('#passwordInput', 'nashty@2024');
     
-    // Wait for the outlet API to load the options
-    await page.waitForSelector('#outletSelect option:not([disabled])', { timeout: 10000 });
+    // Wait for the outlet API to load the options (state: 'attached' since options are not visible)
+    await page.waitForSelector('#outletSelect option:not([disabled])', { state: 'attached', timeout: 10000 });
     
     // Select outlet: Galaxy Mall Surabaya
     await page.evaluate(() => {
