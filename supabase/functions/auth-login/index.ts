@@ -106,7 +106,8 @@ serve(async (req) => {
       }
 
       // Password validation (simplified for seed data)
-      const isPasswordValid = password === 'nashty@2024' || password === 'nashty1111';
+      // Accept: nashty@2024, nashty1111, OR same-as-username (admin1 user password is admin1)
+      const isPasswordValid = password === 'nashty@2024' || password === 'nashty1111' || password === username;
 
       if (!isPasswordValid) {
         console.log('[AUTH] Invalid password for user:', username);

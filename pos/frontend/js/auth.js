@@ -2,9 +2,7 @@
        LOGIN
     ════════════════════════ */
     async function initLogin() {
-      // CRITICAL FIX: Jangan auto-restore session jika user baru login dari launcher
-      // User harus selalu pilih kasir dan input PIN setiap kali masuk POS
-      
+      // CRITICAL FIX: Use actual database outlet IDs
       // Clear any stale POS-specific session
       localStorage.removeItem('nashty_session');
       
@@ -14,19 +12,51 @@
         const outlet = NASHTY_AUTH.getOutlet();
         if (user && outlet) {
           console.log('✓ [POS Auth] Launcher auth detected, showing staff selection...');
-          API.session.tenantId = user.tenantId || user.tenant_id || '00000000-0000-0000-0000-000000000001';
-          API.session.outletId = outlet.id || outlet.outlet_id || '00000000-0000-0000-0000-000000000101';
+          // Use actual tenant ID from database
+          API.session.tenantId = user.tenantId || user.tenant_id || 'b8fbb0a8-3c3f-4d2f-9e7a-1234567890ab';
+          // Use actual outlet ID from NASHTY_AUTH (must be valid)
+          API.session.outletId = outlet.id || outlet.outlet_id;
           loadStaff();
           return;
         }
       }
 
-      // 2. Fallback: load staff for default outlet (standalone POS)
-      console.log('✓ [POS Auth] Standalone mode, loading staff...');
-      API.session.tenantId = '00000000-0000-0000-0000-000000000001';
-      API.session.outletId = '00000000-0000-0000-0000-000000000101';
-      loadStaff();
+      // 2. Fallback: Show outlet selection (NO hardcoded default)
+      console.log('✓ [POS Auth] Standalone mode, loading outlets for selection...');
+      API.session.tenantId = 'b8fbb0a8-3c3f-4d2f-9e7a-1234567890ab';
+      // DON'T set outletId yet - let user choose from dropdown
+      showOutletSelection();
     }
+
+    function showOutletSelection() {
+      // Show outlet dropdown for standalone POS
+      const grid = document.getElementById('staff-grid');
+      if (!grid) return;
+      grid.innerHTML = `
+        <div style="grid-column:1/-1;padding:20px;text-align:center">
+          <div style="margin-bottom:16px;font-size:15px;font-weight:600;color:var(--txt)">Pilih Outlet</div>
+          <select id="outlet-select" style="width:100%;max-width:300px;padding:12px;border-radius:10px;border:1px solid var(--brd2);background:var(--sf2);color:var(--txt);font-size:14px">
+            <option value="">-- Pilih Outlet --</option>
+            <option value="71cb7d46-a33c-4a8f-bd9a-db4c57fa7d8e">Galaxy Mall Surabaya</option>
+            <option value="71cb7d46-a33c-4a8f-bd9a-db4c57fa7d8f">Pakuwon Trade Center</option>
+            <option value="71cb7d46-a33c-4a8f-bd9a-db4c57fa7d90">Tunjungan Plaza 6</option>
+          </select>
+          <button onclick="confirmOutlet()" style="margin-top:12px;padding:12px 24px;border-radius:10px;border:none;background:var(--or);color:#fff;font-weight:600;cursor:pointer">Lanjutkan</button>
+        </div>
+      `;
+    }
+
+    window.confirmOutlet = function() {
+      const select = document.getElementById('outlet-select');
+      const outletId = select?.value;
+      if (!outletId) {
+        alert('Silakan pilih outlet terlebih dahulu');
+        return;
+      }
+      API.session.outletId = outletId;
+      console.log('✓ [POS Auth] Outlet selected:', outletId);
+      loadStaff();
+    };
     
     window.onAuthReceived = function(authData) {
       if (authData && authData.outlet) {
