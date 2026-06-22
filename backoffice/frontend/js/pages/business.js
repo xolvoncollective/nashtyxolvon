@@ -115,6 +115,31 @@ let reportData = { sales: null, products: null, cashiers: null };
 let currentReportFilter = 'Hari Ini';
 let currentReportTab = 'sales';
 
+// Auto-refresh for reports
+let reportsRefreshInterval = null;
+const REPORTS_REFRESH_INTERVAL = 60000; // 60 seconds
+
+function startReportsAutoRefresh() {
+  if (reportsRefreshInterval) {
+    clearInterval(reportsRefreshInterval);
+  }
+  
+  reportsRefreshInterval = setInterval(() => {
+    console.log('🔄 Auto-refreshing reports...');
+    loadReportData(currentReportFilter);
+  }, REPORTS_REFRESH_INTERVAL);
+  
+  console.log(`✅ Reports auto-refresh enabled (every ${REPORTS_REFRESH_INTERVAL / 1000}s)`);
+}
+
+function stopReportsAutoRefresh() {
+  if (reportsRefreshInterval) {
+    clearInterval(reportsRefreshInterval);
+    reportsRefreshInterval = null;
+    console.log('⏹ Reports auto-refresh stopped');
+  }
+}
+
 function getDateRange(filter) {
   const now = new Date();
   const format = (d) => d.toISOString().split('T')[0];
@@ -168,6 +193,9 @@ window.changeReportFilter = function(filter, btn) {
 };
 
 PAGES.reports = async () => {
+  // Start auto-refresh
+  startReportsAutoRefresh();
+  
   // initial load
   await loadReportData(currentReportFilter);
   setTimeout(() => renderReportTab(currentReportTab), 0);

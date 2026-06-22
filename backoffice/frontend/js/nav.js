@@ -28,6 +28,20 @@ const PAGES={};
 let curPage='dashboard';
 
 async function nav(page,el){
+ // Stop dashboard auto-refresh if navigating away from dashboard
+ if (curPage === 'dashboard' && page !== 'dashboard') {
+   if (typeof stopDashboardAutoRefresh === 'function') {
+     stopDashboardAutoRefresh();
+   }
+ }
+ 
+ // Stop reports auto-refresh if navigating away from reports
+ if (curPage === 'reports' && page !== 'reports') {
+   if (typeof stopReportsAutoRefresh === 'function') {
+     stopReportsAutoRefresh();
+   }
+ }
+ 
  curPage=page;
  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('act'));
  if(el)el.classList.add('act');

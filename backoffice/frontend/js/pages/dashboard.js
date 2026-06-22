@@ -5,7 +5,36 @@ let revenueChart = null;
 let orderTypeChart = null;
 let productChart = null;
 
+// Auto-refresh mechanism
+let dashboardRefreshInterval = null;
+const DASHBOARD_REFRESH_INTERVAL = 30000; // 30 seconds
+
+function startDashboardAutoRefresh() {
+  // Clear existing interval if any
+  if (dashboardRefreshInterval) {
+    clearInterval(dashboardRefreshInterval);
+  }
+  
+  // Set new interval
+  dashboardRefreshInterval = setInterval(() => {
+    console.log('🔄 Auto-refreshing dashboard...');
+    nav('dashboard', document.querySelector('.sb-item.act'));
+  }, DASHBOARD_REFRESH_INTERVAL);
+  
+  console.log(`✅ Dashboard auto-refresh enabled (every ${DASHBOARD_REFRESH_INTERVAL / 1000}s)`);
+}
+
+function stopDashboardAutoRefresh() {
+  if (dashboardRefreshInterval) {
+    clearInterval(dashboardRefreshInterval);
+    dashboardRefreshInterval = null;
+    console.log('⏹ Dashboard auto-refresh stopped');
+  }
+}
+
 PAGES.dashboard = async () => {
+  // Start auto-refresh when dashboard loads
+  startDashboardAutoRefresh();
   let kpi = { 
     totalOrders: 0, 
     netRevenue: 0, 
