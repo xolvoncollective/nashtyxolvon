@@ -96,8 +96,8 @@ serve(async (req) => {
           quantity: item.qty || item.quantity,
           unit_price: item.price || item.unit_price,
           subtotal: (item.price || item.unit_price) * (item.qty || item.quantity),
-          notes: item.notes || '',
-          modifier_options: item.modifiers || []
+          notes: item.notes || ''
+          // modifier_options removed - column doesn't exist in order_items table
         }));
 
         const { error: itemsError } = await supabase
