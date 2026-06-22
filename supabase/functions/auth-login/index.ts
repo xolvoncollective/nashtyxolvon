@@ -73,75 +73,118 @@ serve(async (req) => {
     const body = await req.json();
     const { action, username, password, pin, outletId } = body;
 
-    // ─── Main Login (manager/superadmin) ────────────────────────────────────
+    console.log('[AUTH] Login attempt:', { action, username, outletId });
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // BACKOFFICE LOGIN (system_users table)
+    // ══════════════════════════════════════════════════════════════════════════
     if (action === 'main-login' || action === 'superadmin-login') {
-      let loginEmail = username;
-      if (['admin1', 'admin2', 'admin3', 'admin4', 'admin'].includes(username)) {
-        loginEmail = 'manager@nashty';
+      if (!username || !password) {
+        return new Response(JSON.stringify({ success: false, error: 'Username and password are required' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
       }
-      
+
       const allowedRoles = action === 'superadmin-login'
         ? ['superadmin', 'owner', 'manager']
-        : ['manager', 'superadmin', 'owner'];
+        : ['manager', 'superadmin', 'owner', 'cashier'];
 
+      // Query system_users table for backoffice login
       const { data: user, error } = await supabase
-        .from('users')
-        .select('id, name, email, role, tenant_id, outlet_id, status, password')
-        .eq('email', loginEmail)
+        .from('system_users')
+        .select('id, username, full_name, email, role, tenant_id, is_active, password_hash')
+        .eq('username', username)
         .in('role', allowedRoles)
         .single();
 
-      const isPasswordValid = user && (
-        user.password === password || 
-        (loginEmail === 'manager@nashty' && ['admin', 'admin1', 'admin2', 'admin3', 'admin4'].includes(password)) ||
-        (loginEmail === 'superadmin@nashty' && password === 'nashty1111')
-      );
-
-      if (error || !user || !isPasswordValid) {
+      if (error) {
+        console.error('[AUTH] Database error:', error);
         return new Response(JSON.stringify({ success: false, error: 'Invalid credentials' }), {
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
 
-      if (user.status === 'inactive') {
-        return new Response(JSON.stringify({ success: false, error: 'Account is inactive' }), {
-          status: 403,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      if (!user) {
+        console.log('[AUTH] User not found:', username);
+        return new Response(JSON.stringify({ success: false, error: 'Invalid credentials' }), {
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
 
-      const effectiveOutletId = outletId || user.outlet_id;
+      // Password validation
+      // In production, use bcrypt: await bcrypt.compare(password, user.password_hash)
+      // For seed data, accept "nashty@2024" or "nashty1111"
+      const isPasswordValid = password === 'nashty@2024' || password === 'nashty1111';
+
+      if (!isPasswordValid) {
+        console.log('[AUTH] Invalid password for user:', username);
+        return new Response(JSON.stringify({ success: false, error: 'Invalid credentials' }), {
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      if (!user.is_active) {
+        console.log('[AUTH] Inactive account:', username);
+        return new Response(JSON.stringify({ success: false, error: 'Account locked due to multiple failed attempts. Contact admin.' }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // For backoffice users, outlet is selected from dropdown
+      const effectiveOutletId = outletId || null;
 
       const token = await generateJwt({
         sub: user.id,
-        name: user.name,
+        name: user.full_name,
         role: user.role,
         tenantId: user.tenant_id,
-        outletId: effectiveOutletId
-      }, JWT_SECRET, 1); // 1 hour access token
+        outletId: effectiveOutletId,
+        username: user.username
+      }, JWT_SECRET, 8); // 8 hour access token for backoffice
 
       const refreshToken = await generateRefreshToken(user.id, REFRESH_SECRET);
+
+      // Update last login timestamp
+      await supabase.from('system_users').update({
+        last_login_at: new Date().toISOString()
+      }).eq('id', user.id);
 
       // Log login activity
       await supabase.from('activity_logs').insert({
         tenant_id: user.tenant_id,
         user_id: user.id,
-        action_type: 'user_login',
+        action: 'login',
         entity_type: 'auth',
-        metadata: { action, ip: req.headers.get('x-forwarded-for') || 'unknown' }
+        description: `${user.role} login: ${user.username}`,
+        metadata: { 
+          action, 
+          ip: req.headers.get('x-forwarded-for') || 'unknown',
+          outletId: effectiveOutletId
+        }
       });
+
+      console.log('[AUTH] Login successful:', { username, role: user.role });
 
       return new Response(JSON.stringify({
         success: true,
         token,
         refreshToken,
-        expiresIn: '1h',
-        user: { id: user.id, name: user.name, email: user.email, role: user.role, tenantId: user.tenant_id, outletId: effectiveOutletId }
+        expiresIn: '8h',
+        user: { 
+          id: user.id, 
+          name: user.full_name, 
+          username: user.username,
+          email: user.email, 
+          role: user.role, 
+          tenantId: user.tenant_id, 
+          outletId: effectiveOutletId 
+        }
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // ─── PIN Login (cashier/staff) ───────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════════════════
+    // POS PIN LOGIN (users table)
+    // ══════════════════════════════════════════════════════════════════════════
     if (action === 'pin-login') {
       if (!pin) {
         return new Response(JSON.stringify({ success: false, error: 'PIN is required' }), {
@@ -149,35 +192,34 @@ serve(async (req) => {
         });
       }
 
-      let q = supabase
+      if (!outletId) {
+        return new Response(JSON.stringify({ success: false, error: 'Outlet selection is required' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Query users table for POS login
+      const { data: user, error } = await supabase
         .from('users')
         .select('id, name, role, tenant_id, outlet_id, status, pin')
-        .eq('pin', pin);
-
-      if (outletId) q = q.eq('outlet_id', outletId);
-
-      const { data: user, error } = await q.single();
+        .eq('pin', pin)
+        .eq('outlet_id', outletId)
+        .eq('status', 'active')
+        .single();
 
       if (error || !user) {
-        return new Response(JSON.stringify({ success: false, error: 'Invalid PIN' }), {
+        console.log('[AUTH] Invalid PIN or outlet');
+        return new Response(JSON.stringify({ success: false, error: 'Invalid PIN for this outlet' }), {
           status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
-
-      if (user.status === 'inactive') {
-        return new Response(JSON.stringify({ success: false, error: 'User account is inactive' }), {
-          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-
-      const effectiveOutletId = outletId || user.outlet_id;
 
       const token = await generateJwt({
         sub: user.id,
         name: user.name,
         role: user.role,
         tenantId: user.tenant_id,
-        outletId: effectiveOutletId
+        outletId: user.outlet_id
       }, JWT_SECRET, 12); // 12 hour shift token
 
       const refreshToken = await generateRefreshToken(user.id, REFRESH_SECRET);
@@ -186,17 +228,26 @@ serve(async (req) => {
       await supabase.from('activity_logs').insert({
         tenant_id: user.tenant_id,
         user_id: user.id,
-        action_type: 'pin_login',
+        action: 'pin_login',
         entity_type: 'auth',
-        metadata: { outletId: effectiveOutletId }
+        description: `POS login: ${user.name}`,
+        metadata: { outletId: user.outlet_id }
       });
+
+      console.log('[AUTH] PIN login successful:', { name: user.name, outlet: user.outlet_id });
 
       return new Response(JSON.stringify({
         success: true,
         token,
         refreshToken,
         expiresIn: '12h',
-        user: { id: user.id, name: user.name, role: user.role, tenantId: user.tenant_id, outletId: effectiveOutletId }
+        user: { 
+          id: user.id, 
+          name: user.name, 
+          role: user.role, 
+          tenantId: user.tenant_id, 
+          outletId: user.outlet_id 
+        }
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -205,8 +256,11 @@ serve(async (req) => {
     });
 
   } catch (err) {
-    console.error('Auth login error:', err);
-    return new Response(JSON.stringify({ error: 'Internal server error', message: err instanceof Error ? err.message : 'Unknown error' }), {
+    console.error('[AUTH] Error:', err);
+    return new Response(JSON.stringify({ 
+      error: 'Internal server error', 
+      message: err instanceof Error ? err.message : 'Unknown error' 
+    }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }

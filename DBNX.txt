@@ -1,0 +1,4859 @@
+1. [
+
+  {
+
+    "table_name": "activity_logs",
+
+    "ordinal_position": 1,
+
+    "column_name": "id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": "uuid_generate_v4()"
+
+  },
+
+  {
+
+    "table_name": "activity_logs",
+
+    "ordinal_position": 2,
+
+    "column_name": "tenant_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "activity_logs",
+
+    "ordinal_position": 3,
+
+    "column_name": "user_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "YES",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "activity_logs",
+
+    "ordinal_position": 4,
+
+    "column_name": "action",
+
+    "data_type": "text",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "activity_logs",
+
+    "ordinal_position": 5,
+
+    "column_name": "entity_type",
+
+    "data_type": "text",
+
+    "is_nullable": "YES",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "activity_logs",
+
+    "ordinal_position": 6,
+
+    "column_name": "entity_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "YES",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "activity_logs",
+
+    "ordinal_position": 7,
+
+    "column_name": "description",
+
+    "data_type": "text",
+
+    "is_nullable": "YES",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "activity_logs",
+
+    "ordinal_position": 8,
+
+    "column_name": "metadata",
+
+    "data_type": "jsonb",
+
+    "is_nullable": "YES",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "activity_logs",
+
+    "ordinal_position": 9,
+
+    "column_name": "ip_address",
+
+    "data_type": "text",
+
+    "is_nullable": "YES",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "activity_logs",
+
+    "ordinal_position": 10,
+
+    "column_name": "created_at",
+
+    "data_type": "timestamp with time zone",
+
+    "is_nullable": "YES",
+
+    "column_default": "timezone('utc'::text, now())"
+
+  },
+
+  {
+
+    "table_name": "analytics_cache",
+
+    "ordinal_position": 1,
+
+    "column_name": "id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": "gen_random_uuid()"
+
+  },
+
+  {
+
+    "table_name": "analytics_cache",
+
+    "ordinal_position": 2,
+
+    "column_name": "cache_key",
+
+    "data_type": "character varying",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "analytics_cache",
+
+    "ordinal_position": 3,
+
+    "column_name": "outlet_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "YES",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "analytics_cache",
+
+    "ordinal_position": 4,
+
+    "column_name": "data",
+
+    "data_type": "jsonb",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "analytics_cache",
+
+    "ordinal_position": 5,
+
+    "column_name": "expires_at",
+
+    "data_type": "timestamp with time zone",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "analytics_cache",
+
+    "ordinal_position": 6,
+
+    "column_name": "created_at",
+
+    "data_type": "timestamp with time zone",
+
+    "is_nullable": "NO",
+
+    "column_default": "now()"
+
+  },
+
+  {
+
+    "table_name": "analytics_cache",
+
+    "ordinal_position": 7,
+
+    "column_name": "updated_at",
+
+    "data_type": "timestamp with time zone",
+
+    "is_nullable": "NO",
+
+    "column_default": "now()"
+
+  },
+
+  {
+
+    "table_name": "categories",
+
+    "ordinal_position": 1,
+
+    "column_name": "id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": "uuid_generate_v4()"
+
+  },
+
+  {
+
+    "table_name": "categories",
+
+    "ordinal_position": 2,
+
+    "column_name": "tenant_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "categories",
+
+    "ordinal_position": 3,
+
+    "column_name": "name",
+
+    "data_type": "text",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "categories",
+
+    "ordinal_position": 4,
+
+    "column_name": "slug",
+
+    "data_type": "text",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "categories",
+
+    "ordinal_position": 5,
+
+    "column_name": "description",
+
+    "data_type": "text",
+
+    "is_nullable": "YES",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "categories",
+
+    "ordinal_position": 6,
+
+    "column_name": "icon",
+
+    "data_type": "text",
+
+    "is_nullable": "YES",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "categories",
+
+    "ordinal_position": 7,
+
+    "column_name": "color",
+
+    "data_type": "text",
+
+    "is_nullable": "YES",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "categories",
+
+    "ordinal_position": 8,
+
+    "column_name": "display_order",
+
+    "data_type": "integer",
+
+    "is_nullable": "YES",
+
+    "column_default": "0"
+
+  },
+
+  {
+
+    "table_name": "categories",
+
+    "ordinal_position": 9,
+
+    "column_name": "status",
+
+    "data_type": "text",
+
+    "is_nullable": "YES",
+
+    "column_default": "'active'::text"
+
+  },
+
+  {
+
+    "table_name": "categories",
+
+    "ordinal_position": 10,
+
+    "column_name": "created_at",
+
+    "data_type": "timestamp with time zone",
+
+    "is_nullable": "YES",
+
+    "column_default": "timezone('utc'::text, now())"
+
+  },
+
+  {
+
+    "table_name": "categories",
+
+    "ordinal_position": 11,
+
+    "column_name": "updated_at",
+
+    "data_type": "timestamp with time zone",
+
+    "is_nullable": "YES",
+
+    "column_default": "timezone('utc'::text, now())"
+
+  },
+
+  {
+
+    "table_name": "favorites",
+
+    "ordinal_position": 1,
+
+    "column_name": "id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": "gen_random_uuid()"
+
+  },
+
+  {
+
+    "table_name": "favorites",
+
+    "ordinal_position": 2,
+
+    "column_name": "user_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "favorites",
+
+    "ordinal_position": 3,
+
+    "column_name": "product_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "favorites",
+
+    "ordinal_position": 4,
+
+    "column_name": "position",
+
+    "data_type": "integer",
+
+    "is_nullable": "NO",
+
+    "column_default": "0"
+
+  },
+
+  {
+
+    "table_name": "favorites",
+
+    "ordinal_position": 5,
+
+    "column_name": "created_at",
+
+    "data_type": "timestamp with time zone",
+
+    "is_nullable": "NO",
+
+    "column_default": "now()"
+
+  },
+
+  {
+
+    "table_name": "favorites",
+
+    "ordinal_position": 6,
+
+    "column_name": "updated_at",
+
+    "data_type": "timestamp with time zone",
+
+    "is_nullable": "NO",
+
+    "column_default": "now()"
+
+  },
+
+  {
+
+    "table_name": "members",
+
+    "ordinal_position": 1,
+
+    "column_name": "id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": "uuid_generate_v4()"
+
+  },
+
+  {
+
+    "table_name": "members",
+
+    "ordinal_position": 2,
+
+    "column_name": "tenant_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "members",
+
+    "ordinal_position": 3,
+
+    "column_name": "name",
+
+    "data_type": "text",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "members",
+
+    "ordinal_position": 4,
+
+    "column_name": "phone",
+
+    "data_type": "text",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "members",
+
+    "ordinal_position": 5,
+
+    "column_name": "pin_hash",
+
+    "data_type": "text",
+
+    "is_nullable": "YES",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "members",
+
+    "ordinal_position": 6,
+
+    "column_name": "points",
+
+    "data_type": "integer",
+
+    "is_nullable": "YES",
+
+    "column_default": "0"
+
+  },
+
+  {
+
+    "table_name": "members",
+
+    "ordinal_position": 7,
+
+    "column_name": "total_spent",
+
+    "data_type": "numeric",
+
+    "is_nullable": "YES",
+
+    "column_default": "0"
+
+  },
+
+  {
+
+    "table_name": "members",
+
+    "ordinal_position": 8,
+
+    "column_name": "visit_count",
+
+    "data_type": "integer",
+
+    "is_nullable": "YES",
+
+    "column_default": "0"
+
+  },
+
+  {
+
+    "table_name": "members",
+
+    "ordinal_position": 9,
+
+    "column_name": "segment",
+
+    "data_type": "text",
+
+    "is_nullable": "YES",
+
+    "column_default": "'new'::text"
+
+  },
+
+  {
+
+    "table_name": "members",
+
+    "ordinal_position": 10,
+
+    "column_name": "status",
+
+    "data_type": "text",
+
+    "is_nullable": "YES",
+
+    "column_default": "'active'::text"
+
+  },
+
+  {
+
+    "table_name": "members",
+
+    "ordinal_position": 11,
+
+    "column_name": "created_at",
+
+    "data_type": "timestamp with time zone",
+
+    "is_nullable": "YES",
+
+    "column_default": "timezone('utc'::text, now())"
+
+  },
+
+  {
+
+    "table_name": "members",
+
+    "ordinal_position": 12,
+
+    "column_name": "updated_at",
+
+    "data_type": "timestamp with time zone",
+
+    "is_nullable": "YES",
+
+    "column_default": "timezone('utc'::text, now())"
+
+  },
+
+  {
+
+    "table_name": "modifier_groups",
+
+    "ordinal_position": 1,
+
+    "column_name": "id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": "uuid_generate_v4()"
+
+  },
+
+  {
+
+    "table_name": "modifier_groups",
+
+    "ordinal_position": 2,
+
+    "column_name": "tenant_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "modifier_groups",
+
+    "ordinal_position": 3,
+
+    "column_name": "name",
+
+    "data_type": "text",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "modifier_groups",
+
+    "ordinal_position": 4,
+
+    "column_name": "description",
+
+    "data_type": "text",
+
+    "is_nullable": "YES",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "modifier_groups",
+
+    "ordinal_position": 5,
+
+    "column_name": "type",
+
+    "data_type": "text",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "modifier_groups",
+
+    "ordinal_position": 6,
+
+    "column_name": "required",
+
+    "data_type": "integer",
+
+    "is_nullable": "YES",
+
+    "column_default": "0"
+
+  },
+
+  {
+
+    "table_name": "modifier_groups",
+
+    "ordinal_position": 7,
+
+    "column_name": "min_select",
+
+    "data_type": "integer",
+
+    "is_nullable": "YES",
+
+    "column_default": "0"
+
+  },
+
+  {
+
+    "table_name": "modifier_groups",
+
+    "ordinal_position": 8,
+
+    "column_name": "max_select",
+
+    "data_type": "integer",
+
+    "is_nullable": "YES",
+
+    "column_default": "1"
+
+  },
+
+  {
+
+    "table_name": "modifier_groups",
+
+    "ordinal_position": 9,
+
+    "column_name": "display_order",
+
+    "data_type": "integer",
+
+    "is_nullable": "YES",
+
+    "column_default": "0"
+
+  },
+
+  {
+
+    "table_name": "modifier_groups",
+
+    "ordinal_position": 10,
+
+    "column_name": "status",
+
+    "data_type": "text",
+
+    "is_nullable": "YES",
+
+    "column_default": "'active'::text"
+
+  },
+
+  {
+
+    "table_name": "modifier_groups",
+
+    "ordinal_position": 11,
+
+    "column_name": "created_at",
+
+    "data_type": "timestamp with time zone",
+
+    "is_nullable": "YES",
+
+    "column_default": "timezone('utc'::text, now())"
+
+  },
+
+  {
+
+    "table_name": "modifier_groups",
+
+    "ordinal_position": 12,
+
+    "column_name": "updated_at",
+
+    "data_type": "timestamp with time zone",
+
+    "is_nullable": "YES",
+
+    "column_default": "timezone('utc'::text, now())"
+
+  },
+
+  {
+
+    "table_name": "modifier_options",
+
+    "ordinal_position": 1,
+
+    "column_name": "id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": "uuid_generate_v4()"
+
+  },
+
+  {
+
+    "table_name": "modifier_options",
+
+    "ordinal_position": 2,
+
+    "column_name": "group_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "modifier_options",
+
+    "ordinal_position": 3,
+
+    "column_name": "name",
+
+    "data_type": "text",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "modifier_options",
+
+    "ordinal_position": 4,
+
+    "column_name": "price_adjustment",
+
+    "data_type": "numeric",
+
+    "is_nullable": "YES",
+
+    "column_default": "0"
+
+  },
+
+  {
+
+    "table_name": "modifier_options",
+
+    "ordinal_position": 5,
+
+    "column_name": "display_order",
+
+    "data_type": "integer",
+
+    "is_nullable": "YES",
+
+    "column_default": "0"
+
+  },
+
+  {
+
+    "table_name": "modifier_options",
+
+    "ordinal_position": 6,
+
+    "column_name": "status",
+
+    "data_type": "text",
+
+    "is_nullable": "YES",
+
+    "column_default": "'active'::text"
+
+  },
+
+  {
+
+    "table_name": "modifier_options",
+
+    "ordinal_position": 7,
+
+    "column_name": "created_at",
+
+    "data_type": "timestamp with time zone",
+
+    "is_nullable": "YES",
+
+    "column_default": "timezone('utc'::text, now())"
+
+  },
+
+  {
+
+    "table_name": "nashtycosts",
+
+    "ordinal_position": 1,
+
+    "column_name": "id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": "uuid_generate_v4()"
+
+  },
+
+  {
+
+    "table_name": "nashtycosts",
+
+    "ordinal_position": 2,
+
+    "column_name": "tenant_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "nashtycosts",
+
+    "ordinal_position": 3,
+
+    "column_name": "outlet_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "YES",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "nashtycosts",
+
+    "ordinal_position": 4,
+
+    "column_name": "amount",
+
+    "data_type": "numeric",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "nashtycosts",
+
+    "ordinal_position": 5,
+
+    "column_name": "category",
+
+    "data_type": "text",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "nashtycosts",
+
+    "ordinal_position": 6,
+
+    "column_name": "description",
+
+    "data_type": "text",
+
+    "is_nullable": "YES",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "nashtycosts",
+
+    "ordinal_position": 7,
+
+    "column_name": "created_at",
+
+    "data_type": "timestamp with time zone",
+
+    "is_nullable": "YES",
+
+    "column_default": "timezone('utc'::text, now())"
+
+  },
+
+  {
+
+    "table_name": "order_item_modifiers",
+
+    "ordinal_position": 1,
+
+    "column_name": "id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": "uuid_generate_v4()"
+
+  },
+
+  {
+
+    "table_name": "order_item_modifiers",
+
+    "ordinal_position": 2,
+
+    "column_name": "order_item_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "order_item_modifiers",
+
+    "ordinal_position": 3,
+
+    "column_name": "modifier_group_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "order_item_modifiers",
+
+    "ordinal_position": 4,
+
+    "column_name": "modifier_group_name",
+
+    "data_type": "text",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "order_item_modifiers",
+
+    "ordinal_position": 5,
+
+    "column_name": "modifier_option_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "order_item_modifiers",
+
+    "ordinal_position": 6,
+
+    "column_name": "modifier_option_name",
+
+    "data_type": "text",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "order_item_modifiers",
+
+    "ordinal_position": 7,
+
+    "column_name": "price_adjustment",
+
+    "data_type": "numeric",
+
+    "is_nullable": "YES",
+
+    "column_default": "0"
+
+  },
+
+  {
+
+    "table_name": "order_item_modifiers",
+
+    "ordinal_position": 8,
+
+    "column_name": "created_at",
+
+    "data_type": "timestamp with time zone",
+
+    "is_nullable": "YES",
+
+    "column_default": "timezone('utc'::text, now())"
+
+  },
+
+  {
+
+    "table_name": "order_items",
+
+    "ordinal_position": 1,
+
+    "column_name": "id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": "uuid_generate_v4()"
+
+  },
+
+  {
+
+    "table_name": "order_items",
+
+    "ordinal_position": 2,
+
+    "column_name": "order_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "order_items",
+
+    "ordinal_position": 3,
+
+    "column_name": "product_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "order_items",
+
+    "ordinal_position": 4,
+
+    "column_name": "product_name",
+
+    "data_type": "text",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "order_items",
+
+    "ordinal_position": 5,
+
+    "column_name": "quantity",
+
+    "data_type": "integer",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "order_items",
+
+    "ordinal_position": 6,
+
+    "column_name": "unit_price",
+
+    "data_type": "numeric",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "order_items",
+
+    "ordinal_position": 7,
+
+    "column_name": "subtotal",
+
+    "data_type": "numeric",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "order_items",
+
+    "ordinal_position": 8,
+
+    "column_name": "notes",
+
+    "data_type": "text",
+
+    "is_nullable": "YES",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "order_items",
+
+    "ordinal_position": 9,
+
+    "column_name": "kitchen_status",
+
+    "data_type": "text",
+
+    "is_nullable": "YES",
+
+    "column_default": "'pending'::text"
+
+  },
+
+  {
+
+    "table_name": "order_items",
+
+    "ordinal_position": 10,
+
+    "column_name": "created_at",
+
+    "data_type": "timestamp with time zone",
+
+    "is_nullable": "YES",
+
+    "column_default": "timezone('utc'::text, now())"
+
+  },
+
+  {
+
+    "table_name": "orders",
+
+    "ordinal_position": 1,
+
+    "column_name": "id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": "uuid_generate_v4()"
+
+  },
+
+  {
+
+    "table_name": "orders",
+
+    "ordinal_position": 2,
+
+    "column_name": "tenant_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "orders",
+
+    "ordinal_position": 3,
+
+    "column_name": "outlet_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "orders",
+
+    "ordinal_position": 4,
+
+    "column_name": "shift_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "YES",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "orders",
+
+    "ordinal_position": 5,
+
+    "column_name": "user_id",
+
+    "data_type": "uuid",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "orders",
+
+    "ordinal_position": 6,
+
+    "column_name": "order_number",
+
+    "data_type": "text",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "orders",
+
+    "ordinal_position": 7,
+
+    "column_name": "order_type",
+
+    "data_type": "text",
+
+    "is_nullable": "NO",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "orders",
+
+    "ordinal_position": 8,
+
+    "column_name": "table_number",
+
+    "data_type": "text",
+
+    "is_nullable": "YES",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "orders",
+
+    "ordinal_position": 9,
+
+    "column_name": "customer_name",
+
+    "data_type": "text",
+
+    "is_nullable": "YES",
+
+    "column_default": null
+
+  },
+
+  {
+
+    "table_name": "orders",
+
+    "ordinal_position": 10,
+
+    "column_name": "customer_phone",
+
+    "data_type": "text",
+
+    "is_nullable": "YES",
+
+    "column_default": null
+
+  }
+
+]     2. [
+
+  {
+
+    "table_name": "activity_logs",
+
+    "column_name": "tenant_id",
+
+    "foreign_table": "tenants",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "activity_logs",
+
+    "column_name": "user_id",
+
+    "foreign_table": "users",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "analytics_cache",
+
+    "column_name": "outlet_id",
+
+    "foreign_table": "outlets",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "categories",
+
+    "column_name": "tenant_id",
+
+    "foreign_table": "tenants",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "favorites",
+
+    "column_name": "user_id",
+
+    "foreign_table": "users",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "favorites",
+
+    "column_name": "product_id",
+
+    "foreign_table": "products",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "members",
+
+    "column_name": "tenant_id",
+
+    "foreign_table": "tenants",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "modifier_groups",
+
+    "column_name": "tenant_id",
+
+    "foreign_table": "tenants",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "modifier_options",
+
+    "column_name": "group_id",
+
+    "foreign_table": "modifier_groups",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "nashtycosts",
+
+    "column_name": "tenant_id",
+
+    "foreign_table": "tenants",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "nashtycosts",
+
+    "column_name": "outlet_id",
+
+    "foreign_table": "outlets",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "order_item_modifiers",
+
+    "column_name": "order_item_id",
+
+    "foreign_table": "order_items",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "order_items",
+
+    "column_name": "order_id",
+
+    "foreign_table": "orders",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "order_items",
+
+    "column_name": "product_id",
+
+    "foreign_table": "products",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "orders",
+
+    "column_name": "user_id",
+
+    "foreign_table": "users",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "orders",
+
+    "column_name": "tenant_id",
+
+    "foreign_table": "tenants",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "orders",
+
+    "column_name": "outlet_id",
+
+    "foreign_table": "outlets",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "orders",
+
+    "column_name": "shift_id",
+
+    "foreign_table": "shifts",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "outlet_settings",
+
+    "column_name": "outlet_id",
+
+    "foreign_table": "outlets",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "outlets",
+
+    "column_name": "tenant_id",
+
+    "foreign_table": "tenants",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "payment_methods",
+
+    "column_name": "tenant_id",
+
+    "foreign_table": "tenants",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "payments",
+
+    "column_name": "order_id",
+
+    "foreign_table": "orders",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "product_modifiers",
+
+    "column_name": "modifier_group_id",
+
+    "foreign_table": "modifier_groups",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "product_modifiers",
+
+    "column_name": "product_id",
+
+    "foreign_table": "products",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "products",
+
+    "column_name": "category_id",
+
+    "foreign_table": "categories",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "products",
+
+    "column_name": "tenant_id",
+
+    "foreign_table": "tenants",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "settings",
+
+    "column_name": "tenant_id",
+
+    "foreign_table": "tenants",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "settings",
+
+    "column_name": "outlet_id",
+
+    "foreign_table": "outlets",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "shifts",
+
+    "column_name": "outlet_id",
+
+    "foreign_table": "outlets",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "shifts",
+
+    "column_name": "user_id",
+
+    "foreign_table": "users",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "stations",
+
+    "column_name": "tenant_id",
+
+    "foreign_table": "tenants",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "stations",
+
+    "column_name": "outlet_id",
+
+    "foreign_table": "outlets",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "token_blacklist",
+
+    "column_name": "user_id",
+
+    "foreign_table": "users",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "user_outlet_access",
+
+    "column_name": "user_id",
+
+    "foreign_table": "system_users",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "user_outlet_access",
+
+    "column_name": "outlet_id",
+
+    "foreign_table": "outlets",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "user_sessions",
+
+    "column_name": "user_id",
+
+    "foreign_table": "system_users",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "user_system_access",
+
+    "column_name": "user_id",
+
+    "foreign_table": "system_users",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "users",
+
+    "column_name": "tenant_id",
+
+    "foreign_table": "tenants",
+
+    "foreign_column": "id"
+
+  },
+
+  {
+
+    "table_name": "users",
+
+    "column_name": "outlet_id",
+
+    "foreign_table": "outlets",
+
+    "foreign_column": "id"
+
+  }
+
+] 3. [
+
+  {
+
+    "table_name": "activity_logs",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "analytics_cache",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "analytics_cache",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "cache_key"
+
+  },
+
+  {
+
+    "table_name": "audit_log_entries",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "buckets",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "buckets_analytics",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "categories",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "tenant_id"
+
+  },
+
+  {
+
+    "table_name": "categories",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "categories",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "slug"
+
+  },
+
+  {
+
+    "table_name": "custom_oauth_providers",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "custom_oauth_providers",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "identifier"
+
+  },
+
+  {
+
+    "table_name": "favorites",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "favorites",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "product_id"
+
+  },
+
+  {
+
+    "table_name": "favorites",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "user_id"
+
+  },
+
+  {
+
+    "table_name": "flow_state",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "identities",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "provider_id"
+
+  },
+
+  {
+
+    "table_name": "identities",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "provider"
+
+  },
+
+  {
+
+    "table_name": "identities",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "instances",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "members",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "phone"
+
+  },
+
+  {
+
+    "table_name": "members",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "tenant_id"
+
+  },
+
+  {
+
+    "table_name": "members",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "messages",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "messages",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "inserted_at"
+
+  },
+
+  {
+
+    "table_name": "messages_2026_06_19",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "messages_2026_06_19",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "inserted_at"
+
+  },
+
+  {
+
+    "table_name": "messages_2026_06_20",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "messages_2026_06_20",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "inserted_at"
+
+  },
+
+  {
+
+    "table_name": "messages_2026_06_21",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "inserted_at"
+
+  },
+
+  {
+
+    "table_name": "messages_2026_06_21",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "messages_2026_06_22",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "inserted_at"
+
+  },
+
+  {
+
+    "table_name": "messages_2026_06_22",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "messages_2026_06_23",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "messages_2026_06_23",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "inserted_at"
+
+  },
+
+  {
+
+    "table_name": "messages_2026_06_24",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "messages_2026_06_24",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "inserted_at"
+
+  },
+
+  {
+
+    "table_name": "mfa_amr_claims",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "mfa_amr_claims",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "authentication_method"
+
+  },
+
+  {
+
+    "table_name": "mfa_amr_claims",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "session_id"
+
+  },
+
+  {
+
+    "table_name": "mfa_challenges",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "mfa_factors",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "last_challenged_at"
+
+  },
+
+  {
+
+    "table_name": "mfa_factors",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "modifier_groups",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "modifier_options",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "nashtycosts",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "oauth_authorizations",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "oauth_authorizations",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "authorization_id"
+
+  },
+
+  {
+
+    "table_name": "oauth_authorizations",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "authorization_code"
+
+  },
+
+  {
+
+    "table_name": "oauth_client_states",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "oauth_clients",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "oauth_consents",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "oauth_consents",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "user_id"
+
+  },
+
+  {
+
+    "table_name": "oauth_consents",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "client_id"
+
+  },
+
+  {
+
+    "table_name": "objects",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "one_time_tokens",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "order_item_modifiers",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "order_items",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "orders",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "outlet_settings",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "outlet_settings",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "outlet_id"
+
+  },
+
+  {
+
+    "table_name": "outlets",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "outlets",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "tenant_id"
+
+  },
+
+  {
+
+    "table_name": "outlets",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "slug"
+
+  },
+
+  {
+
+    "table_name": "payment_methods",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "payments",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "product_modifiers",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "product_id"
+
+  },
+
+  {
+
+    "table_name": "product_modifiers",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "modifier_group_id"
+
+  },
+
+  {
+
+    "table_name": "products",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "slug"
+
+  },
+
+  {
+
+    "table_name": "products",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "products",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "tenant_id"
+
+  },
+
+  {
+
+    "table_name": "refresh_tokens",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "refresh_tokens",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "token"
+
+  },
+
+  {
+
+    "table_name": "s3_multipart_uploads",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "s3_multipart_uploads_parts",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "saml_providers",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "saml_providers",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "entity_id"
+
+  },
+
+  {
+
+    "table_name": "saml_relay_states",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "schema_migrations",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "version"
+
+  },
+
+  {
+
+    "table_name": "schema_migrations",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "version"
+
+  },
+
+  {
+
+    "table_name": "schema_migrations",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "version"
+
+  },
+
+  {
+
+    "table_name": "schema_migrations",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "version"
+
+  },
+
+  {
+
+    "table_name": "schema_migrations",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "version"
+
+  },
+
+  {
+
+    "table_name": "schema_migrations",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "version"
+
+  },
+
+  {
+
+    "table_name": "secrets",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "sessions",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "settings",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "settings",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "tenant_id"
+
+  },
+
+  {
+
+    "table_name": "settings",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "key"
+
+  },
+
+  {
+
+    "table_name": "settings",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "outlet_id"
+
+  },
+
+  {
+
+    "table_name": "shifts",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "sso_domains",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "sso_providers",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "staff",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "stations",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "subscription",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "system_users",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "system_users",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "username"
+
+  },
+
+  {
+
+    "table_name": "tenants",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  },
+
+  {
+
+    "table_name": "tenants",
+
+    "constraint_type": "UNIQUE",
+
+    "column_name": "slug"
+
+  },
+
+  {
+
+    "table_name": "token_blacklist",
+
+    "constraint_type": "PRIMARY KEY",
+
+    "column_name": "id"
+
+  }
+
+] 4. [
+
+  {
+
+    "table_name": "-",
+
+    "conname": "cardinal_number_domain_check",
+
+    "pg_get_constraintdef": "CHECK ((VALUE >= 0))"
+
+  },
+
+  {
+
+    "table_name": "-",
+
+    "conname": "yes_or_no_check",
+
+    "pg_get_constraintdef": "CHECK (((VALUE)::text = ANY ((ARRAY['YES'::character varying, 'NO'::character varying])::text[])))"
+
+  },
+
+  {
+
+    "table_name": "auth.users",
+
+    "conname": "users_email_change_confirm_status_check",
+
+    "pg_get_constraintdef": "CHECK (((email_change_confirm_status >= 0) AND (email_change_confirm_status <= 2)))"
+
+  },
+
+  {
+
+    "table_name": "auth.sessions",
+
+    "conname": "sessions_scopes_length",
+
+    "pg_get_constraintdef": "CHECK ((char_length(scopes) <= 4096))"
+
+  },
+
+  {
+
+    "table_name": "auth.sso_providers",
+
+    "conname": "resource_id not empty",
+
+    "pg_get_constraintdef": "CHECK (((resource_id = NULL::text) OR (char_length(resource_id) > 0)))"
+
+  },
+
+  {
+
+    "table_name": "auth.sso_domains",
+
+    "conname": "domain not empty",
+
+    "pg_get_constraintdef": "CHECK ((char_length(domain) > 0))"
+
+  },
+
+  {
+
+    "table_name": "auth.saml_providers",
+
+    "conname": "metadata_xml not empty",
+
+    "pg_get_constraintdef": "CHECK ((char_length(metadata_xml) > 0))"
+
+  },
+
+  {
+
+    "table_name": "auth.saml_providers",
+
+    "conname": "metadata_url not empty",
+
+    "pg_get_constraintdef": "CHECK (((metadata_url = NULL::text) OR (char_length(metadata_url) > 0)))"
+
+  },
+
+  {
+
+    "table_name": "auth.saml_providers",
+
+    "conname": "entity_id not empty",
+
+    "pg_get_constraintdef": "CHECK ((char_length(entity_id) > 0))"
+
+  },
+
+  {
+
+    "table_name": "auth.saml_relay_states",
+
+    "conname": "request_id not empty",
+
+    "pg_get_constraintdef": "CHECK ((char_length(request_id) > 0))"
+
+  },
+
+  {
+
+    "table_name": "auth.one_time_tokens",
+
+    "conname": "one_time_tokens_token_hash_check",
+
+    "pg_get_constraintdef": "CHECK ((char_length(token_hash) > 0))"
+
+  },
+
+  {
+
+    "table_name": "auth.oauth_clients",
+
+    "conname": "oauth_clients_token_endpoint_auth_method_check",
+
+    "pg_get_constraintdef": "CHECK ((token_endpoint_auth_method = ANY (ARRAY['client_secret_basic'::text, 'client_secret_post'::text, 'none'::text])))"
+
+  },
+
+  {
+
+    "table_name": "auth.oauth_clients",
+
+    "conname": "oauth_clients_client_name_length",
+
+    "pg_get_constraintdef": "CHECK ((char_length(client_name) <= 1024))"
+
+  },
+
+  {
+
+    "table_name": "auth.oauth_clients",
+
+    "conname": "oauth_clients_client_uri_length",
+
+    "pg_get_constraintdef": "CHECK ((char_length(client_uri) <= 2048))"
+
+  },
+
+  {
+
+    "table_name": "auth.oauth_clients",
+
+    "conname": "oauth_clients_logo_uri_length",
+
+    "pg_get_constraintdef": "CHECK ((char_length(logo_uri) <= 2048))"
+
+  },
+
+  {
+
+    "table_name": "auth.oauth_authorizations",
+
+    "conname": "oauth_authorizations_state_length",
+
+    "pg_get_constraintdef": "CHECK ((char_length(state) <= 4096))"
+
+  },
+
+  {
+
+    "table_name": "auth.oauth_authorizations",
+
+    "conname": "oauth_authorizations_resource_length",
+
+    "pg_get_constraintdef": "CHECK ((char_length(resource) <= 2048))"
+
+  },
+
+  {
+
+    "table_name": "auth.oauth_authorizations",
+
+    "conname": "oauth_authorizations_code_challenge_length",
+
+    "pg_get_constraintdef": "CHECK ((char_length(code_challenge) <= 128))"
+
+  },
+
+  {
+
+    "table_name": "auth.oauth_authorizations",
+
+    "conname": "oauth_authorizations_authorization_code_length",
+
+    "pg_get_constraintdef": "CHECK ((char_length(authorization_code) <= 255))"
+
+  },
+
+  {
+
+    "table_name": "auth.oauth_authorizations",
+
+    "conname": "oauth_authorizations_expires_at_future",
+
+    "pg_get_constraintdef": "CHECK ((expires_at > created_at))"
+
+  },
+
+  {
+
+    "table_name": "auth.oauth_authorizations",
+
+    "conname": "oauth_authorizations_nonce_length",
+
+    "pg_get_constraintdef": "CHECK ((char_length(nonce) <= 255))"
+
+  },
+
+  {
+
+    "table_name": "auth.oauth_authorizations",
+
+    "conname": "oauth_authorizations_scope_length",
+
+    "pg_get_constraintdef": "CHECK ((char_length(scope) <= 4096))"
+
+  },
+
+  {
+
+    "table_name": "auth.oauth_authorizations",
+
+    "conname": "oauth_authorizations_redirect_uri_length",
+
+    "pg_get_constraintdef": "CHECK ((char_length(redirect_uri) <= 2048))"
+
+  },
+
+  {
+
+    "table_name": "auth.oauth_consents",
+
+    "conname": "oauth_consents_scopes_length",
+
+    "pg_get_constraintdef": "CHECK ((char_length(scopes) <= 2048))"
+
+  },
+
+  {
+
+    "table_name": "auth.oauth_consents",
+
+    "conname": "oauth_consents_scopes_not_empty",
+
+    "pg_get_constraintdef": "CHECK ((char_length(TRIM(BOTH FROM scopes)) > 0))"
+
+  },
+
+  {
+
+    "table_name": "auth.oauth_consents",
+
+    "conname": "oauth_consents_revoked_after_granted",
+
+    "pg_get_constraintdef": "CHECK (((revoked_at IS NULL) OR (revoked_at >= granted_at)))"
+
+  },
+
+  {
+
+    "table_name": "auth.custom_oauth_providers",
+
+    "conname": "custom_oauth_providers_oauth2_requires_endpoints",
+
+    "pg_get_constraintdef": "CHECK (((provider_type <> 'oauth2'::text) OR ((authorization_url IS NOT NULL) AND (token_url IS NOT NULL) AND (userinfo_url IS NOT NULL))))"
+
+  },
+
+  {
+
+    "table_name": "auth.custom_oauth_providers",
+
+    "conname": "custom_oauth_providers_provider_type_check",
+
+    "pg_get_constraintdef": "CHECK ((provider_type = ANY (ARRAY['oauth2'::text, 'oidc'::text])))"
+
+  },
+
+  {
+
+    "table_name": "auth.custom_oauth_providers",
+
+    "conname": "custom_oauth_providers_oidc_requires_issuer",
+
+    "pg_get_constraintdef": "CHECK (((provider_type <> 'oidc'::text) OR (issuer IS NOT NULL)))"
+
+  },
+
+  {
+
+    "table_name": "auth.custom_oauth_providers",
+
+    "conname": "custom_oauth_providers_oidc_issuer_https",
+
+    "pg_get_constraintdef": "CHECK (((provider_type <> 'oidc'::text) OR (issuer IS NULL) OR (issuer ~~ 'https://%'::text)))"
+
+  },
+
+  {
+
+    "table_name": "auth.custom_oauth_providers",
+
+    "conname": "custom_oauth_providers_oidc_discovery_url_https",
+
+    "pg_get_constraintdef": "CHECK (((provider_type <> 'oidc'::text) OR (discovery_url IS NULL) OR (discovery_url ~~ 'https://%'::text)))"
+
+  },
+
+  {
+
+    "table_name": "auth.custom_oauth_providers",
+
+    "conname": "custom_oauth_providers_authorization_url_https",
+
+    "pg_get_constraintdef": "CHECK (((authorization_url IS NULL) OR (authorization_url ~~ 'https://%'::text)))"
+
+  },
+
+  {
+
+    "table_name": "auth.custom_oauth_providers",
+
+    "conname": "custom_oauth_providers_token_url_https",
+
+    "pg_get_constraintdef": "CHECK (((token_url IS NULL) OR (token_url ~~ 'https://%'::text)))"
+
+  },
+
+  {
+
+    "table_name": "auth.custom_oauth_providers",
+
+    "conname": "custom_oauth_providers_userinfo_url_https",
+
+    "pg_get_constraintdef": "CHECK (((userinfo_url IS NULL) OR (userinfo_url ~~ 'https://%'::text)))"
+
+  },
+
+  {
+
+    "table_name": "auth.custom_oauth_providers",
+
+    "conname": "custom_oauth_providers_jwks_uri_https",
+
+    "pg_get_constraintdef": "CHECK (((jwks_uri IS NULL) OR (jwks_uri ~~ 'https://%'::text)))"
+
+  },
+
+  {
+
+    "table_name": "auth.custom_oauth_providers",
+
+    "conname": "custom_oauth_providers_identifier_format",
+
+    "pg_get_constraintdef": "CHECK ((identifier ~ '^[a-z0-9][a-z0-9:-]{0,48}[a-z0-9]$'::text))"
+
+  },
+
+  {
+
+    "table_name": "auth.custom_oauth_providers",
+
+    "conname": "custom_oauth_providers_name_length",
+
+    "pg_get_constraintdef": "CHECK (((char_length(name) >= 1) AND (char_length(name) <= 100)))"
+
+  },
+
+  {
+
+    "table_name": "auth.custom_oauth_providers",
+
+    "conname": "custom_oauth_providers_issuer_length",
+
+    "pg_get_constraintdef": "CHECK (((issuer IS NULL) OR ((char_length(issuer) >= 1) AND (char_length(issuer) <= 2048))))"
+
+  },
+
+  {
+
+    "table_name": "auth.custom_oauth_providers",
+
+    "conname": "custom_oauth_providers_discovery_url_length",
+
+    "pg_get_constraintdef": "CHECK (((discovery_url IS NULL) OR (char_length(discovery_url) <= 2048)))"
+
+  },
+
+  {
+
+    "table_name": "auth.custom_oauth_providers",
+
+    "conname": "custom_oauth_providers_authorization_url_length",
+
+    "pg_get_constraintdef": "CHECK (((authorization_url IS NULL) OR (char_length(authorization_url) <= 2048)))"
+
+  },
+
+  {
+
+    "table_name": "auth.custom_oauth_providers",
+
+    "conname": "custom_oauth_providers_token_url_length",
+
+    "pg_get_constraintdef": "CHECK (((token_url IS NULL) OR (char_length(token_url) <= 2048)))"
+
+  },
+
+  {
+
+    "table_name": "auth.custom_oauth_providers",
+
+    "conname": "custom_oauth_providers_userinfo_url_length",
+
+    "pg_get_constraintdef": "CHECK (((userinfo_url IS NULL) OR (char_length(userinfo_url) <= 2048)))"
+
+  },
+
+  {
+
+    "table_name": "auth.custom_oauth_providers",
+
+    "conname": "custom_oauth_providers_jwks_uri_length",
+
+    "pg_get_constraintdef": "CHECK (((jwks_uri IS NULL) OR (char_length(jwks_uri) <= 2048)))"
+
+  },
+
+  {
+
+    "table_name": "auth.custom_oauth_providers",
+
+    "conname": "custom_oauth_providers_client_id_length",
+
+    "pg_get_constraintdef": "CHECK (((char_length(client_id) >= 1) AND (char_length(client_id) <= 512)))"
+
+  },
+
+  {
+
+    "table_name": "auth.webauthn_challenges",
+
+    "conname": "webauthn_challenges_challenge_type_check",
+
+    "pg_get_constraintdef": "CHECK ((challenge_type = ANY (ARRAY['signup'::text, 'registration'::text, 'authentication'::text])))"
+
+  },
+
+  {
+
+    "table_name": "realtime.subscription",
+
+    "conname": "subscription_action_filter_check",
+
+    "pg_get_constraintdef": "CHECK ((action_filter = ANY (ARRAY['*'::text, 'INSERT'::text, 'UPDATE'::text, 'DELETE'::text])))"
+
+  },
+
+  {
+
+    "table_name": "realtime.messages",
+
+    "conname": "messages_payload_exclusive",
+
+    "pg_get_constraintdef": "CHECK (((payload IS NULL) OR (binary_payload IS NULL))) NOT VALID"
+
+  },
+
+  {
+
+    "table_name": "tenants",
+
+    "conname": "tenants_plan_check",
+
+    "pg_get_constraintdef": "CHECK ((plan = ANY (ARRAY['starter'::text, 'pro'::text, 'enterprise'::text])))"
+
+  },
+
+  {
+
+    "table_name": "tenants",
+
+    "conname": "tenants_status_check",
+
+    "pg_get_constraintdef": "CHECK ((status = ANY (ARRAY['active'::text, 'suspended'::text, 'cancelled'::text])))"
+
+  },
+
+  {
+
+    "table_name": "outlets",
+
+    "conname": "outlets_status_check",
+
+    "pg_get_constraintdef": "CHECK ((status = ANY (ARRAY['active'::text, 'inactive'::text])))"
+
+  },
+
+  {
+
+    "table_name": "users",
+
+    "conname": "users_role_check",
+
+    "pg_get_constraintdef": "CHECK ((role = ANY (ARRAY['owner'::text, 'manager'::text, 'cashier'::text, 'kitchen'::text, 'superadmin'::text])))"
+
+  },
+
+  {
+
+    "table_name": "users",
+
+    "conname": "users_status_check",
+
+    "pg_get_constraintdef": "CHECK ((status = ANY (ARRAY['active'::text, 'inactive'::text, 'deleted'::text])))"
+
+  },
+
+  {
+
+    "table_name": "members",
+
+    "conname": "members_segment_check",
+
+    "pg_get_constraintdef": "CHECK ((segment = ANY (ARRAY['new'::text, 'regular'::text, 'loyal'::text, 'vip'::text])))"
+
+  },
+
+  {
+
+    "table_name": "members",
+
+    "conname": "members_status_check",
+
+    "pg_get_constraintdef": "CHECK ((status = ANY (ARRAY['active'::text, 'inactive'::text])))"
+
+  },
+
+  {
+
+    "table_name": "categories",
+
+    "conname": "categories_status_check",
+
+    "pg_get_constraintdef": "CHECK ((status = ANY (ARRAY['active'::text, 'inactive'::text])))"
+
+  },
+
+  {
+
+    "table_name": "products",
+
+    "conname": "products_status_check",
+
+    "pg_get_constraintdef": "CHECK ((status = ANY (ARRAY['active'::text, 'inactive'::text, 'soldout'::text])))"
+
+  },
+
+  {
+
+    "table_name": "modifier_groups",
+
+    "conname": "modifier_groups_type_check",
+
+    "pg_get_constraintdef": "CHECK ((type = ANY (ARRAY['single'::text, 'multiple'::text])))"
+
+  },
+
+  {
+
+    "table_name": "modifier_groups",
+
+    "conname": "modifier_groups_status_check",
+
+    "pg_get_constraintdef": "CHECK ((status = ANY (ARRAY['active'::text, 'inactive'::text])))"
+
+  },
+
+  {
+
+    "table_name": "modifier_options",
+
+    "conname": "modifier_options_status_check",
+
+    "pg_get_constraintdef": "CHECK ((status = ANY (ARRAY['active'::text, 'inactive'::text])))"
+
+  },
+
+  {
+
+    "table_name": "shifts",
+
+    "conname": "shifts_status_check",
+
+    "pg_get_constraintdef": "CHECK ((status = ANY (ARRAY['open'::text, 'closed'::text])))"
+
+  },
+
+  {
+
+    "table_name": "orders",
+
+    "conname": "orders_order_type_check",
+
+    "pg_get_constraintdef": "CHECK ((order_type = ANY (ARRAY['dine-in'::text, 'takeaway'::text, 'gofood'::text, 'grabfood'::text, 'shopeefood'::text])))"
+
+  },
+
+  {
+
+    "table_name": "orders",
+
+    "conname": "orders_payment_status_check",
+
+    "pg_get_constraintdef": "CHECK ((payment_status = ANY (ARRAY['pending'::text, 'paid'::text, 'cancelled'::text])))"
+
+  },
+
+  {
+
+    "table_name": "orders",
+
+    "conname": "orders_order_status_check",
+
+    "pg_get_constraintdef": "CHECK ((order_status = ANY (ARRAY['pending'::text, 'confirmed'::text, 'preparing'::text, 'ready'::text, 'completed'::text, 'cancelled'::text])))"
+
+  },
+
+  {
+
+    "table_name": "orders",
+
+    "conname": "orders_kitchen_status_check",
+
+    "pg_get_constraintdef": "CHECK ((kitchen_status = ANY (ARRAY['pending'::text, 'preparing'::text, 'ready'::text, 'served'::text])))"
+
+  },
+
+  {
+
+    "table_name": "order_items",
+
+    "conname": "order_items_kitchen_status_check",
+
+    "pg_get_constraintdef": "CHECK ((kitchen_status = ANY (ARRAY['pending'::text, 'preparing'::text, 'ready'::text, 'served'::text])))"
+
+  },
+
+  {
+
+    "table_name": "payment_methods",
+
+    "conname": "payment_methods_type_check",
+
+    "pg_get_constraintdef": "CHECK ((type = ANY (ARRAY['cash'::text, 'card'::text, 'ewallet'::text, 'qris'::text, 'transfer'::text, 'other'::text])))"
+
+  },
+
+  {
+
+    "table_name": "payment_methods",
+
+    "conname": "payment_methods_status_check",
+
+    "pg_get_constraintdef": "CHECK ((status = ANY (ARRAY['active'::text, 'inactive'::text])))"
+
+  },
+
+  {
+
+    "table_name": "settings",
+
+    "conname": "settings_type_check",
+
+    "pg_get_constraintdef": "CHECK ((type = ANY (ARRAY['string'::text, 'number'::text, 'boolean'::text, 'json'::text])))"
+
+  },
+
+  {
+
+    "table_name": "stations",
+
+    "conname": "stations_status_check",
+
+    "pg_get_constraintdef": "CHECK ((status = ANY (ARRAY['active'::text, 'inactive'::text])))"
+
+  },
+
+  {
+
+    "table_name": "nashtycosts",
+
+    "conname": "nashtycosts_category_check",
+
+    "pg_get_constraintdef": "CHECK ((category = ANY (ARRAY['bahan-baku'::text, 'operasional'::text, 'gaji'::text, 'utilitas'::text, 'sewa'::text, 'lainnya'::text])))"
+
+  },
+
+  {
+
+    "table_name": "realtime.messages_2026_06_19",
+
+    "conname": "messages_payload_exclusive",
+
+    "pg_get_constraintdef": "CHECK (((payload IS NULL) OR (binary_payload IS NULL)))"
+
+  },
+
+  {
+
+    "table_name": "realtime.messages_2026_06_20",
+
+    "conname": "messages_payload_exclusive",
+
+    "pg_get_constraintdef": "CHECK (((payload IS NULL) OR (binary_payload IS NULL)))"
+
+  },
+
+  {
+
+    "table_name": "realtime.messages_2026_06_21",
+
+    "conname": "messages_payload_exclusive",
+
+    "pg_get_constraintdef": "CHECK (((payload IS NULL) OR (binary_payload IS NULL)))"
+
+  },
+
+  {
+
+    "table_name": "realtime.messages_2026_06_22",
+
+    "conname": "messages_payload_exclusive",
+
+    "pg_get_constraintdef": "CHECK (((payload IS NULL) OR (binary_payload IS NULL)))"
+
+  },
+
+  {
+
+    "table_name": "realtime.messages_2026_06_23",
+
+    "conname": "messages_payload_exclusive",
+
+    "pg_get_constraintdef": "CHECK (((payload IS NULL) OR (binary_payload IS NULL)))"
+
+  },
+
+  {
+
+    "table_name": "realtime.messages_2026_06_24",
+
+    "conname": "messages_payload_exclusive",
+
+    "pg_get_constraintdef": "CHECK (((payload IS NULL) OR (binary_payload IS NULL)))"
+
+  },
+
+  {
+
+    "table_name": "system_users",
+
+    "conname": "valid_role",
+
+    "pg_get_constraintdef": "CHECK (((role)::text = ANY ((ARRAY['superadmin'::character varying, 'admin'::character varying, 'manager'::character varying, 'cashier'::character varying, 'owner'::character varying])::text[])))"
+
+  },
+
+  {
+
+    "table_name": "user_system_access",
+
+    "conname": "valid_system",
+
+    "pg_get_constraintdef": "CHECK (((system_name)::text = ANY ((ARRAY['pos'::character varying, 'kds'::character varying, 'backoffice'::character varying, 'crm'::character varying, 'cost'::character varying])::text[])))"
+
+  },
+
+  {
+
+    "table_name": "staff",
+
+    "conname": "valid_staff_role",
+
+    "pg_get_constraintdef": "CHECK (((role)::text = ANY ((ARRAY['kasir'::character varying, 'admin'::character varying])::text[])))"
+
+  }
+
+] 5. [
+
+  {
+
+    "tablename": "activity_logs",
+
+    "indexname": "idx_activity_logs_user",
+
+    "indexdef": "CREATE INDEX idx_activity_logs_user ON public.activity_logs USING btree (user_id, created_at DESC)"
+
+  },
+
+  {
+
+    "tablename": "activity_logs",
+
+    "indexname": "idx_activity_logs_entity",
+
+    "indexdef": "CREATE INDEX idx_activity_logs_entity ON public.activity_logs USING btree (entity_type, entity_id, created_at DESC)"
+
+  },
+
+  {
+
+    "tablename": "activity_logs",
+
+    "indexname": "idx_activity_logs_action",
+
+    "indexdef": "CREATE INDEX idx_activity_logs_action ON public.activity_logs USING btree (tenant_id, action, created_at DESC)"
+
+  },
+
+  {
+
+    "tablename": "activity_logs",
+
+    "indexname": "activity_logs_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX activity_logs_pkey ON public.activity_logs USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "activity_logs",
+
+    "indexname": "idx_activity_logs_tenant_date",
+
+    "indexdef": "CREATE INDEX idx_activity_logs_tenant_date ON public.activity_logs USING btree (tenant_id, created_at DESC)"
+
+  },
+
+  {
+
+    "tablename": "analytics_cache",
+
+    "indexname": "idx_analytics_cache_outlet",
+
+    "indexdef": "CREATE INDEX idx_analytics_cache_outlet ON public.analytics_cache USING btree (outlet_id)"
+
+  },
+
+  {
+
+    "tablename": "analytics_cache",
+
+    "indexname": "idx_analytics_cache_key",
+
+    "indexdef": "CREATE INDEX idx_analytics_cache_key ON public.analytics_cache USING btree (cache_key)"
+
+  },
+
+  {
+
+    "tablename": "analytics_cache",
+
+    "indexname": "analytics_cache_cache_key_key",
+
+    "indexdef": "CREATE UNIQUE INDEX analytics_cache_cache_key_key ON public.analytics_cache USING btree (cache_key)"
+
+  },
+
+  {
+
+    "tablename": "analytics_cache",
+
+    "indexname": "analytics_cache_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX analytics_cache_pkey ON public.analytics_cache USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "analytics_cache",
+
+    "indexname": "idx_analytics_cache_expires",
+
+    "indexdef": "CREATE INDEX idx_analytics_cache_expires ON public.analytics_cache USING btree (expires_at)"
+
+  },
+
+  {
+
+    "tablename": "categories",
+
+    "indexname": "categories_tenant_id_slug_key",
+
+    "indexdef": "CREATE UNIQUE INDEX categories_tenant_id_slug_key ON public.categories USING btree (tenant_id, slug)"
+
+  },
+
+  {
+
+    "tablename": "categories",
+
+    "indexname": "idx_categories_tenant_order",
+
+    "indexdef": "CREATE INDEX idx_categories_tenant_order ON public.categories USING btree (tenant_id, display_order)"
+
+  },
+
+  {
+
+    "tablename": "categories",
+
+    "indexname": "idx_categories_active",
+
+    "indexdef": "CREATE INDEX idx_categories_active ON public.categories USING btree (tenant_id, status) WHERE (status = 'active'::text)"
+
+  },
+
+  {
+
+    "tablename": "categories",
+
+    "indexname": "categories_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX categories_pkey ON public.categories USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "favorites",
+
+    "indexname": "favorites_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX favorites_pkey ON public.favorites USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "favorites",
+
+    "indexname": "idx_favorites_user_position",
+
+    "indexdef": "CREATE INDEX idx_favorites_user_position ON public.favorites USING btree (user_id, \"position\")"
+
+  },
+
+  {
+
+    "tablename": "favorites",
+
+    "indexname": "favorites_user_id_product_id_key",
+
+    "indexdef": "CREATE UNIQUE INDEX favorites_user_id_product_id_key ON public.favorites USING btree (user_id, product_id)"
+
+  },
+
+  {
+
+    "tablename": "favorites",
+
+    "indexname": "idx_favorites_user_id",
+
+    "indexdef": "CREATE INDEX idx_favorites_user_id ON public.favorites USING btree (user_id)"
+
+  },
+
+  {
+
+    "tablename": "favorites",
+
+    "indexname": "idx_favorites_product_id",
+
+    "indexdef": "CREATE INDEX idx_favorites_product_id ON public.favorites USING btree (product_id)"
+
+  },
+
+  {
+
+    "tablename": "members",
+
+    "indexname": "members_tenant_id_phone_key",
+
+    "indexdef": "CREATE UNIQUE INDEX members_tenant_id_phone_key ON public.members USING btree (tenant_id, phone)"
+
+  },
+
+  {
+
+    "tablename": "members",
+
+    "indexname": "idx_members_phone",
+
+    "indexdef": "CREATE INDEX idx_members_phone ON public.members USING btree (tenant_id, phone)"
+
+  },
+
+  {
+
+    "tablename": "members",
+
+    "indexname": "idx_members_top_spenders",
+
+    "indexdef": "CREATE INDEX idx_members_top_spenders ON public.members USING btree (tenant_id, total_spent DESC, visit_count DESC)"
+
+  },
+
+  {
+
+    "tablename": "members",
+
+    "indexname": "idx_members_segment",
+
+    "indexdef": "CREATE INDEX idx_members_segment ON public.members USING btree (tenant_id, segment, total_spent DESC)"
+
+  },
+
+  {
+
+    "tablename": "members",
+
+    "indexname": "members_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX members_pkey ON public.members USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "modifier_groups",
+
+    "indexname": "modifier_groups_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX modifier_groups_pkey ON public.modifier_groups USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "modifier_options",
+
+    "indexname": "modifier_options_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX modifier_options_pkey ON public.modifier_options USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "nashtycosts",
+
+    "indexname": "nashtycosts_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX nashtycosts_pkey ON public.nashtycosts USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "order_item_modifiers",
+
+    "indexname": "order_item_modifiers_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX order_item_modifiers_pkey ON public.order_item_modifiers USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "order_items",
+
+    "indexname": "order_items_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX order_items_pkey ON public.order_items USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "order_items",
+
+    "indexname": "idx_order_items_product_date",
+
+    "indexdef": "CREATE INDEX idx_order_items_product_date ON public.order_items USING btree (product_id, created_at DESC)"
+
+  },
+
+  {
+
+    "tablename": "order_items",
+
+    "indexname": "idx_order_items_kitchen_status",
+
+    "indexdef": "CREATE INDEX idx_order_items_kitchen_status ON public.order_items USING btree (kitchen_status, created_at)"
+
+  },
+
+  {
+
+    "tablename": "order_items",
+
+    "indexname": "idx_order_items_order",
+
+    "indexdef": "CREATE INDEX idx_order_items_order ON public.order_items USING btree (order_id)"
+
+  },
+
+  {
+
+    "tablename": "orders",
+
+    "indexname": "idx_orders_outlet_date",
+
+    "indexdef": "CREATE INDEX idx_orders_outlet_date ON public.orders USING btree (outlet_id, created_at DESC)"
+
+  },
+
+  {
+
+    "tablename": "orders",
+
+    "indexname": "idx_orders_composite",
+
+    "indexdef": "CREATE INDEX idx_orders_composite ON public.orders USING btree (tenant_id, outlet_id, order_status, payment_status, created_at DESC)"
+
+  },
+
+  {
+
+    "tablename": "orders",
+
+    "indexname": "idx_orders_outlet_kitchen",
+
+    "indexdef": "CREATE INDEX idx_orders_outlet_kitchen ON public.orders USING btree (outlet_id, kitchen_status, created_at) WHERE (kitchen_status = ANY (ARRAY['pending'::text, 'preparing'::text]))"
+
+  },
+
+  {
+
+    "tablename": "orders",
+
+    "indexname": "idx_orders_shift",
+
+    "indexdef": "CREATE INDEX idx_orders_shift ON public.orders USING btree (shift_id, created_at DESC)"
+
+  },
+
+  {
+
+    "tablename": "orders",
+
+    "indexname": "orders_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX orders_pkey ON public.orders USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "orders",
+
+    "indexname": "idx_orders_user_date",
+
+    "indexdef": "CREATE INDEX idx_orders_user_date ON public.orders USING btree (user_id, created_at DESC)"
+
+  },
+
+  {
+
+    "tablename": "orders",
+
+    "indexname": "idx_orders_outlet_status",
+
+    "indexdef": "CREATE INDEX idx_orders_outlet_status ON public.orders USING btree (outlet_id, order_status, created_at DESC)"
+
+  },
+
+  {
+
+    "tablename": "outlet_settings",
+
+    "indexname": "idx_outlet_settings_outlet_id",
+
+    "indexdef": "CREATE INDEX idx_outlet_settings_outlet_id ON public.outlet_settings USING btree (outlet_id)"
+
+  },
+
+  {
+
+    "tablename": "outlet_settings",
+
+    "indexname": "outlet_settings_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX outlet_settings_pkey ON public.outlet_settings USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "outlet_settings",
+
+    "indexname": "idx_outlet_settings_json",
+
+    "indexdef": "CREATE INDEX idx_outlet_settings_json ON public.outlet_settings USING gin (settings_json)"
+
+  },
+
+  {
+
+    "tablename": "outlet_settings",
+
+    "indexname": "outlet_settings_outlet_id_key",
+
+    "indexdef": "CREATE UNIQUE INDEX outlet_settings_outlet_id_key ON public.outlet_settings USING btree (outlet_id)"
+
+  },
+
+  {
+
+    "tablename": "outlets",
+
+    "indexname": "outlets_tenant_id_slug_key",
+
+    "indexdef": "CREATE UNIQUE INDEX outlets_tenant_id_slug_key ON public.outlets USING btree (tenant_id, slug)"
+
+  },
+
+  {
+
+    "tablename": "outlets",
+
+    "indexname": "outlets_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX outlets_pkey ON public.outlets USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "payment_methods",
+
+    "indexname": "payment_methods_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX payment_methods_pkey ON public.payment_methods USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "payments",
+
+    "indexname": "idx_payments_order",
+
+    "indexdef": "CREATE INDEX idx_payments_order ON public.payments USING btree (order_id)"
+
+  },
+
+  {
+
+    "tablename": "payments",
+
+    "indexname": "idx_payments_method_date",
+
+    "indexdef": "CREATE INDEX idx_payments_method_date ON public.payments USING btree (method, created_at DESC)"
+
+  },
+
+  {
+
+    "tablename": "payments",
+
+    "indexname": "payments_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX payments_pkey ON public.payments USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "product_modifiers",
+
+    "indexname": "product_modifiers_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX product_modifiers_pkey ON public.product_modifiers USING btree (product_id, modifier_group_id)"
+
+  },
+
+  {
+
+    "tablename": "products",
+
+    "indexname": "idx_products_outlet_active",
+
+    "indexdef": "CREATE INDEX idx_products_outlet_active ON public.products USING btree (tenant_id, status) WHERE (status = 'active'::text)"
+
+  },
+
+  {
+
+    "tablename": "products",
+
+    "indexname": "idx_products_tenant_category",
+
+    "indexdef": "CREATE INDEX idx_products_tenant_category ON public.products USING btree (tenant_id, category_id, status)"
+
+  },
+
+  {
+
+    "tablename": "products",
+
+    "indexname": "idx_products_search",
+
+    "indexdef": "CREATE INDEX idx_products_search ON public.products USING gin (to_tsvector('english'::regconfig, ((name || ' '::text) || COALESCE(description, ''::text))))"
+
+  },
+
+  {
+
+    "tablename": "products",
+
+    "indexname": "products_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX products_pkey ON public.products USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "products",
+
+    "indexname": "products_tenant_id_slug_key",
+
+    "indexdef": "CREATE UNIQUE INDEX products_tenant_id_slug_key ON public.products USING btree (tenant_id, slug)"
+
+  },
+
+  {
+
+    "tablename": "settings",
+
+    "indexname": "settings_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX settings_pkey ON public.settings USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "settings",
+
+    "indexname": "settings_tenant_id_outlet_id_key_key",
+
+    "indexdef": "CREATE UNIQUE INDEX settings_tenant_id_outlet_id_key_key ON public.settings USING btree (tenant_id, outlet_id, key)"
+
+  },
+
+  {
+
+    "tablename": "shifts",
+
+    "indexname": "idx_shifts_user",
+
+    "indexdef": "CREATE INDEX idx_shifts_user ON public.shifts USING btree (user_id, started_at DESC)"
+
+  },
+
+  {
+
+    "tablename": "shifts",
+
+    "indexname": "idx_shifts_outlet_date",
+
+    "indexdef": "CREATE INDEX idx_shifts_outlet_date ON public.shifts USING btree (outlet_id, started_at DESC)"
+
+  },
+
+  {
+
+    "tablename": "shifts",
+
+    "indexname": "idx_shifts_open",
+
+    "indexdef": "CREATE INDEX idx_shifts_open ON public.shifts USING btree (outlet_id, status) WHERE (status = 'open'::text)"
+
+  },
+
+  {
+
+    "tablename": "shifts",
+
+    "indexname": "shifts_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX shifts_pkey ON public.shifts USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "staff",
+
+    "indexname": "idx_staff_active",
+
+    "indexdef": "CREATE INDEX idx_staff_active ON public.staff USING btree (is_active)"
+
+  },
+
+  {
+
+    "tablename": "staff",
+
+    "indexname": "staff_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX staff_pkey ON public.staff USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "staff",
+
+    "indexname": "idx_staff_tenant",
+
+    "indexdef": "CREATE INDEX idx_staff_tenant ON public.staff USING btree (tenant_id)"
+
+  },
+
+  {
+
+    "tablename": "staff",
+
+    "indexname": "idx_staff_outlet",
+
+    "indexdef": "CREATE INDEX idx_staff_outlet ON public.staff USING btree (outlet_id)"
+
+  },
+
+  {
+
+    "tablename": "staff",
+
+    "indexname": "idx_staff_pin",
+
+    "indexdef": "CREATE INDEX idx_staff_pin ON public.staff USING btree (pin)"
+
+  },
+
+  {
+
+    "tablename": "stations",
+
+    "indexname": "stations_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX stations_pkey ON public.stations USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "system_users",
+
+    "indexname": "idx_system_users_username",
+
+    "indexdef": "CREATE INDEX idx_system_users_username ON public.system_users USING btree (username)"
+
+  },
+
+  {
+
+    "tablename": "system_users",
+
+    "indexname": "idx_system_users_role",
+
+    "indexdef": "CREATE INDEX idx_system_users_role ON public.system_users USING btree (role)"
+
+  },
+
+  {
+
+    "tablename": "system_users",
+
+    "indexname": "idx_system_users_is_active",
+
+    "indexdef": "CREATE INDEX idx_system_users_is_active ON public.system_users USING btree (is_active)"
+
+  },
+
+  {
+
+    "tablename": "system_users",
+
+    "indexname": "system_users_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX system_users_pkey ON public.system_users USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "system_users",
+
+    "indexname": "system_users_username_key",
+
+    "indexdef": "CREATE UNIQUE INDEX system_users_username_key ON public.system_users USING btree (username)"
+
+  },
+
+  {
+
+    "tablename": "tenants",
+
+    "indexname": "tenants_slug_key",
+
+    "indexdef": "CREATE UNIQUE INDEX tenants_slug_key ON public.tenants USING btree (slug)"
+
+  },
+
+  {
+
+    "tablename": "tenants",
+
+    "indexname": "tenants_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX tenants_pkey ON public.tenants USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "token_blacklist",
+
+    "indexname": "idx_token_blacklist_user_id",
+
+    "indexdef": "CREATE INDEX idx_token_blacklist_user_id ON public.token_blacklist USING btree (user_id)"
+
+  },
+
+  {
+
+    "tablename": "token_blacklist",
+
+    "indexname": "idx_token_blacklist_expires",
+
+    "indexdef": "CREATE INDEX idx_token_blacklist_expires ON public.token_blacklist USING btree (expires_at)"
+
+  },
+
+  {
+
+    "tablename": "token_blacklist",
+
+    "indexname": "token_blacklist_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX token_blacklist_pkey ON public.token_blacklist USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "token_blacklist",
+
+    "indexname": "token_blacklist_token_hash_key",
+
+    "indexdef": "CREATE UNIQUE INDEX token_blacklist_token_hash_key ON public.token_blacklist USING btree (token_hash)"
+
+  },
+
+  {
+
+    "tablename": "token_blacklist",
+
+    "indexname": "idx_token_blacklist_hash",
+
+    "indexdef": "CREATE INDEX idx_token_blacklist_hash ON public.token_blacklist USING btree (token_hash)"
+
+  },
+
+  {
+
+    "tablename": "user_outlet_access",
+
+    "indexname": "user_outlet_access_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX user_outlet_access_pkey ON public.user_outlet_access USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "user_outlet_access",
+
+    "indexname": "user_outlet_access_user_id_outlet_id_key",
+
+    "indexdef": "CREATE UNIQUE INDEX user_outlet_access_user_id_outlet_id_key ON public.user_outlet_access USING btree (user_id, outlet_id)"
+
+  },
+
+  {
+
+    "tablename": "user_sessions",
+
+    "indexname": "idx_user_sessions_user",
+
+    "indexdef": "CREATE INDEX idx_user_sessions_user ON public.user_sessions USING btree (user_id)"
+
+  },
+
+  {
+
+    "tablename": "user_sessions",
+
+    "indexname": "idx_user_sessions_expires",
+
+    "indexdef": "CREATE INDEX idx_user_sessions_expires ON public.user_sessions USING btree (expires_at)"
+
+  },
+
+  {
+
+    "tablename": "user_sessions",
+
+    "indexname": "idx_user_sessions_token",
+
+    "indexdef": "CREATE INDEX idx_user_sessions_token ON public.user_sessions USING btree (token_hash)"
+
+  },
+
+  {
+
+    "tablename": "user_sessions",
+
+    "indexname": "user_sessions_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX user_sessions_pkey ON public.user_sessions USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "user_system_access",
+
+    "indexname": "user_system_access_user_id_system_name_key",
+
+    "indexdef": "CREATE UNIQUE INDEX user_system_access_user_id_system_name_key ON public.user_system_access USING btree (user_id, system_name)"
+
+  },
+
+  {
+
+    "tablename": "user_system_access",
+
+    "indexname": "idx_user_system_access_user",
+
+    "indexdef": "CREATE INDEX idx_user_system_access_user ON public.user_system_access USING btree (user_id)"
+
+  },
+
+  {
+
+    "tablename": "user_system_access",
+
+    "indexname": "user_system_access_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX user_system_access_pkey ON public.user_system_access USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "users",
+
+    "indexname": "idx_users_tenant_role",
+
+    "indexdef": "CREATE INDEX idx_users_tenant_role ON public.users USING btree (tenant_id, role, status)"
+
+  },
+
+  {
+
+    "tablename": "users",
+
+    "indexname": "idx_users_phone",
+
+    "indexdef": "CREATE INDEX idx_users_phone ON public.users USING btree (phone) WHERE (phone IS NOT NULL)"
+
+  },
+
+  {
+
+    "tablename": "users",
+
+    "indexname": "users_email_key",
+
+    "indexdef": "CREATE UNIQUE INDEX users_email_key ON public.users USING btree (email)"
+
+  },
+
+  {
+
+    "tablename": "users",
+
+    "indexname": "users_pkey",
+
+    "indexdef": "CREATE UNIQUE INDEX users_pkey ON public.users USING btree (id)"
+
+  },
+
+  {
+
+    "tablename": "users",
+
+    "indexname": "idx_users_outlet",
+
+    "indexdef": "CREATE INDEX idx_users_outlet ON public.users USING btree (outlet_id) WHERE (outlet_id IS NOT NULL)"
+
+  },
+
+  {
+
+    "tablename": "users",
+
+    "indexname": "idx_users_email",
+
+    "indexdef": "CREATE INDEX idx_users_email ON public.users USING btree (email) WHERE (email IS NOT NULL)"
+
+  }
+
+] bonus [
+
+  {
+
+    "routine_name": "cleanup_expired_cache",
+
+    "routine_type": "FUNCTION"
+
+  },
+
+  {
+
+    "routine_name": "cleanup_expired_tokens",
+
+    "routine_type": "FUNCTION"
+
+  },
+
+  {
+
+    "routine_name": "execute_sql",
+
+    "routine_type": "FUNCTION"
+
+  },
+
+  {
+
+    "routine_name": "generate_order_number",
+
+    "routine_type": "FUNCTION"
+
+  },
+
+  {
+
+    "routine_name": "rls_auto_enable",
+
+    "routine_type": "FUNCTION"
+
+  },
+
+  {
+
+    "routine_name": "update_updated_at_column",
+
+    "routine_type": "FUNCTION"
+
+  }
+
+]

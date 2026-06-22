@@ -1,0 +1,1600 @@
+{
+  "activity_logs": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "uuid_generate_v4()"
+    },
+    {
+      "column": "tenant_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "user_id",
+      "type": "uuid",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "action",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "entity_type",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "entity_id",
+      "type": "uuid",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "description",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "metadata",
+      "type": "jsonb",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "ip_address",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    }
+  ],
+  "analytics_cache": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "gen_random_uuid()"
+    },
+    {
+      "column": "cache_key",
+      "type": "character varying",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "outlet_id",
+      "type": "uuid",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "data",
+      "type": "jsonb",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "expires_at",
+      "type": "timestamp with time zone",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "NO",
+      "default": "now()"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone",
+      "nullable": "NO",
+      "default": "now()"
+    }
+  ],
+  "categories": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "uuid_generate_v4()"
+    },
+    {
+      "column": "tenant_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "name",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "slug",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "description",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "icon",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "color",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "display_order",
+      "type": "integer",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "status",
+      "type": "text",
+      "nullable": "YES",
+      "default": "'active'::text"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    }
+  ],
+  "favorites": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "gen_random_uuid()"
+    },
+    {
+      "column": "user_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "product_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "position",
+      "type": "integer",
+      "nullable": "NO",
+      "default": "0"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "NO",
+      "default": "now()"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone",
+      "nullable": "NO",
+      "default": "now()"
+    }
+  ],
+  "members": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "uuid_generate_v4()"
+    },
+    {
+      "column": "tenant_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "name",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "phone",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "pin_hash",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "points",
+      "type": "integer",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "total_spent",
+      "type": "numeric",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "visit_count",
+      "type": "integer",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "segment",
+      "type": "text",
+      "nullable": "YES",
+      "default": "'new'::text"
+    },
+    {
+      "column": "status",
+      "type": "text",
+      "nullable": "YES",
+      "default": "'active'::text"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    }
+  ],
+  "modifier_groups": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "uuid_generate_v4()"
+    },
+    {
+      "column": "tenant_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "name",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "description",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "type",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "required",
+      "type": "integer",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "min_select",
+      "type": "integer",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "max_select",
+      "type": "integer",
+      "nullable": "YES",
+      "default": "1"
+    },
+    {
+      "column": "display_order",
+      "type": "integer",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "status",
+      "type": "text",
+      "nullable": "YES",
+      "default": "'active'::text"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    }
+  ],
+  "modifier_options": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "uuid_generate_v4()"
+    },
+    {
+      "column": "group_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "name",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "price_adjustment",
+      "type": "numeric",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "display_order",
+      "type": "integer",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "status",
+      "type": "text",
+      "nullable": "YES",
+      "default": "'active'::text"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    }
+  ],
+  "nashtycosts": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "uuid_generate_v4()"
+    },
+    {
+      "column": "tenant_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "outlet_id",
+      "type": "uuid",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "amount",
+      "type": "numeric",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "category",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "description",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    }
+  ],
+  "order_item_modifiers": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "uuid_generate_v4()"
+    },
+    {
+      "column": "order_item_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "modifier_group_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "modifier_group_name",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "modifier_option_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "modifier_option_name",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "price_adjustment",
+      "type": "numeric",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    }
+  ],
+  "order_items": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "uuid_generate_v4()"
+    },
+    {
+      "column": "order_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "product_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "product_name",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "quantity",
+      "type": "integer",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "unit_price",
+      "type": "numeric",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "subtotal",
+      "type": "numeric",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "notes",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "kitchen_status",
+      "type": "text",
+      "nullable": "YES",
+      "default": "'pending'::text"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    }
+  ],
+  "orders": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "uuid_generate_v4()"
+    },
+    {
+      "column": "tenant_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "outlet_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "shift_id",
+      "type": "uuid",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "user_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "order_number",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "order_type",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "table_number",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "customer_name",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "customer_phone",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "subtotal",
+      "type": "numeric",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "discount",
+      "type": "numeric",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "tax",
+      "type": "numeric",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "service_charge",
+      "type": "numeric",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "total",
+      "type": "numeric",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "payment_method",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "payment_status",
+      "type": "text",
+      "nullable": "YES",
+      "default": "'pending'::text"
+    },
+    {
+      "column": "order_status",
+      "type": "text",
+      "nullable": "YES",
+      "default": "'pending'::text"
+    },
+    {
+      "column": "kitchen_status",
+      "type": "text",
+      "nullable": "YES",
+      "default": "'pending'::text"
+    },
+    {
+      "column": "notes",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    },
+    {
+      "column": "completed_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": null
+    }
+  ],
+  "outlet_settings": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "gen_random_uuid()"
+    },
+    {
+      "column": "outlet_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "settings_json",
+      "type": "jsonb",
+      "nullable": "NO",
+      "default": "'{}'::jsonb"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "NO",
+      "default": "now()"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone",
+      "nullable": "NO",
+      "default": "now()"
+    }
+  ],
+  "outlets": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "uuid_generate_v4()"
+    },
+    {
+      "column": "tenant_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "name",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "slug",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "address",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "phone",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "status",
+      "type": "text",
+      "nullable": "YES",
+      "default": "'active'::text"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    }
+  ],
+  "payment_methods": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "uuid_generate_v4()"
+    },
+    {
+      "column": "tenant_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "name",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "type",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "icon",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "display_order",
+      "type": "integer",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "status",
+      "type": "text",
+      "nullable": "YES",
+      "default": "'active'::text"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    }
+  ],
+  "payments": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "uuid_generate_v4()"
+    },
+    {
+      "column": "order_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "method",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "amount",
+      "type": "numeric",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "change_amount",
+      "type": "numeric",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "platform_ref",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    }
+  ],
+  "product_modifiers": [
+    {
+      "column": "product_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "modifier_group_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "display_order",
+      "type": "integer",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    }
+  ],
+  "products": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "uuid_generate_v4()"
+    },
+    {
+      "column": "tenant_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "category_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "name",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "slug",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "description",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "price",
+      "type": "numeric",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "cost",
+      "type": "numeric",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "sku",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "image_url",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "is_favorite",
+      "type": "integer",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "has_modifiers",
+      "type": "integer",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "stock_tracking",
+      "type": "integer",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "stock_qty",
+      "type": "integer",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "production_time",
+      "type": "integer",
+      "nullable": "YES",
+      "default": "10"
+    },
+    {
+      "column": "status",
+      "type": "text",
+      "nullable": "YES",
+      "default": "'active'::text"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    }
+  ],
+  "settings": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "uuid_generate_v4()"
+    },
+    {
+      "column": "tenant_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "outlet_id",
+      "type": "uuid",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "key",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "value",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "type",
+      "type": "text",
+      "nullable": "YES",
+      "default": "'string'::text"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    }
+  ],
+  "shifts": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "uuid_generate_v4()"
+    },
+    {
+      "column": "outlet_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "user_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "start_cash",
+      "type": "numeric",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "end_cash",
+      "type": "numeric",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "expected_cash",
+      "type": "numeric",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "variance",
+      "type": "numeric",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "notes",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "started_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    },
+    {
+      "column": "ended_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "status",
+      "type": "text",
+      "nullable": "YES",
+      "default": "'open'::text"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    }
+  ],
+  "staff": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "gen_random_uuid()"
+    },
+    {
+      "column": "tenant_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "outlet_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "name",
+      "type": "character varying",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "pin",
+      "type": "character varying",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "role",
+      "type": "character varying",
+      "nullable": "NO",
+      "default": "'kasir'::character varying"
+    },
+    {
+      "column": "color",
+      "type": "character varying",
+      "nullable": "YES",
+      "default": "'#E4540C'::character varying"
+    },
+    {
+      "column": "is_active",
+      "type": "boolean",
+      "nullable": "YES",
+      "default": "true"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "now()"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "now()"
+    }
+  ],
+  "stations": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "uuid_generate_v4()"
+    },
+    {
+      "column": "tenant_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "outlet_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "name",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "display_order",
+      "type": "integer",
+      "nullable": "YES",
+      "default": "0"
+    },
+    {
+      "column": "status",
+      "type": "text",
+      "nullable": "YES",
+      "default": "'active'::text"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    }
+  ],
+  "system_users": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "gen_random_uuid()"
+    },
+    {
+      "column": "username",
+      "type": "character varying",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "password_hash",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "full_name",
+      "type": "character varying",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "email",
+      "type": "character varying",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "role",
+      "type": "character varying",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "is_active",
+      "type": "boolean",
+      "nullable": "YES",
+      "default": "true"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "now()"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "now()"
+    },
+    {
+      "column": "last_login_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "created_by",
+      "type": "uuid",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "tenant_id",
+      "type": "uuid",
+      "nullable": "YES",
+      "default": null
+    }
+  ],
+  "tenants": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "uuid_generate_v4()"
+    },
+    {
+      "column": "name",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "slug",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "plan",
+      "type": "text",
+      "nullable": "YES",
+      "default": "'starter'::text"
+    },
+    {
+      "column": "status",
+      "type": "text",
+      "nullable": "YES",
+      "default": "'active'::text"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    },
+    {
+      "column": "subscription_ends_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": null
+    }
+  ],
+  "token_blacklist": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "gen_random_uuid()"
+    },
+    {
+      "column": "token_hash",
+      "type": "character varying",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "user_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "expires_at",
+      "type": "timestamp with time zone",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "NO",
+      "default": "now()"
+    }
+  ],
+  "user_outlet_access": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "gen_random_uuid()"
+    },
+    {
+      "column": "user_id",
+      "type": "uuid",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "outlet_id",
+      "type": "uuid",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "now()"
+    }
+  ],
+  "user_sessions": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "gen_random_uuid()"
+    },
+    {
+      "column": "user_id",
+      "type": "uuid",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "token_hash",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "ip_address",
+      "type": "inet",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "user_agent",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "expires_at",
+      "type": "timestamp with time zone",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "now()"
+    },
+    {
+      "column": "last_activity_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "now()"
+    }
+  ],
+  "user_system_access": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "gen_random_uuid()"
+    },
+    {
+      "column": "user_id",
+      "type": "uuid",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "system_name",
+      "type": "character varying",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "has_access",
+      "type": "boolean",
+      "nullable": "YES",
+      "default": "true"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "now()"
+    }
+  ],
+  "users": [
+    {
+      "column": "id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": "uuid_generate_v4()"
+    },
+    {
+      "column": "tenant_id",
+      "type": "uuid",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "outlet_id",
+      "type": "uuid",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "email",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "phone",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "name",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "role",
+      "type": "text",
+      "nullable": "NO",
+      "default": null
+    },
+    {
+      "column": "pin",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "password",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "avatar",
+      "type": "text",
+      "nullable": "YES",
+      "default": null
+    },
+    {
+      "column": "status",
+      "type": "text",
+      "nullable": "YES",
+      "default": "'active'::text"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone",
+      "nullable": "YES",
+      "default": "timezone('utc'::text, now())"
+    }
+  ]
+}

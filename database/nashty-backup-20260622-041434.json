@@ -1,0 +1,1720 @@
+{
+  "backup_date": "2026-06-22T04:14:33.677873",
+  "tables": {
+    "activity_logs": {
+      "columns": [
+        "id",
+        "tenant_id",
+        "user_id",
+        "action",
+        "entity_type",
+        "entity_id",
+        "description",
+        "metadata",
+        "ip_address",
+        "created_at"
+      ],
+      "row_count": 0,
+      "rows": []
+    },
+    "analytics_cache": {
+      "columns": [
+        "id",
+        "cache_key",
+        "outlet_id",
+        "data",
+        "expires_at",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "rows": []
+    },
+    "categories": {
+      "columns": [
+        "id",
+        "tenant_id",
+        "name",
+        "slug",
+        "description",
+        "icon",
+        "color",
+        "display_order",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 5,
+      "rows": [
+        {
+          "id": "00000000-0000-0000-0000-000000000301",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "name": "Makanan Utama",
+          "slug": "makanan-utama",
+          "description": null,
+          "icon": "\ud83c\udf57",
+          "color": null,
+          "display_order": 1,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000302",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "name": "Minuman",
+          "slug": "minuman",
+          "description": null,
+          "icon": "\ud83e\udd64",
+          "color": null,
+          "display_order": 2,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000303",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "name": "Camilan",
+          "slug": "camilan",
+          "description": null,
+          "icon": "\ud83c\udf5f",
+          "color": null,
+          "display_order": 3,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000304",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "name": "Dessert",
+          "slug": "dessert",
+          "description": null,
+          "icon": "\ud83c\udf68",
+          "color": null,
+          "display_order": 4,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000305",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "name": "Add On",
+          "slug": "add-on",
+          "description": null,
+          "icon": "\ud83c\udf5a",
+          "color": null,
+          "display_order": 5,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        }
+      ]
+    },
+    "favorites": {
+      "columns": [
+        "id",
+        "user_id",
+        "product_id",
+        "position",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "rows": []
+    },
+    "members": {
+      "columns": [
+        "id",
+        "tenant_id",
+        "name",
+        "phone",
+        "pin_hash",
+        "points",
+        "total_spent",
+        "visit_count",
+        "segment",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "rows": []
+    },
+    "modifier_groups": {
+      "columns": [
+        "id",
+        "tenant_id",
+        "name",
+        "description",
+        "type",
+        "required",
+        "min_select",
+        "max_select",
+        "display_order",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 3,
+      "rows": [
+        {
+          "id": "00000000-0000-0000-0000-000000000401",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "name": "Level Pedas",
+          "description": null,
+          "type": "single",
+          "required": 1,
+          "min_select": 1,
+          "max_select": 1,
+          "display_order": 0,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000402",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "name": "Suhu Minuman",
+          "description": null,
+          "type": "single",
+          "required": 1,
+          "min_select": 1,
+          "max_select": 1,
+          "display_order": 0,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000403",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "name": "Tambahan",
+          "description": null,
+          "type": "multiple",
+          "required": 0,
+          "min_select": 0,
+          "max_select": 3,
+          "display_order": 0,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        }
+      ]
+    },
+    "modifier_options": {
+      "columns": [
+        "id",
+        "group_id",
+        "name",
+        "price_adjustment",
+        "display_order",
+        "status",
+        "created_at"
+      ],
+      "row_count": 8,
+      "rows": [
+        {
+          "id": "00000000-0000-0000-0000-000000000501",
+          "group_id": "00000000-0000-0000-0000-000000000401",
+          "name": "Original",
+          "price_adjustment": "0",
+          "display_order": 0,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000502",
+          "group_id": "00000000-0000-0000-0000-000000000401",
+          "name": "Pedas Sedang",
+          "price_adjustment": "0",
+          "display_order": 0,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000503",
+          "group_id": "00000000-0000-0000-0000-000000000401",
+          "name": "Pedas Extra",
+          "price_adjustment": "0",
+          "display_order": 0,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000504",
+          "group_id": "00000000-0000-0000-0000-000000000402",
+          "name": "Dingin",
+          "price_adjustment": "0",
+          "display_order": 0,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000505",
+          "group_id": "00000000-0000-0000-0000-000000000402",
+          "name": "Hangat",
+          "price_adjustment": "0",
+          "display_order": 0,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000506",
+          "group_id": "00000000-0000-0000-0000-000000000403",
+          "name": "Nasi Putih",
+          "price_adjustment": "6000",
+          "display_order": 0,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000507",
+          "group_id": "00000000-0000-0000-0000-000000000403",
+          "name": "Extra Sambal",
+          "price_adjustment": "3000",
+          "display_order": 0,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000508",
+          "group_id": "00000000-0000-0000-0000-000000000403",
+          "name": "Lalapan",
+          "price_adjustment": "4000",
+          "display_order": 0,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        }
+      ]
+    },
+    "nashtycosts": {
+      "columns": [
+        "id",
+        "tenant_id",
+        "outlet_id",
+        "amount",
+        "category",
+        "description",
+        "created_at"
+      ],
+      "row_count": 0,
+      "rows": []
+    },
+    "order_item_modifiers": {
+      "columns": [
+        "id",
+        "order_item_id",
+        "modifier_group_id",
+        "modifier_group_name",
+        "modifier_option_id",
+        "modifier_option_name",
+        "price_adjustment",
+        "created_at"
+      ],
+      "row_count": 0,
+      "rows": []
+    },
+    "order_items": {
+      "columns": [
+        "id",
+        "order_id",
+        "product_id",
+        "product_name",
+        "quantity",
+        "unit_price",
+        "subtotal",
+        "notes",
+        "kitchen_status",
+        "created_at"
+      ],
+      "row_count": 0,
+      "rows": []
+    },
+    "orders": {
+      "columns": [
+        "id",
+        "tenant_id",
+        "outlet_id",
+        "shift_id",
+        "user_id",
+        "order_number",
+        "order_type",
+        "table_number",
+        "customer_name",
+        "customer_phone",
+        "subtotal",
+        "discount",
+        "tax",
+        "service_charge",
+        "total",
+        "payment_method",
+        "payment_status",
+        "order_status",
+        "kitchen_status",
+        "notes",
+        "created_at",
+        "updated_at",
+        "completed_at"
+      ],
+      "row_count": 7,
+      "rows": [
+        {
+          "id": "5a3d7065-7074-42d8-88bd-1389e70bd818",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "shift_id": "81679ab2-2efb-40e7-bf55-45c52e5f6694",
+          "user_id": "00000000-0000-0000-0000-000000000202",
+          "order_number": "ORD-0OFYGW",
+          "order_type": "dine-in",
+          "table_number": "T01",
+          "customer_name": null,
+          "customer_phone": null,
+          "subtotal": "53000",
+          "discount": "0",
+          "tax": "5830",
+          "service_charge": "0",
+          "total": "61480",
+          "payment_method": "cash",
+          "payment_status": "paid",
+          "order_status": "pending",
+          "kitchen_status": "pending",
+          "notes": null,
+          "created_at": "2026-06-21 19:12:16.513495+00:00",
+          "updated_at": "2026-06-21 19:12:16.513495+00:00",
+          "completed_at": null
+        },
+        {
+          "id": "6e1aa8e9-4b53-41da-9e7b-5ca229b19235",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "shift_id": "81679ab2-2efb-40e7-bf55-45c52e5f6694",
+          "user_id": "00000000-0000-0000-0000-000000000202",
+          "order_number": "ORD-CNBDIR",
+          "order_type": "dine-in",
+          "table_number": "T01",
+          "customer_name": null,
+          "customer_phone": null,
+          "subtotal": "53000",
+          "discount": "0",
+          "tax": "5830",
+          "service_charge": "0",
+          "total": "61480",
+          "payment_method": "cash",
+          "payment_status": "paid",
+          "order_status": "pending",
+          "kitchen_status": "pending",
+          "notes": null,
+          "created_at": "2026-06-21 19:12:18.091722+00:00",
+          "updated_at": "2026-06-21 19:12:18.091722+00:00",
+          "completed_at": null
+        },
+        {
+          "id": "fb195488-bf4c-4ed8-a773-47bbf59823bb",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "shift_id": "81679ab2-2efb-40e7-bf55-45c52e5f6694",
+          "user_id": "00000000-0000-0000-0000-000000000202",
+          "order_number": "ORD-CHF0LC",
+          "order_type": "dine-in",
+          "table_number": "T01",
+          "customer_name": null,
+          "customer_phone": null,
+          "subtotal": "53000",
+          "discount": "0",
+          "tax": "5830",
+          "service_charge": "0",
+          "total": "61480",
+          "payment_method": "cash",
+          "payment_status": "paid",
+          "order_status": "pending",
+          "kitchen_status": "pending",
+          "notes": null,
+          "created_at": "2026-06-21 19:12:19.250661+00:00",
+          "updated_at": "2026-06-21 19:12:19.250661+00:00",
+          "completed_at": null
+        },
+        {
+          "id": "36c69b0e-c122-4dd5-9d16-42052b52917d",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "shift_id": "81679ab2-2efb-40e7-bf55-45c52e5f6694",
+          "user_id": "00000000-0000-0000-0000-000000000202",
+          "order_number": "ORD-3Q6OS6",
+          "order_type": "dine-in",
+          "table_number": "T01",
+          "customer_name": null,
+          "customer_phone": null,
+          "subtotal": "53000",
+          "discount": "0",
+          "tax": "5830",
+          "service_charge": "0",
+          "total": "61480",
+          "payment_method": "cash",
+          "payment_status": "paid",
+          "order_status": "pending",
+          "kitchen_status": "pending",
+          "notes": null,
+          "created_at": "2026-06-21 19:12:20.216655+00:00",
+          "updated_at": "2026-06-21 19:12:20.216655+00:00",
+          "completed_at": null
+        },
+        {
+          "id": "018eaae4-b4b6-4fa7-9081-4dc47a8ed856",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "shift_id": "81679ab2-2efb-40e7-bf55-45c52e5f6694",
+          "user_id": "00000000-0000-0000-0000-000000000202",
+          "order_number": "ORD-41TDIH",
+          "order_type": "dine-in",
+          "table_number": "12",
+          "customer_name": null,
+          "customer_phone": null,
+          "subtotal": "53000",
+          "discount": "0",
+          "tax": "5830",
+          "service_charge": "0",
+          "total": "61480",
+          "payment_method": "cash",
+          "payment_status": "paid",
+          "order_status": "pending",
+          "kitchen_status": "pending",
+          "notes": null,
+          "created_at": "2026-06-21 19:13:08.120199+00:00",
+          "updated_at": "2026-06-21 19:13:08.120199+00:00",
+          "completed_at": null
+        },
+        {
+          "id": "9cae32ae-f2af-4f9b-a4a9-3176fa40fd22",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "shift_id": "81679ab2-2efb-40e7-bf55-45c52e5f6694",
+          "user_id": "00000000-0000-0000-0000-000000000202",
+          "order_number": "ORD-XG78UR",
+          "order_type": "dine-in",
+          "table_number": "12",
+          "customer_name": null,
+          "customer_phone": null,
+          "subtotal": "53000",
+          "discount": "0",
+          "tax": "5830",
+          "service_charge": "0",
+          "total": "61480",
+          "payment_method": "cash",
+          "payment_status": "paid",
+          "order_status": "pending",
+          "kitchen_status": "pending",
+          "notes": null,
+          "created_at": "2026-06-21 19:13:09.221468+00:00",
+          "updated_at": "2026-06-21 19:13:09.221468+00:00",
+          "completed_at": null
+        },
+        {
+          "id": "186847d3-f1d6-46a8-b4aa-d575c57a0124",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "shift_id": "81679ab2-2efb-40e7-bf55-45c52e5f6694",
+          "user_id": "00000000-0000-0000-0000-000000000202",
+          "order_number": "ORD-D35FYJ",
+          "order_type": "dine-in",
+          "table_number": "12",
+          "customer_name": null,
+          "customer_phone": null,
+          "subtotal": "53000",
+          "discount": "0",
+          "tax": "5830",
+          "service_charge": "0",
+          "total": "61480",
+          "payment_method": "qris",
+          "payment_status": "paid",
+          "order_status": "pending",
+          "kitchen_status": "pending",
+          "notes": null,
+          "created_at": "2026-06-21 19:13:14.215356+00:00",
+          "updated_at": "2026-06-21 19:13:14.215356+00:00",
+          "completed_at": null
+        }
+      ]
+    },
+    "outlet_settings": {
+      "columns": [
+        "id",
+        "outlet_id",
+        "settings_json",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "rows": []
+    },
+    "outlets": {
+      "columns": [
+        "id",
+        "tenant_id",
+        "name",
+        "slug",
+        "address",
+        "phone",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 1,
+      "rows": [
+        {
+          "id": "00000000-0000-0000-0000-000000000101",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "name": "Galaxy Mall",
+          "slug": "galaxy-mall",
+          "address": "Jl. Galaxy Raya No.1, Lt. 3, Surabaya",
+          "phone": "031-8123456",
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        }
+      ]
+    },
+    "payment_methods": {
+      "columns": [
+        "id",
+        "tenant_id",
+        "name",
+        "type",
+        "icon",
+        "display_order",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "rows": []
+    },
+    "payments": {
+      "columns": [
+        "id",
+        "order_id",
+        "method",
+        "amount",
+        "change_amount",
+        "platform_ref",
+        "created_at"
+      ],
+      "row_count": 0,
+      "rows": []
+    },
+    "product_modifiers": {
+      "columns": [
+        "product_id",
+        "modifier_group_id",
+        "display_order",
+        "created_at"
+      ],
+      "row_count": 14,
+      "rows": [
+        {
+          "product_id": "00000000-0000-0000-0000-000000000601",
+          "modifier_group_id": "00000000-0000-0000-0000-000000000401",
+          "display_order": 0,
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "product_id": "00000000-0000-0000-0000-000000000602",
+          "modifier_group_id": "00000000-0000-0000-0000-000000000401",
+          "display_order": 0,
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "product_id": "00000000-0000-0000-0000-000000000603",
+          "modifier_group_id": "00000000-0000-0000-0000-000000000401",
+          "display_order": 0,
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "product_id": "00000000-0000-0000-0000-000000000604",
+          "modifier_group_id": "00000000-0000-0000-0000-000000000401",
+          "display_order": 0,
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "product_id": "00000000-0000-0000-0000-000000000605",
+          "modifier_group_id": "00000000-0000-0000-0000-000000000401",
+          "display_order": 0,
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "product_id": "00000000-0000-0000-0000-000000000601",
+          "modifier_group_id": "00000000-0000-0000-0000-000000000403",
+          "display_order": 0,
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "product_id": "00000000-0000-0000-0000-000000000602",
+          "modifier_group_id": "00000000-0000-0000-0000-000000000403",
+          "display_order": 0,
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "product_id": "00000000-0000-0000-0000-000000000603",
+          "modifier_group_id": "00000000-0000-0000-0000-000000000403",
+          "display_order": 0,
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "product_id": "00000000-0000-0000-0000-000000000604",
+          "modifier_group_id": "00000000-0000-0000-0000-000000000403",
+          "display_order": 0,
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "product_id": "00000000-0000-0000-0000-000000000605",
+          "modifier_group_id": "00000000-0000-0000-0000-000000000403",
+          "display_order": 0,
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "product_id": "00000000-0000-0000-0000-000000000606",
+          "modifier_group_id": "00000000-0000-0000-0000-000000000402",
+          "display_order": 0,
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "product_id": "00000000-0000-0000-0000-000000000607",
+          "modifier_group_id": "00000000-0000-0000-0000-000000000402",
+          "display_order": 0,
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "product_id": "00000000-0000-0000-0000-000000000608",
+          "modifier_group_id": "00000000-0000-0000-0000-000000000402",
+          "display_order": 0,
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "product_id": "00000000-0000-0000-0000-000000000609",
+          "modifier_group_id": "00000000-0000-0000-0000-000000000402",
+          "display_order": 0,
+          "created_at": "2026-06-21 17:41:10.543404+00:00"
+        }
+      ]
+    },
+    "products": {
+      "columns": [
+        "id",
+        "tenant_id",
+        "category_id",
+        "name",
+        "slug",
+        "description",
+        "price",
+        "cost",
+        "sku",
+        "image_url",
+        "is_favorite",
+        "has_modifiers",
+        "stock_tracking",
+        "stock_qty",
+        "production_time",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 18,
+      "rows": [
+        {
+          "id": "00000000-0000-0000-0000-000000000601",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "category_id": "00000000-0000-0000-0000-000000000301",
+          "name": "Ayam Bakar Madu",
+          "slug": "ayam-bakar-madu",
+          "description": "Ayam bakar dengan saus madu special",
+          "price": "55000",
+          "cost": "28000",
+          "sku": null,
+          "image_url": null,
+          "is_favorite": 0,
+          "has_modifiers": 1,
+          "stock_tracking": 0,
+          "stock_qty": 0,
+          "production_time": 10,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000602",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "category_id": "00000000-0000-0000-0000-000000000301",
+          "name": "Nasi Goreng Spesial",
+          "slug": "nasi-goreng-spesial",
+          "description": "Nasi goreng dengan ayam dan telur",
+          "price": "35000",
+          "cost": "18000",
+          "sku": null,
+          "image_url": null,
+          "is_favorite": 0,
+          "has_modifiers": 1,
+          "stock_tracking": 0,
+          "stock_qty": 0,
+          "production_time": 10,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000603",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "category_id": "00000000-0000-0000-0000-000000000301",
+          "name": "Rawon Spesial",
+          "slug": "rawon-spesial",
+          "description": "Rawon daging sapi dengan bumbu khas",
+          "price": "42000",
+          "cost": "22000",
+          "sku": null,
+          "image_url": null,
+          "is_favorite": 0,
+          "has_modifiers": 1,
+          "stock_tracking": 0,
+          "stock_qty": 0,
+          "production_time": 10,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000604",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "category_id": "00000000-0000-0000-0000-000000000301",
+          "name": "Sop Buntut",
+          "slug": "sop-buntut",
+          "description": "Sop buntut sapi dengan sayuran segar",
+          "price": "65000",
+          "cost": "35000",
+          "sku": null,
+          "image_url": null,
+          "is_favorite": 0,
+          "has_modifiers": 1,
+          "stock_tracking": 0,
+          "stock_qty": 0,
+          "production_time": 10,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000605",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "category_id": "00000000-0000-0000-0000-000000000301",
+          "name": "Sate Ayam 10pcs",
+          "slug": "sate-ayam-10pcs",
+          "description": "Sate ayam dengan bumbu kacang",
+          "price": "45000",
+          "cost": "23000",
+          "sku": null,
+          "image_url": null,
+          "is_favorite": 0,
+          "has_modifiers": 1,
+          "stock_tracking": 0,
+          "stock_qty": 0,
+          "production_time": 10,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000606",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "category_id": "00000000-0000-0000-0000-000000000302",
+          "name": "Kopi Susu Aren",
+          "slug": "kopi-susu-aren",
+          "description": "Kopi susu dengan gula aren premium",
+          "price": "22000",
+          "cost": "8000",
+          "sku": null,
+          "image_url": null,
+          "is_favorite": 0,
+          "has_modifiers": 1,
+          "stock_tracking": 0,
+          "stock_qty": 0,
+          "production_time": 10,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000607",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "category_id": "00000000-0000-0000-0000-000000000302",
+          "name": "Es Teh Manis",
+          "slug": "es-teh-manis",
+          "description": "Es teh manis segar",
+          "price": "8000",
+          "cost": "2000",
+          "sku": null,
+          "image_url": null,
+          "is_favorite": 0,
+          "has_modifiers": 1,
+          "stock_tracking": 0,
+          "stock_qty": 0,
+          "production_time": 10,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000608",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "category_id": "00000000-0000-0000-0000-000000000302",
+          "name": "Jus Alpukat",
+          "slug": "jus-alpukat",
+          "description": "Jus alpukat segar tanpa gula",
+          "price": "18000",
+          "cost": "7000",
+          "sku": null,
+          "image_url": null,
+          "is_favorite": 0,
+          "has_modifiers": 1,
+          "stock_tracking": 0,
+          "stock_qty": 0,
+          "production_time": 10,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000609",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "category_id": "00000000-0000-0000-0000-000000000302",
+          "name": "Jus Jeruk",
+          "slug": "jus-jeruk",
+          "description": "Jus jeruk peras segar",
+          "price": "15000",
+          "cost": "6000",
+          "sku": null,
+          "image_url": null,
+          "is_favorite": 0,
+          "has_modifiers": 1,
+          "stock_tracking": 0,
+          "stock_qty": 0,
+          "production_time": 10,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000611",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "category_id": "00000000-0000-0000-0000-000000000303",
+          "name": "French Fries",
+          "slug": "french-fries",
+          "description": "Kentang goreng renyah dengan saus",
+          "price": "22000",
+          "cost": "8000",
+          "sku": null,
+          "image_url": null,
+          "is_favorite": 0,
+          "has_modifiers": 0,
+          "stock_tracking": 0,
+          "stock_qty": 0,
+          "production_time": 10,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000612",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "category_id": "00000000-0000-0000-0000-000000000303",
+          "name": "Onion Rings",
+          "slug": "onion-rings",
+          "description": "Bawang bombay goreng crispy",
+          "price": "18000",
+          "cost": "7000",
+          "sku": null,
+          "image_url": null,
+          "is_favorite": 0,
+          "has_modifiers": 0,
+          "stock_tracking": 0,
+          "stock_qty": 0,
+          "production_time": 10,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000613",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "category_id": "00000000-0000-0000-0000-000000000303",
+          "name": "Chicken Wings 6pcs",
+          "slug": "chicken-wings-6pcs",
+          "description": "Sayap ayam goreng crispy",
+          "price": "35000",
+          "cost": "16000",
+          "sku": null,
+          "image_url": null,
+          "is_favorite": 0,
+          "has_modifiers": 0,
+          "stock_tracking": 0,
+          "stock_qty": 0,
+          "production_time": 10,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000614",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "category_id": "00000000-0000-0000-0000-000000000304",
+          "name": "Es Krim Cokelat",
+          "slug": "es-krim-cokelat",
+          "description": "Es krim cokelat premium 2 scoop",
+          "price": "18000",
+          "cost": "6000",
+          "sku": null,
+          "image_url": null,
+          "is_favorite": 0,
+          "has_modifiers": 0,
+          "stock_tracking": 0,
+          "stock_qty": 0,
+          "production_time": 10,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000615",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "category_id": "00000000-0000-0000-0000-000000000304",
+          "name": "Pisang Goreng",
+          "slug": "pisang-goreng",
+          "description": "Pisang goreng dengan topping",
+          "price": "15000",
+          "cost": "5000",
+          "sku": null,
+          "image_url": null,
+          "is_favorite": 0,
+          "has_modifiers": 0,
+          "stock_tracking": 0,
+          "stock_qty": 0,
+          "production_time": 10,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000616",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "category_id": "00000000-0000-0000-0000-000000000305",
+          "name": "Nasi Putih",
+          "slug": "nasi-putih",
+          "description": "Nasi putih porsi reguler",
+          "price": "6000",
+          "cost": "2000",
+          "sku": null,
+          "image_url": null,
+          "is_favorite": 0,
+          "has_modifiers": 0,
+          "stock_tracking": 0,
+          "stock_qty": 0,
+          "production_time": 10,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000617",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "category_id": "00000000-0000-0000-0000-000000000305",
+          "name": "Extra Sambal",
+          "slug": "extra-sambal",
+          "description": "Sambal pedas extra",
+          "price": "3000",
+          "cost": "1000",
+          "sku": null,
+          "image_url": null,
+          "is_favorite": 0,
+          "has_modifiers": 0,
+          "stock_tracking": 0,
+          "stock_qty": 0,
+          "production_time": 10,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000618",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "category_id": "00000000-0000-0000-0000-000000000305",
+          "name": "Lalapan",
+          "slug": "lalapan",
+          "description": "Lalapan segar (timun, kol, tomat)",
+          "price": "4000",
+          "cost": "1500",
+          "sku": null,
+          "image_url": null,
+          "is_favorite": 0,
+          "has_modifiers": 0,
+          "stock_tracking": 0,
+          "stock_qty": 0,
+          "production_time": 10,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000610",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "category_id": "00000000-0000-0000-0000-000000000302",
+          "name": "Air Mineral",
+          "slug": "air-mineral",
+          "description": "Air mineral dingin 600ml",
+          "price": "5000",
+          "cost": "2000",
+          "sku": null,
+          "image_url": null,
+          "is_favorite": 0,
+          "has_modifiers": 0,
+          "stock_tracking": 0,
+          "stock_qty": 0,
+          "production_time": 10,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        }
+      ]
+    },
+    "settings": {
+      "columns": [
+        "id",
+        "tenant_id",
+        "outlet_id",
+        "key",
+        "value",
+        "type",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 6,
+      "rows": [
+        {
+          "id": "00000000-0000-0000-0000-000000000701",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "key": "receipt_restaurant_name",
+          "value": "Nashty Hot Chicken",
+          "type": "string",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000702",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "key": "receipt_address",
+          "value": "Galaxy Mall Lt. 3, Surabaya",
+          "type": "string",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000703",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "key": "receipt_phone",
+          "value": "031-8123456",
+          "type": "string",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000704",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "key": "receipt_footer",
+          "value": "IT AIN'T TASTY IF IT AIN'T NASHTY",
+          "type": "string",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000705",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "key": "tax_percentage",
+          "value": "11",
+          "type": "number",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000706",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "key": "service_percentage",
+          "value": "5",
+          "type": "number",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        }
+      ]
+    },
+    "shifts": {
+      "columns": [
+        "id",
+        "outlet_id",
+        "user_id",
+        "start_cash",
+        "end_cash",
+        "expected_cash",
+        "variance",
+        "notes",
+        "started_at",
+        "ended_at",
+        "status",
+        "created_at"
+      ],
+      "row_count": 1,
+      "rows": [
+        {
+          "id": "81679ab2-2efb-40e7-bf55-45c52e5f6694",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "user_id": "00000000-0000-0000-0000-000000000202",
+          "start_cash": "500000",
+          "end_cash": null,
+          "expected_cash": null,
+          "variance": null,
+          "notes": null,
+          "started_at": "2026-06-21 19:11:28.760513+00:00",
+          "ended_at": null,
+          "status": "open",
+          "created_at": "2026-06-21 19:11:28.760513+00:00"
+        }
+      ]
+    },
+    "staff": {
+      "columns": [
+        "id",
+        "tenant_id",
+        "outlet_id",
+        "name",
+        "pin",
+        "role",
+        "color",
+        "is_active",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 4,
+      "rows": [
+        {
+          "id": "a6ae916c-4a8b-4e7b-81d6-adb012884fb1",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "name": "Citra",
+          "pin": "1234",
+          "role": "kasir",
+          "color": "#E4540C",
+          "is_active": true,
+          "created_at": "2026-06-21 19:10:25.206716+00:00",
+          "updated_at": "2026-06-21 19:10:25.206716+00:00"
+        },
+        {
+          "id": "8ab2c642-4700-4c66-b949-bf91213555b8",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "name": "Budi",
+          "pin": "2345",
+          "role": "kasir",
+          "color": "#3B82F6",
+          "is_active": true,
+          "created_at": "2026-06-21 19:10:25.206716+00:00",
+          "updated_at": "2026-06-21 19:10:25.206716+00:00"
+        },
+        {
+          "id": "6c3dbe83-bcc5-476d-b124-982bd637d86e",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "name": "Ani",
+          "pin": "3456",
+          "role": "kasir",
+          "color": "#22C55E",
+          "is_active": true,
+          "created_at": "2026-06-21 19:10:25.206716+00:00",
+          "updated_at": "2026-06-21 19:10:25.206716+00:00"
+        },
+        {
+          "id": "fcf5a365-5a5b-4d99-839d-1fd91f0c14e6",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "name": "Admin Kasir",
+          "pin": "0000",
+          "role": "admin",
+          "color": "#A855F7",
+          "is_active": true,
+          "created_at": "2026-06-21 19:10:25.206716+00:00",
+          "updated_at": "2026-06-21 19:10:25.206716+00:00"
+        }
+      ]
+    },
+    "stations": {
+      "columns": [
+        "id",
+        "tenant_id",
+        "outlet_id",
+        "name",
+        "display_order",
+        "status",
+        "created_at"
+      ],
+      "row_count": 0,
+      "rows": []
+    },
+    "system_users": {
+      "columns": [
+        "id",
+        "username",
+        "password_hash",
+        "full_name",
+        "email",
+        "role",
+        "is_active",
+        "created_at",
+        "updated_at",
+        "last_login_at",
+        "created_by",
+        "tenant_id"
+      ],
+      "row_count": 5,
+      "rows": [
+        {
+          "id": "5db3073c-1d79-4c72-9bc6-3f0a199b014c",
+          "username": "superadmin@nashty",
+          "password_hash": "$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
+          "full_name": "Super Administrator",
+          "email": null,
+          "role": "superadmin",
+          "is_active": true,
+          "created_at": "2026-06-21 19:01:31.396391+00:00",
+          "updated_at": "2026-06-21 19:01:31.396391+00:00",
+          "last_login_at": null,
+          "created_by": null,
+          "tenant_id": null
+        },
+        {
+          "id": "2cd812dd-23ec-495a-bbd2-c3505883cf9a",
+          "username": "admin1",
+          "password_hash": "$2a$10$N9qo34p5bfGq4gF5qW5FbujF9C0oWvSt8xYj7T8Y5yJyLqYnLqYvO",
+          "full_name": "Admin One",
+          "email": null,
+          "role": "admin",
+          "is_active": true,
+          "created_at": "2026-06-21 19:01:31.396391+00:00",
+          "updated_at": "2026-06-21 19:01:31.396391+00:00",
+          "last_login_at": null,
+          "created_by": null,
+          "tenant_id": null
+        },
+        {
+          "id": "4a975deb-ca88-4c52-929d-ba36508565cd",
+          "username": "admin2",
+          "password_hash": "$2a$10$Q9qo34p5bfGq4gF5qW5FbujF9C0oWvSt8xYj7T8Y5yJyLqYnLqYvP",
+          "full_name": "Admin Two",
+          "email": null,
+          "role": "admin",
+          "is_active": true,
+          "created_at": "2026-06-21 19:01:31.396391+00:00",
+          "updated_at": "2026-06-21 19:01:31.396391+00:00",
+          "last_login_at": null,
+          "created_by": null,
+          "tenant_id": null
+        },
+        {
+          "id": "06ef2dab-4bab-4cdf-8581-a97fea947370",
+          "username": "admin3",
+          "password_hash": "$2a$10$R9qo34p5bfGq4gF5qW5FbujF9C0oWvSt8xYj7T8Y5yJyLqYnLqYvQ",
+          "full_name": "Admin Three",
+          "email": null,
+          "role": "admin",
+          "is_active": true,
+          "created_at": "2026-06-21 19:01:31.396391+00:00",
+          "updated_at": "2026-06-21 19:01:31.396391+00:00",
+          "last_login_at": null,
+          "created_by": null,
+          "tenant_id": null
+        },
+        {
+          "id": "6071d94f-2d48-421d-9248-452b154568d0",
+          "username": "admin4",
+          "password_hash": "$2a$10$S9qo34p5bfGq4gF5qW5FbujF9C0oWvSt8xYj7T8Y5yJyLqYnLqYvR",
+          "full_name": "Admin Four",
+          "email": null,
+          "role": "admin",
+          "is_active": true,
+          "created_at": "2026-06-21 19:01:31.396391+00:00",
+          "updated_at": "2026-06-21 19:01:31.396391+00:00",
+          "last_login_at": null,
+          "created_by": null,
+          "tenant_id": null
+        }
+      ]
+    },
+    "tenants": {
+      "columns": [
+        "id",
+        "name",
+        "slug",
+        "plan",
+        "status",
+        "created_at",
+        "updated_at",
+        "subscription_ends_at"
+      ],
+      "row_count": 1,
+      "rows": [
+        {
+          "id": "00000000-0000-0000-0000-000000000001",
+          "name": "Nashty Hot Chicken",
+          "slug": "nashty",
+          "plan": "pro",
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00",
+          "subscription_ends_at": null
+        }
+      ]
+    },
+    "token_blacklist": {
+      "columns": [
+        "id",
+        "token_hash",
+        "user_id",
+        "expires_at",
+        "created_at"
+      ],
+      "row_count": 0,
+      "rows": []
+    },
+    "user_outlet_access": {
+      "columns": [
+        "id",
+        "user_id",
+        "outlet_id",
+        "created_at"
+      ],
+      "row_count": 0,
+      "rows": []
+    },
+    "user_sessions": {
+      "columns": [
+        "id",
+        "user_id",
+        "token_hash",
+        "ip_address",
+        "user_agent",
+        "expires_at",
+        "created_at",
+        "last_activity_at"
+      ],
+      "row_count": 0,
+      "rows": []
+    },
+    "user_system_access": {
+      "columns": [
+        "id",
+        "user_id",
+        "system_name",
+        "has_access",
+        "created_at"
+      ],
+      "row_count": 25,
+      "rows": [
+        {
+          "id": "439d6fc3-bdfe-4313-8fea-cc97f7beebf3",
+          "user_id": "5db3073c-1d79-4c72-9bc6-3f0a199b014c",
+          "system_name": "pos",
+          "has_access": true,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "3f9bc578-02ae-469f-a755-0955df37fae1",
+          "user_id": "5db3073c-1d79-4c72-9bc6-3f0a199b014c",
+          "system_name": "kds",
+          "has_access": true,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "f9f45ebe-ca0d-4666-9c89-44ea3d5e21bb",
+          "user_id": "5db3073c-1d79-4c72-9bc6-3f0a199b014c",
+          "system_name": "backoffice",
+          "has_access": true,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "a7fad71d-bec9-49c4-bcc7-a77c39405186",
+          "user_id": "5db3073c-1d79-4c72-9bc6-3f0a199b014c",
+          "system_name": "crm",
+          "has_access": true,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "7fe6f0a4-da0b-4a84-9657-959fd79d4928",
+          "user_id": "5db3073c-1d79-4c72-9bc6-3f0a199b014c",
+          "system_name": "cost",
+          "has_access": true,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "1e76aaa5-f518-46ab-b79e-7142138cdd6a",
+          "user_id": "2cd812dd-23ec-495a-bbd2-c3505883cf9a",
+          "system_name": "pos",
+          "has_access": true,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "aa0c768d-8d50-4014-a492-8e9cf1ed7a43",
+          "user_id": "2cd812dd-23ec-495a-bbd2-c3505883cf9a",
+          "system_name": "backoffice",
+          "has_access": true,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "a8ee9f61-23c5-45ea-b18b-24376888c5ab",
+          "user_id": "2cd812dd-23ec-495a-bbd2-c3505883cf9a",
+          "system_name": "kds",
+          "has_access": false,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "8e4950a6-f6e4-42a4-83b1-41cef0ae57d7",
+          "user_id": "2cd812dd-23ec-495a-bbd2-c3505883cf9a",
+          "system_name": "crm",
+          "has_access": false,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "8c6625ff-7fdf-4706-a682-634ced5abdfa",
+          "user_id": "2cd812dd-23ec-495a-bbd2-c3505883cf9a",
+          "system_name": "cost",
+          "has_access": false,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "087adaa5-4f8e-4a54-aadc-05b1535c4cca",
+          "user_id": "4a975deb-ca88-4c52-929d-ba36508565cd",
+          "system_name": "pos",
+          "has_access": true,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "3ce56c92-0885-4e65-a11f-ffab9095e7d3",
+          "user_id": "4a975deb-ca88-4c52-929d-ba36508565cd",
+          "system_name": "backoffice",
+          "has_access": true,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "1f8e7c39-934d-4041-afde-5e3be5edbdf6",
+          "user_id": "4a975deb-ca88-4c52-929d-ba36508565cd",
+          "system_name": "kds",
+          "has_access": false,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "ef71dbdb-da73-4eea-9498-7e1f166a9302",
+          "user_id": "4a975deb-ca88-4c52-929d-ba36508565cd",
+          "system_name": "crm",
+          "has_access": false,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "81602d24-3449-43c1-a407-d71a17a55d48",
+          "user_id": "4a975deb-ca88-4c52-929d-ba36508565cd",
+          "system_name": "cost",
+          "has_access": false,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "57b3f5a7-14f3-4e42-aa83-062fbf880561",
+          "user_id": "06ef2dab-4bab-4cdf-8581-a97fea947370",
+          "system_name": "pos",
+          "has_access": true,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "2ce049f5-284d-4439-827a-27380e091b83",
+          "user_id": "06ef2dab-4bab-4cdf-8581-a97fea947370",
+          "system_name": "backoffice",
+          "has_access": true,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "0e9b0063-7701-43c8-b802-f5a0fbf3cf13",
+          "user_id": "06ef2dab-4bab-4cdf-8581-a97fea947370",
+          "system_name": "kds",
+          "has_access": false,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "d29fed6e-f801-49fe-b0fd-4fb6243af032",
+          "user_id": "06ef2dab-4bab-4cdf-8581-a97fea947370",
+          "system_name": "crm",
+          "has_access": false,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "20ee0200-fff3-46af-948c-fb3dacbb5560",
+          "user_id": "06ef2dab-4bab-4cdf-8581-a97fea947370",
+          "system_name": "cost",
+          "has_access": false,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "939a8759-0e33-4100-bfd9-5ced4301ca57",
+          "user_id": "6071d94f-2d48-421d-9248-452b154568d0",
+          "system_name": "pos",
+          "has_access": true,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "79633d5d-c4b2-4949-91ac-c4bf9c70dd68",
+          "user_id": "6071d94f-2d48-421d-9248-452b154568d0",
+          "system_name": "backoffice",
+          "has_access": true,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "2934b95a-77cf-407c-b9ac-5079c3c598c9",
+          "user_id": "6071d94f-2d48-421d-9248-452b154568d0",
+          "system_name": "kds",
+          "has_access": false,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "81c6eaa8-8594-4054-979d-7c376f7f5b8a",
+          "user_id": "6071d94f-2d48-421d-9248-452b154568d0",
+          "system_name": "crm",
+          "has_access": false,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        },
+        {
+          "id": "e571885d-5085-44ea-8529-d658ff744f2e",
+          "user_id": "6071d94f-2d48-421d-9248-452b154568d0",
+          "system_name": "cost",
+          "has_access": false,
+          "created_at": "2026-06-21 19:01:31.396391+00:00"
+        }
+      ]
+    },
+    "users": {
+      "columns": [
+        "id",
+        "tenant_id",
+        "outlet_id",
+        "email",
+        "phone",
+        "name",
+        "role",
+        "pin",
+        "password",
+        "avatar",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 6,
+      "rows": [
+        {
+          "id": "00000000-0000-0000-0000-000000000201",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "email": null,
+          "phone": null,
+          "name": "Bagoes Widhiatama",
+          "role": "owner",
+          "pin": "9999",
+          "password": null,
+          "avatar": null,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000205",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "email": null,
+          "phone": null,
+          "name": "Dapur Team",
+          "role": "kitchen",
+          "pin": "5555",
+          "password": null,
+          "avatar": null,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000202",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "email": "manager@nashty",
+          "phone": null,
+          "name": "Ahmad Fauzi",
+          "role": "manager",
+          "pin": "1212",
+          "password": "admin1",
+          "avatar": null,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000200",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "email": "superadmin@nashty",
+          "phone": null,
+          "name": "Superadmin Nashty",
+          "role": "manager",
+          "pin": "0000",
+          "password": "nashty1111",
+          "avatar": null,
+          "status": "active",
+          "created_at": "2026-06-21 17:44:19.899614+00:00",
+          "updated_at": "2026-06-21 17:44:19.899614+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000204",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "email": "",
+          "phone": "0812122121212",
+          "name": "Budi Santoso",
+          "role": "cashier",
+          "pin": "0000",
+          "password": null,
+          "avatar": null,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000203",
+          "tenant_id": "00000000-0000-0000-0000-000000000001",
+          "outlet_id": "00000000-0000-0000-0000-000000000101",
+          "email": "asdasdasd",
+          "phone": "08123123123123",
+          "name": "Citra Dewi",
+          "role": "cashier",
+          "pin": "1111",
+          "password": null,
+          "avatar": null,
+          "status": "active",
+          "created_at": "2026-06-21 17:41:10.543404+00:00",
+          "updated_at": "2026-06-21 17:41:10.543404+00:00"
+        }
+      ]
+    }
+  }
+}
