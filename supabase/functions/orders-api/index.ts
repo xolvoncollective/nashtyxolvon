@@ -90,28 +90,38 @@ serve(async (req) => {
       // Insert order items
       if (items.length > 0) {
         const orderItems = items.map((item: any) => {
-          // Get product name - try multiple possible fields
-          const productName = item.name || item.product_name || item.productName || 'Unknown Product';
-          const qty = item.qty || item.quantity || 1;
-          const price = item.price || item.unit_price || item.unitPrice || 0;
+          // Frontend sends: productName, quantity, unitPrice, productId
+          const productName = item.productName || item.product_name || item.name || 'Unknown Product';
+          const qty = item.quantity || item.qty || 1;
+          const price = item.unitPrice || item.unit_price || item.price || 0;
+          const productId = item.productId || item.product_id;
+          
+          console.log('Mapping order item:', { 
+            received: item, 
+            mapped: { productName, qty, price, productId }
+          });
           
           return {
             order_id: order.id,
-            product_id: item.productId || item.product_id,
+            product_id: productId,
             product_name: productName,
             quantity: qty,
             unit_price: price,
             subtotal: price * qty,
             notes: item.notes || ''
-            // modifier_options removed - column doesn't exist in order_items table
           };
         });
+
+        console.log('Inserting order items:', orderItems);
 
         const { error: itemsError } = await supabase
           .from('order_items')
           .insert(orderItems);
 
-        if (itemsError) throw itemsError;
+        if (itemsError) {
+          console.error('Order items insert error:', itemsError);
+          throw itemsError;
+        }
       }
 
       return new Response(JSON.stringify({ success: true, order, orderNumber }), {
