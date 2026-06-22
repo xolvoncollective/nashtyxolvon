@@ -157,6 +157,62 @@ serve(async (req) => {
       });
     }
 
+    // ─── Get KDS Queue ─────────────────────────────────────────────────────────
+    if (action === 'get-kds-queue') {
+      const { tenantId, outletId } = payload;
+
+      if (!tenantId) {
+        return new Response(JSON.stringify({ error: 'tenantId required' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Fetch orders with kitchen_status = 'pending' or 'preparing'
+      let q = supabase.from('orders')
+        .select(`
+          id,
+          order_number,
+          order_type,
+          table_number,
+          created_at,
+          kitchen_status,
+          order_items (
+            id,
+            product_name,
+            quantity,
+            notes,
+            modifiers
+          ),
+          staff:user_id (
+            full_name
+          )
+        `)
+        .eq('tenant_id', tenantId)
+        .in('kitchen_status', ['pending', 'preparing'])
+        .order('created_at', { ascending: true });
+
+      if (outletId) q = q.eq('outlet_id', outletId);
+
+      const { data, error } = await q;
+      if (error) throw error;
+
+      // Transform data for KDS frontend
+      const orders = (data || []).map((order: any) => ({
+        id: order.id,
+        order_number: order.order_number,
+        order_type: order.order_type,
+        table_number: order.table_number,
+        created_at: order.created_at,
+        kitchen_status: order.kitchen_status,
+        cashier_name: order.staff?.[0]?.full_name || 'System',
+        items: order.order_items || []
+      }));
+
+      return new Response(JSON.stringify({ success: true, orders }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     // ─── Update Order Status ───────────────────────────────────────────────────
     if (action === 'update-status') {
       const { orderId, orderStatus, kitchenStatus } = payload;
@@ -241,7 +297,7 @@ serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ error: 'Invalid action. Use: create, get-orders, update-status, start-shift, end-shift' }), {
+    return new Response(JSON.stringify({ error: 'Invalid action. Use: create, get-orders, get-kds-queue, update-status, start-shift, end-shift' }), {
       status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 

@@ -1003,6 +1003,22 @@ const API = {
 
     },
 
+    
+
+    async getKDSQueue() {
+
+      return await API.edgeRequest('orders-api', {
+
+        action: 'get-kds-queue',
+
+        tenantId: API.session.tenantId,
+
+        outletId: API.session.outletId
+
+      });
+
+    },
+
 
 
     async getById(id) {
