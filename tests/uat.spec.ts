@@ -23,7 +23,7 @@ test.describe('NASHTY OS - Comprehensive UAT Execution', () => {
       const select = document.getElementById('outletSelect') as HTMLSelectElement;
       if(select && select.options.length > 1) {
         for(let i=0; i<select.options.length; i++) {
-          if(select.options[i].text.includes('Galaxy Mall')) {
+          if(select.options[i].text.includes('Nashty Pusat')) {
             select.selectedIndex = i;
             select.dispatchEvent(new Event('change'));
             break;
