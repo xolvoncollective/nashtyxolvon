@@ -985,6 +985,32 @@ const API = {
 
     },
 
+    
+
+    async createOpenBill(orderData) {
+
+      // Open bill is same as create but with payment_status = 'pending'
+
+      return await API.edgeRequest('orders-api', {
+
+        action: 'create',
+
+        tenantId: API.session.tenantId,
+
+        outletId: API.session.outletId,
+
+        userId: API.session.user?.id,
+
+        shiftId: API.session.shiftId,
+
+        paymentStatus: 'pending',
+
+        ...orderData
+
+      });
+
+    },
+
 
 
     async getAll(filters = {}) {
