@@ -219,17 +219,17 @@ router.post('/:id/toggle', verifySuperadmin, async (req, res) => {
     const { id } = req.params;
     const { is_active } = req.body;
 
-    // Don't allow disabling superadmin@nashty
+    // Don't allow disabling superadmin role
     const { data: user } = await supabase
       .from('system_users')
-      .select('username')
+      .select('username, role')
       .eq('id', id)
       .single();
 
-    if (user && user.username === 'superadmin@nashty') {
+    if (user && user.role === 'superadmin') {
       return res.status(400).json({ 
         success: false, 
-        error: 'Cannot disable main superadmin' 
+        error: 'Cannot disable superadmin account' 
       });
     }
 

@@ -170,7 +170,7 @@
           <td>${user.last_login_at ? new Date(user.last_login_at).toLocaleDateString() : 'Never'}</td>
           <td>
             <button class="btn-secondary btn" style="padding: 6px 12px; font-size: 12px;" onclick="editUser('${user.id}')">Edit</button>
-            ${user.username !== 'superadmin@nashty' ? `<button class="btn-secondary btn" style="padding: 6px 12px; font-size: 12px; background: #7F1D1D;" onclick="toggleUser('${user.id}', ${!user.is_active})">${user.is_active ? 'Disable' : 'Enable'}</button>` : ''}
+            ${user.role !== 'superadmin' ? `<button class="btn-secondary btn" style="padding: 6px 12px; font-size: 12px; background: #7F1D1D;" onclick="toggleUser('${user.id}', ${!user.is_active})">${user.is_active ? 'Disable' : 'Enable'}</button>` : ''}
           </td>
         </tr>
       `).join('');
