@@ -14,20 +14,23 @@ BEGIN;
 -- PHASE 1: CLEAR ALL DATA
 -- ============================================================================
 
-DELETE FROM activity_logs WHERE true;
-DELETE FROM user_sessions WHERE true;
-DELETE FROM user_outlet_access WHERE true;
-DELETE FROM user_system_access WHERE true;
-DELETE FROM order_items WHERE true;
-DELETE FROM orders WHERE true;
-DELETE FROM users WHERE true;
-DELETE FROM system_users WHERE true;
-DELETE FROM products WHERE true;
-DELETE FROM categories WHERE true;
-DELETE FROM outlets WHERE true;
-DELETE FROM tenants WHERE true;
-
-RAISE NOTICE '✓ All data cleared';
+DO $$
+BEGIN
+  DELETE FROM activity_logs WHERE true;
+  DELETE FROM user_sessions WHERE true;
+  DELETE FROM user_outlet_access WHERE true;
+  DELETE FROM user_system_access WHERE true;
+  DELETE FROM order_items WHERE true;
+  DELETE FROM orders WHERE true;
+  DELETE FROM users WHERE true;
+  DELETE FROM system_users WHERE true;
+  DELETE FROM products WHERE true;
+  DELETE FROM categories WHERE true;
+  DELETE FROM outlets WHERE true;
+  DELETE FROM tenants WHERE true;
+  
+  RAISE NOTICE '✓ All data cleared';
+END $$;
 
 -- ============================================================================
 -- PHASE 2: SEED CONSISTENT DATA
@@ -46,7 +49,7 @@ VALUES (
   NOW()
 );
 
-RAISE NOTICE '✓ Tenant seeded';
+DO $$ BEGIN RAISE NOTICE '✓ Tenant seeded'; END $$;
 
 -- 2.2 OUTLETS (dengan ID yang konsisten)
 INSERT INTO outlets (id, tenant_id, name, slug, address, phone, status, created_at, updated_at)
@@ -85,7 +88,7 @@ VALUES
     NOW()
   );
 
-RAISE NOTICE '✓ Outlets seeded with consistent IDs';
+DO $$ BEGIN RAISE NOTICE '✓ Outlets seeded with consistent IDs'; END $$;
 
 -- 2.3 SYSTEM USERS (Backoffice - CONSISTENT BCRYPT HASH)
 -- Password for ALL: nashty@2024
@@ -142,7 +145,7 @@ VALUES
     NOW()
   );
 
-RAISE NOTICE '✓ System users seeded with consistent bcrypt hashes';
+DO $$ BEGIN RAISE NOTICE '✓ System users seeded with consistent bcrypt hashes'; END $$;
 
 -- 2.4 SYSTEM ACCESS
 INSERT INTO user_system_access (user_id, system_name, has_access, created_at)
@@ -174,7 +177,7 @@ VALUES
   ('a1000000-0000-0000-0000-000000000003'::uuid, '71cb7d46-a33c-4a8f-bd9a-db4c57fa7d8e'::uuid, NOW()),
   ('a1000000-0000-0000-0000-000000000004'::uuid, '71cb7d46-a33c-4a8f-bd9a-db4c57fa7d8f'::uuid, NOW());
 
-RAISE NOTICE '✓ Access mappings seeded';
+DO $$ BEGIN RAISE NOTICE '✓ Access mappings seeded'; END $$;
 
 -- 2.6 POS USERS (PLAIN TEXT PIN - matching outlet_id from outlets table)
 INSERT INTO users (id, tenant_id, outlet_id, name, email, phone, pin, role, status, created_at, updated_at)
@@ -261,7 +264,7 @@ VALUES
     NOW()
   );
 
-RAISE NOTICE '✓ POS users seeded with plain text PINs';
+DO $$ BEGIN RAISE NOTICE '✓ POS users seeded with plain text PINs'; END $$;
 
 -- ============================================================================
 -- PHASE 3: VERIFICATION
