@@ -1,11 +1,1 @@
-SELECT COUNT(*) as staff_count FROM staff;
-
-SELECT 
-  s.name,
-  s.pin,
-  s.role,
-  o.name as outlet_name,
-  s.is_active
-FROM staff s
-JOIN outlets o ON s.outlet_id = o.id
-ORDER BY o.name, s.name;
+SELECT id, name, role, tenant_id, outlet_id, pin, is_active FROM staff;
