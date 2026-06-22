@@ -143,12 +143,13 @@
   <script>
     let idleTimeout;
     let slideshowInterval;
-    const promoImages = [
+    let promoImages = [
       'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800',
       'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800',
       'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800'
     ];
     let currentSlide = 0;
+    let settings = {};
 
     function formatPrice(num) {
       return 'Rp ' + num.toLocaleString('id-ID');
@@ -222,19 +223,79 @@
 
     // Listen for messages from main POS window
     window.addEventListener('message', (event) => {
-      if (event.data.type === 'CART_UPDATE') {
-        updateDisplay(event.data.cart);
+      const { type, cart, settings: newSettings, images } = event.data;
+      
+      switch (type) {
+        case 'CART_UPDATE':
+          updateDisplay(cart);
+          break;
+          
+        case 'SHOW_IDLE':
+          showIdle();
+          break;
+          
+        case 'SETTINGS_UPDATE':
+          applySettings(newSettings);
+          break;
+          
+        case 'PROMO_IMAGES':
+          if (images && images.length > 0) {
+            promoImages = images;
+          }
+          break;
+          
+        case 'REQUEST_FULLSCREEN':
+          requestFullscreen();
+          break;
       }
     });
 
-    // Load settings
-    const settings = JSON.parse(localStorage.getItem('displaySettings') || '{}');
-    if (settings.logo) document.getElementById('displayLogo').textContent = settings.logo;
-    if (settings.tagline) document.getElementById('displayTagline').textContent = settings.tagline;
-    if (settings.bgColor) document.body.style.background = settings.bgColor;
-    if (settings.textColor) document.body.style.color = settings.textColor;
+    function applySettings(newSettings) {
+      if (!newSettings) return;
+      settings = newSettings;
+      
+      if (settings.logo) {
+        document.getElementById('displayLogo').textContent = settings.logo;
+      }
+      if (settings.tagline) {
+        document.getElementById('displayTagline').textContent = settings.tagline;
+      }
+      if (settings.bgColor) {
+        document.body.style.background = settings.bgColor;
+      }
+      if (settings.textColor) {
+        document.body.style.color = settings.textColor;
+      }
+      if (settings.accentColor) {
+        document.querySelector('.logo').style.color = settings.accentColor;
+        document.querySelectorAll('.item-qty').forEach(el => {
+          el.style.color = settings.accentColor;
+        });
+      }
+    }
 
+    function requestFullscreen() {
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(err => {
+          console.warn('Failed to enter fullscreen:', err);
+        });
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+      }
+    }
+
+    // Load settings from localStorage
+    const savedSettings = JSON.parse(localStorage.getItem('displaySettings') || '{}');
+    applySettings(savedSettings);
+
+    // Start with idle view
     showIdle();
+    
+    // Log ready state
+    console.log('✅ Customer Display ready');
   </script>
 </body>
 </html>

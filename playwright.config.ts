@@ -30,9 +30,9 @@ export default defineConfig({
     },
   ],
 
-  webServer: {
-    command: 'echo "Using existing local server"',
-    url: 'http://localhost',
-    reuseExistingServer: true,
-  },
+  // webServer: {
+  //   command: 'echo "Using existing local server"',
+  //   url: 'http://localhost',
+  //   reuseExistingServer: true,
+  // },
 });
