@@ -176,15 +176,13 @@ serve(async (req) => {
           table_number,
           created_at,
           kitchen_status,
+          user_id,
           order_items (
             id,
             product_name,
             quantity,
             notes,
             modifiers
-          ),
-          staff:user_id (
-            full_name
           )
         `)
         .eq('tenant_id', tenantId)
@@ -196,6 +194,23 @@ serve(async (req) => {
       const { data, error } = await q;
       if (error) throw error;
 
+      // Fetch staff names separately to avoid foreign key issues
+      const userIds = [...new Set((data || []).map((o: any) => o.user_id).filter(Boolean))];
+      let staffMap: Record<string, string> = {};
+      
+      if (userIds.length > 0) {
+        const { data: staffData } = await supabase
+          .from('staff')
+          .select('id, full_name')
+          .in('id', userIds);
+        
+        if (staffData) {
+          staffData.forEach((s: any) => {
+            staffMap[s.id] = s.full_name;
+          });
+        }
+      }
+
       // Transform data for KDS frontend
       const orders = (data || []).map((order: any) => ({
         id: order.id,
@@ -204,7 +219,7 @@ serve(async (req) => {
         table_number: order.table_number,
         created_at: order.created_at,
         kitchen_status: order.kitchen_status,
-        cashier_name: order.staff?.[0]?.full_name || 'System',
+        cashier_name: staffMap[order.user_id] || 'System',
         items: order.order_items || []
       }));
 
