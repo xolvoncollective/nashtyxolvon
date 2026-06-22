@@ -360,18 +360,25 @@ const API = {
 
     async getStaff(outletId = null) {
       try {
-        let q = API.supabase.from('staff').select('*').eq('is_active', true);
+        // FIXED: Query 'staff' table (not 'users')
+        let q = API.supabase
+          .from('staff')
+          .select('id, name, role, tenant_id, outlet_id, pin, color')
+          .eq('is_active', true);
+        
         if (outletId) q = q.eq('outlet_id', outletId);
+        
         const { data, error } = await q;
         
         if (error) {
-          console.error('Failed to fetch staff:', error);
+          console.error('[getStaff] Database error:', error);
           return { success: false, staff: [], error: error.message };
         }
         
+        console.log(`[getStaff] Found ${(data || []).length} staff for outlet:`, outletId);
         return { success: true, staff: data || [] };
       } catch (err) {
-        console.error('Error in getStaff:', err);
+        console.error('[getStaff] Exception:', err);
         return { success: false, staff: [], error: err.message };
       }
     },
@@ -380,18 +387,34 @@ const API = {
 
     async login(pin, outletId = null) {
       try {
-        // Direct query to staff table - no edge function needed
-        let q = API.supabase.from('staff').select('*').eq('pin', pin).eq('is_active', true);
-        if (outletId) q = q.eq('outlet_id', outletId);
+        if (!pin) {
+          return { success: false, error: 'PIN diperlukan' };
+        }
         
-        const { data, error } = await q.single();
+        if (!outletId) {
+          return { success: false, error: 'Outlet harus dipilih terlebih dahulu' };
+        }
+
+        console.log(`[POS Login] Attempting PIN login for outlet: ${outletId}`);
+        
+        // FIXED: Query 'staff' table (not 'users')
+        const { data, error } = await API.supabase
+          .from('staff')
+          .select('id, name, role, tenant_id, outlet_id, pin, color')
+          .eq('pin', pin)
+          .eq('outlet_id', outletId)
+          .eq('is_active', true)
+          .single();
         
         if (error || !data) {
+          console.error('[POS Login] Failed:', error?.message || 'Staff not found');
           return { 
             success: false, 
-            error: 'PIN salah atau tidak valid' 
+            error: 'PIN salah atau tidak valid untuk outlet ini' 
           };
         }
+        
+        console.log(`[POS Login] Success: ${data.name} (${data.id})`);
         
         // Generate simple token for POS session
         const token = `pos_${data.id}_${Date.now()}`;
@@ -402,7 +425,6 @@ const API = {
           id: data.id,
           name: data.name,
           role: data.role,
-          color: data.color,
           tenantId: data.tenant_id,
           outletId: data.outlet_id
         };
@@ -419,7 +441,7 @@ const API = {
           user: API.session.user
         };
       } catch (err) {
-        console.error('Login error:', err);
+        console.error('[POS Login] Exception:', err);
         return { 
           success: false, 
           error: err.message || 'Login gagal' 
