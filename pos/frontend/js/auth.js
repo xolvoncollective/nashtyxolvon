@@ -60,8 +60,15 @@
     
     window.onAuthReceived = function(authData) {
       if (authData && authData.outlet) {
-        API.session.tenantId = authData.user.tenantId || authData.user.tenant_id || '00000000-0000-0000-0000-000000000001';
-        API.session.outletId = authData.outlet.id || authData.outlet.outlet_id || '00000000-0000-0000-0000-000000000002';
+        // Use actual tenant ID from auth data or database default
+        API.session.tenantId = authData.user?.tenantId || authData.user?.tenant_id || 'b8fbb0a8-3c3f-4d2f-9e7a-1234567890ab';
+        // Use actual outlet ID from auth data (NO fallback to wrong ID)
+        API.session.outletId = authData.outlet.id || authData.outlet.outlet_id;
+        
+        console.log('✓ [POS Auth] Received auth from launcher:', { 
+          tenantId: API.session.tenantId, 
+          outletId: API.session.outletId 
+        });
         
         // Check if we can auto-login
         if (API.session && API.session.user && API.session.token) {
@@ -69,6 +76,9 @@
         } else {
            loadStaff();
         }
+      } else {
+        console.warn('⚠ [POS Auth] Invalid auth data received, showing outlet selection');
+        showOutletSelection();
       }
     };
 
