@@ -38,16 +38,16 @@ test.describe('NASHTY OS - Comprehensive UAT Execution', () => {
     // Open POS Application
     await page.click('.app-card.pos');
 
-    // Test PIN login with staff: Citra Kusuma (PIN: 1234)
-    await expect(page.locator('text=Citra Kusuma')).toBeVisible({ timeout: 15000 });
-    await page.click('text=Citra Kusuma');
+    // Test PIN login with staff: User 1 (PIN: 1111)
+    await expect(page.locator('text=User 1')).toBeVisible({ timeout: 15000 });
+    await page.click('text=User 1');
     
     await expect(page.locator('text=Shift Authorization')).toBeVisible();
-    await page.fill('#pinInput', '1234');
+    await page.fill('#pinInput', '1111');
     await page.click('#pinBtn');
     
     // Verify successful POS login
-    await expect(page.locator('text=Citra Kusuma').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('text=User 1').first()).toBeVisible({ timeout: 15000 });
     console.log('✅ Login successful');
   });
 

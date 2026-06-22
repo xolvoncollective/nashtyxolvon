@@ -70,10 +70,13 @@
           outletId: API.session.outletId 
         });
         
-        // Check if we can auto-login
-        if (API.session && API.session.user && API.session.token) {
+        // Check if we can auto-login (ONLY if the session is explicitly a POS kasir session)
+        if (API.session && API.session.user && API.session.token && API.session.user.userType === 'pos') {
            doLogin(API.session.user);
         } else {
+           // Clear any stray non-POS session to avoid pettycash loop
+           API.session.user = null;
+           API.session.token = null;
            loadStaff();
         }
       } else {

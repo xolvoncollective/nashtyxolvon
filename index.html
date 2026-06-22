@@ -602,7 +602,7 @@
       <form onsubmit="handleSuperadminLogin(event)">
         <div class="form-group">
           <label class="form-label">Root Identifier</label>
-          <input type="email" id="superadminUsername" class="form-input" placeholder="superadmin@nashty" required>
+          <input type="text" id="superadminUsername" class="form-input" placeholder="superadmin" required>
         </div>
         <div class="form-group">
           <label class="form-label">Root Key</label>
@@ -1007,7 +1007,7 @@
       // Check if user is superadmin to unlock settings
       const settingsCard = document.getElementById('settingsCard');
       if (settingsCard) {
-        const isSuperadmin = mainSession.user.username === 'superadmin@nashty';
+        const isSuperadmin = mainSession.user && mainSession.user.role === 'superadmin';
         if (isSuperadmin) {
           settingsCard.classList.remove('locked');
         } else {
@@ -1044,9 +1044,9 @@
       
       // Check if settings is locked (only superadmin can access)
       if (app === 'settings') {
-        const isSuperadmin = mainSession.username === 'superadmin@nashty';
+        const isSuperadmin = mainSession.user && mainSession.user.role === 'superadmin';
         if (!isSuperadmin) {
-          alert('🔒 Settings hanya bisa diakses oleh Superadmin (superadmin@nashty)');
+          alert('🔒 Settings hanya bisa diakses oleh role Superadmin');
           return;
         }
         // Open settings in new window
