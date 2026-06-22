@@ -11,6 +11,40 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+
+<!-- Enable Sound Button (shows if AudioContext not initialized) -->
+<div id="audio-unlock" style="
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #FF5A1F;
+  color: white;
+  padding: 14px 24px;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(255, 90, 31, 0.4);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  z-index: 9999;
+  display: none;
+  animation: pulse 2s infinite;
+  transition: all 0.2s;
+" onclick="unlockAudio()">
+  🔊 Enable Sound Notifications
+</div>
+
+<style>
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+#audio-unlock:hover {
+  background: #E04812;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 90, 31, 0.5);
+}
+</style>
+
 <div class="shell">
 
 <!-- ── TOPBAR ── -->
@@ -105,6 +139,31 @@
 
 <!-- Root API Client (Consolidated - replaces local api.js) -->
 <script src="../../api-client.js"></script>
+
+<!-- Test Sound Function -->
+<script>
+function playTestSound() {
+  console.log('🧪 Testing KDS sound system...');
+  
+  // Check if audio initialized
+  if (!window.audioInitialized) {
+    console.warn('⚠️ AudioContext not initialized. Initializing now...');
+    if (window.initAudioOnce) window.initAudioOnce();
+    
+    setTimeout(() => {
+      if (window.playSound) window.playSound('new');
+    }, 100);
+  } else {
+    // Play test sequence
+    if (window.playSound) {
+      window.playSound('new');
+      setTimeout(() => window.playSound('urgent'), 1000);
+      setTimeout(() => window.playSound('escalation'), 2000);
+    }
+  }
+}
+</script>
+
 <script src="js/state.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/timer.js"></script>

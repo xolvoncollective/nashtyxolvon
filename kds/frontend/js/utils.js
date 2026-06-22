@@ -28,15 +28,64 @@ function scrollToCard(id){
 }
 
 // ═══════════════════════════════════════════════════════
-// SOUND (Web Audio API)
+// SOUND (Web Audio API) - FIXED FOR BROWSER AUTOPLAY POLICY
 // ═══════════════════════════════════════════════════════
 let audioCtx = null;
-function ensureAudio(){
-  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+let audioInitialized = false;
+
+// Initialize AudioContext on first user interaction
+document.addEventListener('click', initAudioOnce, { once: true });
+document.addEventListener('touchstart', initAudioOnce, { once: true });
+
+function initAudioOnce() {
+  if (!audioInitialized) {
+    try {
+      audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      audioInitialized = true;
+      console.log('✅ KDS AudioContext initialized');
+      
+      // Play silent tone to unlock audio on iOS/Safari
+      playTone(0, 0, 0);
+      
+      // Hide "Enable Sound" button if visible
+      const unlockBtn = document.getElementById('audio-unlock');
+      if (unlockBtn) unlockBtn.style.display = 'none';
+    } catch(e) {
+      console.error('❌ Failed to initialize AudioContext:', e);
+    }
+  }
 }
+
+function ensureAudio(){
+  if(!audioCtx) {
+    try {
+      audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    } catch(e) {
+      console.error('AudioContext not available:', e);
+      return false;
+    }
+  }
+  
+  // Resume if suspended (common on mobile browsers)
+  if(audioCtx.state === 'suspended') {
+    audioCtx.resume().then(() => {
+      console.log('AudioContext resumed');
+    });
+  }
+  
+  return audioCtx.state === 'running';
+}
+
 function playTone(freq, dur, vol=0.3, when=0){
   try {
-    ensureAudio();
+    if (!ensureAudio()) {
+      console.warn('AudioContext not running');
+      return;
+    }
+    
     const osc  = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.connect(gain); gain.connect(audioCtx.destination);
@@ -46,10 +95,57 @@ function playTone(freq, dur, vol=0.3, when=0){
     gain.gain.setValueAtTime(vol, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t+dur);
     osc.start(t); osc.stop(t+dur);
-  } catch(e){}
+  } catch(e){
+    console.error('Failed to play tone:', e);
+  }
 }
+
 function playSound(type){
-  if(!CFG.soundEnabled) return;
-  if(type==='new')    { playTone(880, 0.18, 0.25); }
-  if(type==='urgent') { playTone(660, 0.12, 0.3, 0); playTone(880, 0.12, 0.3, 0.18); }
+  if(!CFG.soundEnabled) {
+    console.log('🔇 Sound disabled in config');
+    return;
+  }
+  
+  if(!audioInitialized) {
+    console.warn('⚠️ AudioContext not initialized yet. Click anywhere to enable sound.');
+    // Show "Enable Sound" button if exists
+    const unlockBtn = document.getElementById('audio-unlock');
+    if (unlockBtn) unlockBtn.style.display = 'block';
+    return;
+  }
+  
+  console.log('🔊 Playing sound:', type);
+  
+  if(type==='new')    { 
+    playTone(880, 0.18, 0.25); 
+    console.log('✅ New order sound played');
+  }
+  if(type==='urgent') { 
+    playTone(660, 0.12, 0.3, 0); 
+    playTone(880, 0.12, 0.3, 0.18); 
+    console.log('✅ Urgent sound played');
+  }
+  if(type==='escalation') {
+    playTone(1047, 0.15, 0.35, 0);
+    playTone(784, 0.15, 0.35, 0.2);
+    playTone(1047, 0.15, 0.35, 0.4);
+    console.log('✅ Escalation sound played');
+  }
 }
+
+// Manual unlock function for button
+window.unlockAudio = function() {
+  initAudioOnce();
+  // Test sound
+  setTimeout(() => {
+    if (CFG.soundEnabled) playSound('new');
+  }, 100);
+};
+
+// Show "Enable Sound" button after 3 seconds if not initialized
+setTimeout(() => {
+  if (!audioInitialized) {
+    const unlockBtn = document.getElementById('audio-unlock');
+    if (unlockBtn) unlockBtn.style.display = 'block';
+  }
+}, 3000);
