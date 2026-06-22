@@ -89,16 +89,23 @@ serve(async (req) => {
 
       // Insert order items
       if (items.length > 0) {
-        const orderItems = items.map((item: any) => ({
-          order_id: order.id,
-          product_id: item.productId,
-          product_name: item.name || item.product_name,
-          quantity: item.qty || item.quantity,
-          unit_price: item.price || item.unit_price,
-          subtotal: (item.price || item.unit_price) * (item.qty || item.quantity),
-          notes: item.notes || ''
-          // modifier_options removed - column doesn't exist in order_items table
-        }));
+        const orderItems = items.map((item: any) => {
+          // Get product name - try multiple possible fields
+          const productName = item.name || item.product_name || item.productName || 'Unknown Product';
+          const qty = item.qty || item.quantity || 1;
+          const price = item.price || item.unit_price || item.unitPrice || 0;
+          
+          return {
+            order_id: order.id,
+            product_id: item.productId || item.product_id,
+            product_name: productName,
+            quantity: qty,
+            unit_price: price,
+            subtotal: price * qty,
+            notes: item.notes || ''
+            // modifier_options removed - column doesn't exist in order_items table
+          };
+        });
 
         const { error: itemsError } = await supabase
           .from('order_items')
