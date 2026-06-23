@@ -147,6 +147,11 @@ function getDateRange(filter) {
 
   if (filter === 'Hari Ini') {
     from = to;
+  } else if (filter === 'Seminggu') {
+    // 7 days ago
+    const sevenDaysAgo = new Date(now);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    from = format(sevenDaysAgo);
   } else if (filter === 'Minggu Ini') {
     const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
     from = format(startOfWeek);
@@ -200,7 +205,7 @@ PAGES.reports = async () => {
   await loadReportData(currentReportFilter);
   setTimeout(() => renderReportTab(currentReportTab), 0);
 
-  const filters = ['Hari Ini','Minggu Ini','Bulan Ini'];
+  const filters = ['Hari Ini','Seminggu','Minggu Ini','Bulan Ini'];
   const filterBtns = filters.map(f => 
     `<button style="padding:6px 14px;font-size:12px;font-weight:600;border:none;background:${f === currentReportFilter ? 'var(--or)' : 'transparent'};color:${f === currentReportFilter ? '#fff' : 'var(--txt3)'};cursor:pointer;font-family:var(--fn)" onclick="changeReportFilter('${f}', this)">${f}</button>`
   ).join('');
@@ -213,7 +218,8 @@ PAGES.reports = async () => {
       <div class="rep-filters" style="display:flex;overflow:hidden;border-radius:8px;border:1px solid var(--brd2)">
         ${filterBtns}
       </div>
-      <button class="btn" onclick="toast('Fitur export belum tersedia')">${ico('exp')} Export</button>
+      <button class="btn btn-whatsapp-export" onclick="exportToWhatsApp()">WhatsApp</button>
+      <button class="btn" onclick="toast('Fitur export lainnya segera hadir')">${ico('exp')} Export</button>
     </div>
   </div>
 </div>
@@ -335,3 +341,202 @@ function renderCashierTab() {
     +'<div class="tbl-wrap"><table><thead><tr><th>Staf</th><th>Total Order</th><th>Net Revenue</th><th>Avg Order Value</th><th>Void / Cancelled</th></tr></thead><tbody>'+kasirHtml+'</tbody></table></div>'
     +'</div>';
 }
+
+
+// ============================================
+// WHATSAPP EXPORT FUNCTION
+// ============================================
+
+window.exportToWhatsApp = async function() {
+  if (!reportData.sales) {
+    toast('Tidak ada data untuk diexport', 'err');
+    return;
+  }
+
+  // Prepare data for WhatsApp export
+  const sum = reportData.sales.summary || {};
+  const outletName = window.API?.session?.outletName || 'Outlet';
+  
+  // Get payment breakdown (including Gojek & Shopee)
+  const payments = {
+    cash: sum.payment_cash || 0,
+    debit: sum.payment_debit || 0,
+    transfer: sum.payment_transfer || 0,
+    gojek: sum.payment_gojek || 0,
+    shopee: sum.payment_shopee || 0
+  };
+
+  // Get top products
+  const topProducts = (reportData.products || []).slice(0, 5).map(p => ({
+    name: p.product_name,
+    quantity: p.total_quantity,
+    total: p.total_sales
+  }));
+
+  // Get order types
+  const orderTypes = (reportData.sales.byOrderType || []).reduce((acc, ot) => {
+    const type = ot.order_type?.toLowerCase() || 'other';
+    if (type.includes('dine')) acc.dineIn = ot.order_count;
+    else if (type.includes('take')) acc.takeaway = ot.order_count;
+    else if (type.includes('deliv')) acc.delivery = ot.order_count;
+    return acc;
+  }, { dineIn: 0, takeaway: 0, delivery: 0 });
+
+  // Get staff performance
+  const staffPerformance = (reportData.cashiers || []).slice(0, 5).map(c => ({
+    name: c.cashier_name,
+    orders: c.total_orders,
+    total: c.total_sales
+  }));
+
+  // Prepare export data based on filter
+  let exportData, templateType;
+  
+  if (currentReportFilter === 'Hari Ini') {
+    templateType = 'daily';
+    exportData = {
+      date: new Date().toISOString(),
+      outletName,
+      grossSales: sum.gross_sales || 0,
+      totalDiscount: sum.total_discount || 0,
+      totalTax: sum.total_tax || 0,
+      netSales: sum.net_sales || 0,
+      totalOrders: sum.total_orders || 0,
+      avgOrderValue: sum.total_orders > 0 ? (sum.gross_sales / sum.total_orders) : 0,
+      payments,
+      orderTypes,
+      topProducts,
+      staffPerformance
+    };
+  } else if (currentReportFilter === 'Seminggu') {
+    templateType = 'weekly';
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    exportData = {
+      startDate: sevenDaysAgo.toISOString(),
+      endDate: new Date().toISOString(),
+      outletName,
+      grossSales: sum.gross_sales || 0,
+      netSales: sum.net_sales || 0,
+      totalOrders: sum.total_orders || 0,
+      avgPerDay: (sum.gross_sales || 0) / 7,
+      payments,
+      topProducts,
+      dailyBreakdown: reportData.sales.dailySales || []
+    };
+  } else if (currentReportFilter === 'Minggu Ini' || currentReportFilter === 'Bulan Ini') {
+    templateType = 'monthly';
+    exportData = {
+      month: new Date().toISOString(),
+      outletName,
+      grossSales: sum.gross_sales || 0,
+      netSales: sum.net_sales || 0,
+      totalOrders: sum.total_orders || 0,
+      growth: 0, // TODO: Calculate growth vs previous period
+      payments,
+      topProducts,
+      weeklyBreakdown: [] // TODO: Add weekly breakdown
+    };
+  }
+
+  // Generate WhatsApp message
+  const message = WhatsAppExporter.instance.generateMessage(exportData, templateType);
+  
+  // Show preview modal
+  WhatsAppExporter.instance.showPreview(message, `Laporan ${currentReportFilter}`);
+};
+
+// ============================================
+// ENHANCED SALES TAB WITH PAYMENT BREAKDOWN
+// ============================================
+
+// Override renderSalesTab to include payment breakdown
+const originalRenderSalesTab = renderSalesTab;
+renderSalesTab = function() {
+  if (!reportData.sales) return '<div>Memuat data...</div>';
+  const sum = reportData.sales.summary || {};
+  const gSales = sum.gross_sales || 0;
+  const nSales = sum.net_sales || 0;
+  const tOrders = sum.total_orders || 0;
+  const tRefund = sum.total_discount || 0;
+  const tax = sum.total_tax || 0;
+  const sc = sum.total_sc || 0;
+
+  // Payment breakdown
+  const payments = {
+    cash: sum.payment_cash || 0,
+    debit: sum.payment_debit || 0,
+    transfer: sum.payment_transfer || 0,
+    gojek: sum.payment_gojek || 0,
+    shopee: sum.payment_shopee || 0
+  };
+  
+  const totalPayments = Object.values(payments).reduce((a, b) => a + b, 0);
+
+  var kpiHtml='<div class="kpi-grid" style="margin-bottom:22px">'
+    +'<div class="kpi" style="--kc:var(--or)"><div class="kpi-lbl">Gross Sales</div><div class="kpi-val">'+fr(gSales).replace('Rp ','')+'</div><div class="kpi-sub">'+currentReportFilter+'</div></div>'
+    +'<div class="kpi" style="--kc:var(--gn)"><div class="kpi-lbl">Net Sales</div><div class="kpi-val">'+fr(nSales).replace('Rp ','')+'</div><div class="kpi-sub">Setelah diskon</div></div>'
+    +'<div class="kpi" style="--kc:var(--bl)"><div class="kpi-lbl">Total Transaksi</div><div class="kpi-val">'+tOrders+'</div><div class="kpi-sub">Total order lunas</div></div>'
+    +'<div class="kpi" style="--kc:var(--rd)"><div class="kpi-lbl">Total Diskon</div><div class="kpi-val">'+fr(tRefund).replace('Rp ','')+'</div><div class="kpi-sub">Nilai potongan</div></div>'
+    +'</div>';
+
+  var rows=[
+    ['Gross Sales', fr(gSales).replace('Rp ',''),false,false],
+    ['Diskon', fr(tRefund).replace('Rp ',''),false,true],
+    ['Net Sales', fr(nSales).replace('Rp ',''),true,false],
+    ['Pajak', fr(tax).replace('Rp ',''),false,false],
+    ['Service Charge', fr(sc).replace('Rp ',''),false,false],
+    ['Total Collected', fr(nSales + tax + sc).replace('Rp ',''),true,false],
+  ];
+  
+  var rowsHtml='';
+  rows.forEach(function(r){
+    var l=r[0],v=r[1],sub=r[2],neg=r[3];
+    var valDisplay=neg?'(-'+v+')':v;
+    var bold=sub;
+    var orStyle=(l==='Total Collected')?'color:var(--or);font-weight:700':'';
+    rowsHtml+='<div style="display:flex;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--brd);'+(sub?'border-top:2px solid var(--brd2);background:var(--sf2)':'')+'">'
+      +'<span style="font-size:13.5px;'+(bold?'font-weight:700;color:var(--txt)':'color:var(--txt2)')+'">'+l+'</span>'
+      +'<span style="font-size:13.5px;font-family:var(--mo);'+(orStyle||neg?'color:var(--txt3)':bold?'font-weight:700':'')+'">'+valDisplay+'</span>'
+      +'</div>';
+  });
+
+  // Payment Methods breakdown (with icons)
+  var pmHtml = '';
+  const paymentMethods = [
+    { key: 'cash', label: '💵 Cash', color: '#22C55E' },
+    { key: 'debit', label: '💳 Debit Card', color: '#3B82F6' },
+    { key: 'transfer', label: '🏦 Transfer', color: '#8B5CF6' },
+    { key: 'gojek', label: '🚗 Gojek', color: '#00AA13' },
+    { key: 'shopee', label: '🛒 Shopee', color: '#EE4D2D' }
+  ];
+  
+  paymentMethods.forEach(pm => {
+    const amount = payments[pm.key];
+    const percentage = totalPayments > 0 ? ((amount / totalPayments) * 100).toFixed(1) : 0;
+    pmHtml += `<tr>
+      <td style="display:flex;align-items:center;gap:7px">
+        <span style="width:7px;height:7px;border-radius:50%;background:${pm.color};display:inline-block"></span>
+        ${pm.label}
+      </td>
+      <td class="mono">${percentage}%</td>
+      <td class="mono bold">${fr(amount)}</td>
+    </tr>`;
+  });
+
+  const orderTypes = reportData.sales.byOrderType || [];
+  var otHtml = orderTypes.length === 0 ? '<tr><td colspan="3" style="text-align:center">Belum ada data</td></tr>' : '';
+  orderTypes.forEach(function(p, i){
+    const colors = ['#22C55E', '#3B82F6', '#F59E0B', '#A855F7'];
+    const c = colors[i % colors.length];
+    otHtml+='<tr><td style="display:flex;align-items:center;gap:7px"><span style="width:7px;height:7px;border-radius:50%;background:'+c+';display:inline-block"></span>'+(p.order_type||'Lainnya').toUpperCase()+'</td><td>'+p.order_count+'</td><td class="mono bold">'+fr(p.total_sales)+'</td></tr>';
+  });
+
+  return kpiHtml
+    +'<div class="two-col">'
+    +'<div class="card"><div class="card-h"><div class="card-t">Ringkasan Penjualan</div></div><div>'+rowsHtml+'</div></div>'
+    +'<div style="display:flex;flex-direction:column;gap:18px">'
+    +'<div class="card"><div class="card-h"><div class="card-t">💳 Payment Methods</div><div class="card-sub">Breakdown per metode pembayaran</div></div><div class="tbl-wrap"><table><thead><tr><th>Method</th><th>%</th><th>Total</th></tr></thead><tbody>'+pmHtml+'</tbody></table></div></div>'
+    +'<div class="card"><div class="card-h"><div class="card-t">Per Tipe Pesanan</div></div><div class="tbl-wrap"><table><thead><tr><th>Tipe Order</th><th>Txn</th><th>Total Revenue</th></tr></thead><tbody>'+otHtml+'</tbody></table></div></div>'
+    +'</div></div>';
+};
